@@ -427,6 +427,8 @@ export default function App() {
             savedProductIds={savedProductIds}
             onToggleSave={toggleSaveProduct}
             onSelectProduct={setInspectedProduct}
+            onSelectGuide={(slug) => setRoute({ view: 'guide', slug })}
+            onSelectArticle={(slug) => setRoute({ view: 'article', slug })}
             onBackHome={() => setRoute({ view: 'home' })}
           />
         )}
@@ -1178,7 +1180,7 @@ export default function App() {
                   }
                   className="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left"
                 >
-                  Why the Best Gifts Whisper Instead of Shout
+                  Why Thoughtful Gifts Matter More Than Expensive Ones
                 </button>
               </li>
               <li>

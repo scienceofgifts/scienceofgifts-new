@@ -10,31 +10,47 @@ import {
 export const AUTHORS: Record<string, Author> = {
   auth_clara_vance: {
     id: 'auth_clara_vance',
-    name: 'Clara Vance',
+    name: 'Clara Vance (Sample Editorial Profile)',
     role: 'Founding Editor',
-    bio: 'Clara writes about the psychology of generosity, everyday rituals, and why the smallest, most thoughtful gestures stay with us the longest.',
+    bio: 'Clara writes about everyday rituals, relationship psychology, and why the smallest, most observant gestures stay with us the longest. (Sample author profile for demonstration.)',
     avatarUrl:
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+    isSampleAuthor: true,
   },
   auth_julian_merritt: {
     id: 'auth_julian_merritt',
-    name: 'Julian Merritt',
+    name: 'Julian Merritt (Sample Editorial Profile)',
     role: 'Home & Table Editor',
-    bio: 'Julian covers independent makers, kitchen upgrades, and tactile objects that bring warmth to dinner tables and living rooms.',
+    bio: 'Julian covers independent makers, kitchen upgrades, and tactile objects that bring warmth to dinner tables and living rooms. (Sample author profile for demonstration.)',
     avatarUrl:
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+    isSampleAuthor: true,
   },
   auth_maya_lin_chen: {
     id: 'auth_maya_lin_chen',
-    name: 'Maya Chen',
+    name: 'Maya Chen (Sample Editorial Profile)',
     role: 'Family & Nostalgia Editor',
-    bio: 'Maya curates heirloom games, creative kits for curious kids, and keepsakes that turn ordinary weekends into family traditions.',
+    bio: 'Maya curates heirloom games, creative kits for curious kids, and keepsakes that turn ordinary weekends into family traditions. (Sample author profile for demonstration.)',
     avatarUrl:
       'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+    isSampleAuthor: true,
   },
 };
 
 export const CITATIONS: Record<string, ResearchCitation> = {
+  cit_flynn_adams_2009: {
+    id: 'cit_flynn_adams_2009',
+    authors: 'Flynn, F. J., & Adams, G. S.',
+    year: 2009,
+    title: 'Money can’t buy love: Asymmetric beliefs about gift price and feelings of appreciation',
+    publication: 'Journal of Experimental Social Psychology, 45(2), 404–409',
+    doiOrUrl: 'https://doi.org/10.1016/j.jesp.2008.11.003',
+    keyFinding:
+      'Across three studies examining engagement rings, birthday gifts, and iPods, gift-givers consistently assumed that spending more money would produce greater recipient appreciation, whereas recipients reported no significant link between a gift’s price and their actual feelings of gratitude.',
+    limitations:
+      'Participants were primarily North American university students and online survey respondents evaluating personal gifts among friends and romantic partners; cultural norms around monetary gift-giving may differ in formal or collectivist contexts.',
+    verificationStatus: 'verified-doi',
+  },
   cit_galak_2016: {
     id: 'cit_galak_2016',
     authors: 'Galak, J., Givi, J., & Williams, E. F.',
@@ -44,7 +60,10 @@ export const CITATIONS: Record<string, ResearchCitation> = {
     publication: 'Current Directions in Psychological Science, 25(6), 380–385',
     doiOrUrl: 'https://doi.org/10.1177/0963721416656937',
     keyFinding:
-      'Givers often optimize for the dramatic unwrapping moment, while recipients cherish gifts that remain genuinely useful and delightful months later.',
+      'Reviews empirical evidence showing a systematic temporal mismatch: givers focus heavily on the moment of exchange (unwrapping), while recipients evaluate gifts based on long-term usefulness and ease of ownership over weeks and months.',
+    limitations:
+      'As a narrative review synthesizing laboratory and recall experiments, its framework describes general tendencies rather than universal rules; certain milestone occasions still benefit from symbolic spectacle.',
+    verificationStatus: 'verified-doi',
   },
   cit_yang_urminsky_2018: {
     id: 'cit_yang_urminsky_2018',
@@ -55,7 +74,10 @@ export const CITATIONS: Record<string, ResearchCitation> = {
     publication: 'Psychological Science, 29(8), 1221–1233',
     doiOrUrl: 'https://doi.org/10.1177/0956797618761373',
     keyFinding:
-      'Choosing a slightly more luxurious version of something a person uses every day consistently creates deeper gratitude than a high-novelty gag or gadget.',
+      'Demonstrates that givers gravitate toward gifts that trigger an immediate visible reaction ("smile-seeking"), leading them to undervalue quieter, higher-satisfaction upgrades to everyday routines when regalos are exchanged in person.',
+    limitations:
+      'The "smile-seeking" preference diminishes when givers mail a gift rather than handing it over in person, indicating that social-interaction anticipation drives much of the effect.',
+    verificationStatus: 'verified-doi',
   },
   cit_chan_mogilner_2017: {
     id: 'cit_chan_mogilner_2017',
@@ -65,7 +87,10 @@ export const CITATIONS: Record<string, ResearchCitation> = {
     publication: 'Journal of Consumer Research, 43(6), 913–931',
     doiOrUrl: 'https://doi.org/10.1093/jcr/ucw067',
     keyFinding:
-      'Gifts that invite shared experiences—like a board game, a matcha ceremony set, or a tasting flight—bring giver and recipient closer together.',
+      'Finds that gifts centered on lived experiences—or material items that evoke shared rituals and emotional moments—strengthen perceived relationship closeness more than purely static material possessions, regardless of whether giver and receiver consume the gift together.',
+    limitations:
+      'Effectiveness depends on the emotion evoked during the experience; poorly matched experiential gifts that create scheduling stress do not automatically improve closeness.',
+    verificationStatus: 'verified-doi',
   },
   cit_givi_galak_2017: {
     id: 'cit_givi_galak_2017',
@@ -75,7 +100,10 @@ export const CITATIONS: Record<string, ResearchCitation> = {
     publication: 'Journal of Consumer Psychology, 27(4), 473–479',
     doiOrUrl: 'https://doi.org/10.1016/j.jcps.2017.06.002',
     keyFinding:
-      'Givers underestimate how much friends and partners treasure sentimental, personalized gifts—often shying away when they should lean in.',
+      'When choosing between a superficially appealing, moderately priced store item and a deeply sentimental gift (such as a framed photograph or personal note), givers choose the sentimental option far less often than recipients actually prefer due to fear of risk.',
+    limitations:
+      'Sentimental gifts require an existing base of shared memories; the study examined established friendships and romantic partnerships rather than casual acquaintances or workplace exchanges.',
+    verificationStatus: 'verified-doi',
   },
 };
 
@@ -847,7 +875,7 @@ export const GIFT_GUIDES: GiftGuide[] = [
       },
     ],
     relatedGuideIds: ['guide_hosts_and_gatherings_2026'],
-    relatedArticleIds: ['art_smile_seeking_trap', 'art_host_etiquette'],
+    relatedArticleIds: ['art_thoughtful_over_expensive', 'art_host_etiquette'],
     citationIds: ['cit_galak_2016', 'cit_yang_urminsky_2018', 'cit_givi_galak_2017'],
   },
   {
@@ -975,101 +1003,232 @@ export const GIFT_GUIDES: GiftGuide[] = [
       },
     ],
     relatedGuideIds: ['guide_little_things_2026'],
-    relatedArticleIds: ['art_host_etiquette', 'art_smile_seeking_trap'],
+    relatedArticleIds: ['art_host_etiquette', 'art_thoughtful_over_expensive'],
     citationIds: ['cit_chan_mogilner_2017', 'cit_galak_2016'],
   },
 ];
 
 export const ARTICLES: Article[] = [
   {
-    id: 'art_smile_seeking_trap',
-    slug: 'why-the-best-gifts-whisper-instead-of-shout',
-    title: 'Why the Best Gifts Whisper Instead of Shout: The Case for “Everyday Luxury”',
+    id: 'art_thoughtful_over_expensive',
+    slug: 'why-thoughtful-gifts-matter-more-than-expensive-ones',
+    title: 'Why Thoughtful Gifts Matter More Than Expensive Ones',
     subtitle:
-      'Psychologists call it the Smile-Seeking Trap: we shop for the ten-second gasp when the ribbon comes off, when we should be shopping for Tuesday morning at 7:30 a.m.',
+      'We often treat a higher price tag as an insurance policy against getting it wrong. Behavioral psychology—and anyone who has ever treasured a $22 kitchen tool—tells a very different story.',
     seo: {
-      seoTitle: 'The Psychology of Great Gifts: Why Everyday Upgrades Win | Science of Gifts',
+      seoTitle: 'Why Thoughtful Gifts Matter More Than Expensive Ones | Science of Gifts',
       metaDescription:
-        'Discover why behavioral psychologists say practical, luxurious upgrades to daily habits outlast flashy novelty gifts every time.',
-      canonicalPath: '/articles/why-the-best-gifts-whisper-instead-of-shout',
+        'Explore the psychology of why gift price rarely predicts gratitude, how to avoid the "smile-seeking" trap, and practical ways to choose gifts that feel personal.',
+      canonicalPath: '/articles/why-thoughtful-gifts-matter-more-than-expensive-ones',
       ogType: 'article',
       schemaType: 'Article',
     },
     category: 'The Psychology of Giving',
     publishedAt: '2026-10-22',
-    readTimeMinutes: 6,
+    updatedAt: '2026-10-27',
     authorId: 'auth_clara_vance',
     heroImageUrl:
       'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80',
-    heroAlt: 'Warmly wrapped gifts with natural linen ribbon and sunlit coffee mug on a wooden table',
+    heroAlt:
+      'Warmly wrapped linen gift parcels with natural ribbon, botanical sprigs, and a morning coffee cup on a wooden table',
     heroCaption:
-      'The best gifts rarely shout for attention at the party—instead, they quietly become part of someone’s favorite daily routine.',
+      'When we shift our focus from what a gift costs at checkout to how it lives in someone’s Tuesday morning routine, choosing well becomes much simpler.',
+    summaryTitle: 'The Short Version',
     executiveSummary: [
-      'When we shop for someone we love, we naturally picture the exact second they open the box—leading us to pick dramatic, quirky, or ultra-specific novelty items (Galak et al., 2016).',
-      'Recipients experience gifts on a completely different timeline: they value how warm, useful, and comforting an object feels over the next hundred days.',
-      'The simplest formula for an unforgettable gift is “Familiar Habit + 30% More Delight”—upgrading something they already love but wouldn’t splurge on for themselves.',
+      'Gift-givers routinely assume that spending more money signals deeper care, yet empirical studies show recipients feel virtually the same appreciation for modest, well-chosen gifts as they do for expensive splurges.',
+      'We get tripped up by the "unwrapping moment"—shopping for a ten-second gasp at the party rather than the quiet satisfaction of the next hundred days.',
+      'The most memorable gifts do one of three things well: they upgrade a humble daily habit, create a shared experience, or capture a specific shared memory.',
     ],
     sections: [
       {
-        id: 'the-unwrapping-illusion',
-        heading: '01. The Ten-Second Unwrapping Illusion',
+        id: 'the-price-tag-illusion',
+        shortNavTitle: 'The Price Tag Illusion',
+        heading: '1. The Price Tag Illusion: Why We Confuse Receipts With Affection',
         paragraphs: [
-          'Think back to the favorite gift you have received in the last five years. Chances are, it wasn’t a complicated gadget or a theatrical novelty item. More likely, it was a remarkably soft robe, a kitchen tool you reach for every weekend, a framed memory, or a jar of something delicious that turned an ordinary meal into a celebration.',
-          'In behavioral studies led by Jeff Galak and Adelle Yang, researchers found a fascinating blind spot in human generosity: givers are magnetized by the “unwrapping moment,” while receivers care about every moment that comes *after* the wrapping paper is recycled.',
+          'Stand in any department store during the second week of December and you can watch a familiar human drama unfold. A shopper picks up a charming $24 ceramic butter crock—the exact shade of coastal blue their sister loves—hesitates for three seconds, and puts it back. Why? Because for a milestone birthday or holiday, $24 feels dangerously modest. Instead, they walk over to the luxury display and spend $140 on a generic cashmere scarf in a neutral gray that offends no one and delights no one.',
+          'When we are nervous about whether a gift is "good enough," we instinctively reach for our wallets as a substitute for certainty. In a classic series of experiments examining everything from birthday presents to engagement rings, social psychologists Francis Flynn and Gabrielle Adams found that gift-givers consistently expected a positive correlation between what they spent and how appreciated the gift would be [cite:cit_flynn_adams_2009].',
+          'Recipients, however, saw the exchange through an entirely different lens. Across all three studies, the actual price of the gift had no meaningful effect on how grateful the receiver felt [cite:cit_flynn_adams_2009]. Once a gift crossed the basic threshold of appropriateness, an extra hundred dollars bought zero extra warmth.',
+        ],
+        subSections: [
+          {
+            id: 'why-givers-misread-price',
+            subheading: 'Why Givers Overvalue the Receipt',
+            paragraphs: [
+              'When you are the one buying the present, the price tag is the most salient number in the room. You know exactly what you sacrificed to buy it. Your recipient, mercifully, does not see your credit card statement—they only see whether the object in their hands feels like it belongs in their life.',
+            ],
+            bulletList: {
+              intro: 'Three signals that matter far more to a recipient than the price:',
+              items: [
+                'Specificity: Does this reflect a conversation we actually had three months ago?',
+                'Ease of integration: Does it fit effortlessly into their kitchen, desk, or routine without demanding a lifestyle overhaul?',
+                'Tactile warmth: Does it feel pleasant to hold, use, or share on an ordinary weekday?',
+              ],
+            },
+          },
+        ],
+        callout: {
+          kicker: 'Key Takeaway',
+          title: 'The Receipt Stays in Your Pocket',
+          body: 'A higher budget can buy finer materials, but it cannot buy relevance. A $22 set of letterpress recipe cards with two family favorites already written in your handwriting will outlast a $150 luxury candle every single time.',
+          tone: 'mint',
+        },
+      },
+      {
+        id: 'the-unwrapping-trap',
+        shortNavTitle: 'The Ten-Second Trap',
+        heading: '2. The Ten-Second Unwrapping Trap',
+        paragraphs: [
+          'If price isn’t the secret to a memorable gift, why do well-meaning shoppers still miss the mark? Consumer researchers Jeff Galak, Julian Givi, and Elanor Williams point to a timing mismatch at the heart of every exchange: givers fixate on the moment the ribbon comes off, while recipients care about the months of ownership that follow [cite:cit_galak_2016].',
+          'Behavioral scientists Adelle Yang and Oleg Urminsky call this the "Smile-Seeking Hypothesis" [cite:cit_yang_urminsky_2018]. Because we hand gifts over face-to-face, we crave the immediate reward of a wide-eyed laugh or theatrical gasp. That impulse nudges us toward flashy, high-novelty items—an elaborate molecular cocktail kit, a novelty appliance, or an overly clever inside joke—over quieter, genuinely useful upgrades [cite:cit_yang_urminsky_2018].',
+          'Think back to the best present you have received in the past five years. Chances are, it did not make you gasp across a crowded living room. More likely, it was something you now reach for at 7:30 a.m. on a rainy Tuesday without even thinking about it.',
         ],
         pullQuote: {
           text: 'A truly great gift doesn’t ask the recipient to invent a brand-new personality. It takes a quiet ritual they already love and makes it feel cherished.',
           attribution: 'Clara Vance, Founding Editor',
         },
-        expandableNote: {
-          title: 'Behind the Research: The Smile-Seeking Hypothesis (Yang & Urminsky, 2018)',
-          methodologyDetail:
-            'Across six experiments published in Psychological Science, researchers demonstrated that gift-givers prioritize immediate facial expressions ("smile-seeking") over long-term recipient satisfaction. When givers are reminded to picture the recipient using the gift three months later, their choices shift dramatically toward tactile quality and everyday utility.',
+        contextualProducts: {
+          heading: 'Quiet Everyday Upgrades Under $50',
+          editorialContext:
+            'Instead of shopping for theatrical unwrapping drama, look for humble daily objects elevated through craft and material warmth. (Sample products with placeholder links for demonstration.)',
+          productIds: ['prod_french_butter_crock_12', 'prod_fluted_bedside_carafe_09'],
         },
-        recommendedProductIds: ['prod_cloud_waffle_robe_02', 'prod_fluted_bedside_carafe_09'],
       },
       {
-        id: 'sentimental-courage',
-        heading: '02. Why You Should Never Shy Away From Sentimental Gifts',
+        id: 'rituals-and-sentimental-courage',
+        shortNavTitle: 'Rituals & Sentimental Courage',
+        heading: '3. Shared Rituals and the Courage to Be Sentimental',
         paragraphs: [
-          'Another common mistake? Talking ourselves out of a heartfelt, personal gift at the last minute and buying a safe gift card instead. In research by Julian Givi and Jeff Galak (2017), givers consistently underestimated how deeply friends and partners wanted sentimental keepsakes.',
-          'Whether it’s a five-year memory book with a handwritten note on page one or a custom star chart marking the night you met, leaning into emotional warmth is almost always the right call.',
+          'When we look at the gifts people keep for a decade, they almost always fall into two categories: objects that anchor a shared experience, and keepsakes with unabashed emotional meaning.',
+          'In research on relationship closeness, Cindy Chan and Cassie Mogilner demonstrated that experiential gifts—or physical items that invite recurring shared rituals—connect giver and receiver far more deeply than static possessions [cite:cit_chan_mogilner_2017]. Crucially, this holds true even when the giver isn’t physically present when the gift is used [cite:cit_chan_mogilner_2017]. When you give a friend an artisan chili-crisp and honey tasting flight for their Friday pizza nights, or a stoneware matcha bowl for their afternoon break, the feeling of that ritual becomes linked to your friendship.',
         ],
-        recommendedProductIds: ['prod_custom_star_map_04', 'prod_five_year_memory_book_08'],
+        subSections: [
+          {
+            id: 'overcoming-sentimental-hesitation',
+            subheading: 'Why We Talk Ourselves Out of Our Best Ideas',
+            paragraphs: [
+              'There is one more hurdle worth naming: our fear of being too earnest. In studies by Julian Givi and Jeff Galak, givers were asked to choose between a safe, superficially trendy store item and a personal, sentimental gift for a close friend or partner [cite:cit_givi_galak_2017]. Givers repeatedly shied away from the sentimental option because it felt risky—yet recipients overwhelmingly wished they had chosen it [cite:cit_givi_galak_2017].',
+              'Combining this insight with Flynn and Adams’s findings on gift price [cite:cit_flynn_adams_2009] reveals a liberating truth: you can spend less money and create far more joy simply by leaning into personal meaning.',
+            ],
+          },
+        ],
+        expandableAdvice: {
+          id: 'advice-relationship-playbook',
+          title: 'Practical Guide: How to Choose a Thoughtful Gift for 4 Common Relationships',
+          summaryPreview:
+            'Concrete ways to replace high-price guesswork with personal specificity for partners, parents, close friends, and hosts.',
+          items: [
+            {
+              label: 'For a Partner or Spouse',
+              detail:
+                'Notice the tiny daily friction points they complain about once and forget—a cold bathrobe, a bedside water glass that collects dust, or a phone timer that interrupts their reading—and solve it with a tactile, lasting version.',
+            },
+            {
+              label: 'For Parents Who "Don’t Need Anything"',
+              detail:
+                'Avoid adding permanent shelf clutter. Choose high-craft consumables (like small-batch apiary honey or pure beeswax tapers) paired with a specific note about a memory you share.',
+            },
+            {
+              label: 'For a Close Friend',
+              detail:
+                'Lean into shared history [cite:cit_givi_galak_2017]: a five-year "One Line a Day" journal with a note written on the date of your favorite trip together, or recipe cards started with two dishes you have cooked for each other.',
+            },
+            {
+              label: 'For a Dinner Host or Colleague',
+              detail:
+                'Follow the "Tomorrow Morning Rule": give something self-contained that requires zero work during the party and elevates their next morning.',
+            },
+          ],
+        },
+        contextualProducts: {
+          heading: 'Personal & Sentimental Keepsakes That Never Feel Generic',
+          editorialContext:
+            'Modestly priced gifts that invite a handwritten inscription or personal memory. (Sample products with placeholder links for demonstration.)',
+          productIds: ['prod_letterpress_recipe_cards_11', 'prod_five_year_memory_book_08'],
+        },
+      },
+      {
+        id: 'practical-framework',
+        shortNavTitle: 'A Practical Framework',
+        heading: '4. The “Tuesday Morning Test”: How to Shop With Less Stress',
+        paragraphs: [
+          'The next time you feel tempted to solve a gift-giving dilemma by doubling your budget, pause and run your idea through the Tuesday Morning Test: picture the recipient six weeks after the holiday or birthday, at 8:00 a.m. on an ordinary Tuesday [cite:cit_galak_2016].',
+          'Where is the gift living? Is it tucked in the back of a hallway closet because it requires twelve attachments and a user manual, or is it sitting on their kitchen counter making their morning toast a little nicer? When you optimize for Tuesday morning instead of the ten seconds of unwrapping, you stop paying a premium for novelty—and start giving things people genuinely love.',
+        ],
+        expandableAdvice: {
+          id: 'advice-five-questions',
+          title: 'Checklist: 5 Questions to Ask Before You Head to Checkout',
+          summaryPreview:
+            'Use this quick five-point sanity check whenever you are torn between two gift ideas.',
+          items: [
+            {
+              label: '1. Am I buying this for their 10-second reaction or their 100-day routine?',
+              detail:
+                'If the entire appeal of the gift is the laugh it gets when unwrapped, it is probably a "smile-seeking" trap [cite:cit_yang_urminsky_2018].',
+            },
+            {
+              label: '2. Does this upgrade something they already do every week?',
+              detail:
+                'Upgrading an existing habit (coffee, tea, reading, cooking, gardening) requires zero behavior change from the recipient.',
+            },
+            {
+              label: '3. Does this create an unintended chore?',
+              detail:
+                'Avoid gifts that require expensive proprietary refills, complicated assembly, or immediate kitchen prep at a dinner party.',
+            },
+            {
+              label: '4. Am I using a higher price tag to hide a lack of specificity?',
+              detail:
+                'Remember that recipients do not calibrate their gratitude to the receipt [cite:cit_flynn_adams_2009]. A $25 item that proves you listened beats a $120 generic fallback.',
+            },
+            {
+              label: '5. Can I add a two-sentence note explaining why I thought of them?',
+              detail:
+                'Naming the exact reason you chose the object ("For your Sunday sourdough mornings") bridges the gap between object and relationship [cite:cit_chan_mogilner_2017].',
+            },
+          ],
+        },
       },
     ],
     comparisonTable: {
-      title: 'How Givers vs. Recipients Actually Experience a Gift',
+      title: 'Expensive Default Gifts vs. Thoughtful Everyday Upgrades',
       caption:
-        'A quick guide to avoiding common gift-shopping blind spots, adapted from consumer psychology literature.',
-      headers: ['What We’re Tempted to Buy', 'What Recipients Secretly Prefer', 'Why It Works Better'],
+        'How shifting from price-driven shopping to habit-driven observation changes the recipient’s experience.',
+      headers: [
+        'Shopping Scenario',
+        'Expensive Generic Default',
+        'Thoughtful Everyday Alternative',
+        'Why the Thoughtful Option Wins',
+      ],
       rows: [
         {
-          dimension: 'The Big Unwrapping Surprise',
-          noveltyGift: 'A complex single-purpose gadget or inside joke',
-          ritualObject: 'An elevated version of something they use daily',
-          empiricalEffect: 'Every use reminds them of your thoughtfulness',
+          dimension: 'Housewarming for a Close Friend',
+          noveltyGift: '$130 Designer Crystal Decanter (rarely used)',
+          ritualObject: '$24 Stoneware Butter Crock + Local Bakery Loaf',
+          empiricalEffect: 'Integrates into daily breakfast rather than collecting cabinet dust [1, 2]',
         },
         {
-          dimension: 'For Someone With a Full House',
-          noveltyGift: 'Another decorative knick-knack for the shelf',
-          ritualObject: 'Artisan consumables (chili crisp, honey, ceremonial tea)',
-          empiricalEffect: 'Zero clutter anxiety and immediate sensory joy',
+          dimension: 'Parent Who "Has Everything"',
+          noveltyGift: '$150 Multi-Step Countertop Gadget',
+          ritualObject: '$38 Small-Batch Chili Crisp & Honey Flight + Handwritten Note',
+          empiricalEffect: 'Delivers immediate sensory joy with zero storage burden [2, 4]',
         },
         {
-          dimension: 'For Close Friends & Partners',
-          noveltyGift: 'A "safe" generic store voucher',
-          ritualObject: 'A personal keepsake or shared tabletop game',
-          empiricalEffect: 'Strengthens emotional closeness (Chan & Mogilner, 2017)',
+          dimension: 'Milestone Anniversary or Birthday',
+          noveltyGift: '$120 Generic Luxury Department Store Voucher',
+          ritualObject: '$68 Custom Night Sky Print or $28 Five-Year Memory Journal',
+          empiricalEffect: 'Honors shared history and emotional closeness [1, 5]',
         },
       ],
     },
     citationIds: [
+      'cit_flynn_adams_2009',
       'cit_galak_2016',
       'cit_yang_urminsky_2018',
       'cit_chan_mogilner_2017',
       'cit_givi_galak_2017',
     ],
+    relatedGuideIds: ['guide_little_things_2026', 'guide_hosts_and_gatherings_2026'],
+    relatedArticleIds: ['art_host_etiquette'],
   },
   {
     id: 'art_host_etiquette',
@@ -1087,13 +1246,14 @@ export const ARTICLES: Article[] = [
     },
     category: 'Modern Etiquette',
     publishedAt: '2026-10-16',
-    readTimeMinutes: 4,
+    updatedAt: '2026-10-25',
     authorId: 'auth_julian_merritt',
     heroImageUrl:
       'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=1200&q=80',
     heroAlt: 'Friends toasting around a warm dinner table with small plates and candlelight',
     heroCaption:
       'The best host gifts ask nothing of tonight’s dinner party and wait quietly to delight your host tomorrow morning.',
+    summaryTitle: 'The Short Version',
     executiveSummary: [
       'Handing a host wrapped flower stems at 7:00 p.m. forces them to abandon the stove, hunt for a clean vase, and trim stems while guests are arriving.',
       'Follow the “Tomorrow Morning Principle”: bring a self-contained treat—like infused honey, a morning matcha set, or a potted windowsill herb kit—that requires zero prep tonight.',
@@ -1101,18 +1261,26 @@ export const ARTICLES: Article[] = [
     sections: [
       {
         id: 'the-tomorrow-morning-rule',
-        heading: '01. The Tomorrow Morning Principle',
+        shortNavTitle: 'The Tomorrow Morning Principle',
+        heading: '1. The Tomorrow Morning Principle',
         paragraphs: [
-          'The ten minutes after guests arrive are the busiest moment of any dinner party. When you hand over a gift that requires immediate refrigeration, reheating, or a vase, your generosity accidentally becomes a chore.',
-          'Instead, hand your host something wrapped with a quick verbal permission slip: “Don’t open this tonight—it’s for your Sunday morning breakfast!”',
+          'The ten minutes after guests arrive are the busiest moment of any dinner party. When you hand over a gift that requires immediate refrigeration, reheating, or a vase, your generosity accidentally becomes a chore [cite:cit_galak_2016].',
+          'Instead, hand your host something wrapped with a quick verbal permission slip: “Don’t open this tonight—it’s for your Sunday morning breakfast!” Gifts that foster a relaxed morning ritual strengthen warm feelings toward the giver long after the dishes are put away [cite:cit_chan_mogilner_2017].',
         ],
         pullQuote: {
           text: 'The most gracious host gift is one that takes care of your host the morning after the party.',
           attribution: 'Julian Merritt, Home & Table Editor',
         },
-        recommendedProductIds: ['prod_chili_honey_flight_01', 'prod_terracotta_herb_kit_06'],
+        contextualProducts: {
+          heading: 'Effortless Morning-After Host Gifts',
+          editorialContext:
+            'Self-contained treats that never require a vase or oven space during the party. (Sample products with placeholder links.)',
+          productIds: ['prod_chili_honey_flight_01', 'prod_terracotta_herb_kit_06'],
+        },
       },
     ],
     citationIds: ['cit_galak_2016', 'cit_chan_mogilner_2017'],
+    relatedGuideIds: ['guide_hosts_and_gatherings_2026', 'guide_little_things_2026'],
+    relatedArticleIds: ['art_thoughtful_over_expensive'],
   },
 ];

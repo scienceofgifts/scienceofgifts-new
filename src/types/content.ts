@@ -42,6 +42,7 @@ export interface Author {
   role: string;
   bio: string;
   avatarUrl: string;
+  isSampleAuthor?: boolean;
 }
 
 export interface ResearchCitation {
@@ -52,6 +53,8 @@ export interface ResearchCitation {
   publication: string;
   doiOrUrl: string;
   keyFinding: string;
+  limitations?: string;
+  verificationStatus?: 'verified-doi' | 'sample-fixture';
 }
 
 export interface ProductImage {
@@ -67,7 +70,7 @@ export interface Product {
   slug: string;
   title: string;
   subtitle: string;
-  vendor: string; // Clearly treated as sample/demo maker in preview
+  vendor: string;
   price: number;
   currency: 'USD';
   budgetTier: 'under-50' | '50-to-100' | '100-plus';
@@ -120,7 +123,7 @@ export interface GuideEditorsPick {
 
 export interface GuideQuickPick {
   id: string;
-  label: string; // e.g., "Best Overall", "Best Under $25", "Best for a Close Friend"
+  label: string;
   productId: string;
   reason: string;
   targetSectionId: string;
@@ -162,34 +165,74 @@ export interface GiftGuide {
   citationIds: string[];
 }
 
+export interface ArticleSubSection {
+  id: string;
+  subheading: string; // H3
+  paragraphs: string[];
+  bulletList?: {
+    intro?: string;
+    items: string[];
+  };
+}
+
+export interface ArticleCallout {
+  kicker?: string;
+  title: string;
+  body: string;
+  tone?: 'mint' | 'blue' | 'butter' | 'sand';
+}
+
+export interface ArticleExpandableAdvice {
+  id: string;
+  title: string;
+  summaryPreview: string;
+  items: {
+    label: string;
+    detail: string;
+  }[];
+}
+
+export interface ArticleContextualProducts {
+  heading: string;
+  editorialContext: string;
+  productIds: string[];
+}
+
 export interface ArticleSection {
   id: string;
-  heading: string;
-  paragraphs: string[];
+  shortNavTitle?: string;
+  heading: string; // H2
+  paragraphs: string[]; // Supports inline [cite:cit_id] markers
+  subSections?: ArticleSubSection[]; // H3 hierarchy
   pullQuote?: {
     text: string;
     attribution: string;
   };
+  callout?: ArticleCallout;
   expandableNote?: {
     title: string;
     methodologyDetail: string;
   };
+  expandableAdvice?: ArticleExpandableAdvice;
+  contextualProducts?: ArticleContextualProducts;
   recommendedProductIds?: string[];
 }
 
 export interface Article {
   id: string;
   slug: string;
-  title: string;
-  subtitle: string;
+  title: string; // On-page H1
+  subtitle: string; // Dek
   seo: SEOConfig;
   category: string;
   publishedAt: string;
-  readTimeMinutes: number;
+  updatedAt?: string;
+  readTimeMinutes?: number; // Calculated dynamically from actual content if omitted or overridden
   authorId: string;
   heroImageUrl: string;
   heroAlt: string;
   heroCaption: string;
+  summaryTitle?: string;
   executiveSummary: string[];
   sections: ArticleSection[];
   comparisonTable?: {
@@ -204,6 +247,8 @@ export interface Article {
     }[];
   };
   citationIds: string[];
+  relatedGuideIds?: string[];
+  relatedArticleIds?: string[];
 }
 
 export interface RecipientSpotlight {

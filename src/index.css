@@ -5,11 +5,20 @@
     --font-serif: 'Fraunces', Georgia, serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
+    --color-page-bg: #FAF8F3;
+    --color-ref-card-bg: #FFFFFF;
+    --color-ref-card-border: #D9DFE2;
+    --color-text-primary: #1B3D5F;
+    --color-text-body: #294B68;
+    --color-text-secondary: #405B70;
+    --color-mint-soft: #E5F5EE;
+    --color-control-selected-bg: #1B3D5F;
+    --color-control-selected-text: #FFFFFF;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #FAF7F2;
+    background-color: #FAF8F3;
     color: #1B3D5F;
     overflow-x: hidden;
   }

@@ -5,9 +5,97 @@ import {
   GIFT_GUIDES,
   PRODUCTS,
 } from '../data/catalog';
-import { Article, GiftGuide, ValidationIssue } from '../types/content';
+import {
+  Article,
+  Author,
+  GiftGuide,
+  Product,
+  ResearchCitation,
+  ValidationIssue,
+} from '../types/content';
+
+export interface CatalogDataOverride {
+  products?: Record<string, Product>;
+  citations?: Record<string, ResearchCitation>;
+  authors?: Record<string, Author>;
+  guides?: GiftGuide[];
+  articles?: Article[];
+}
 
 const SITE_ORIGIN = 'https://scienceofgifts.com';
+
+const INLINE_CITE_REGEX = /\[cite:([a-zA-Z0-9_]+)\]/g;
+
+export function extractInlineCitationIds(text: string): string[] {
+  const matches: string[] = [];
+  let match: RegExpExecArray | null;
+  const regex = new RegExp(INLINE_CITE_REGEX.source, 'g');
+  while ((match = regex.exec(text)) !== null) {
+    matches.push(match[1]);
+  }
+  return matches;
+}
+
+export function stripInlineCitationTokens(text: string): string {
+  return text.replace(INLINE_CITE_REGEX, '');
+}
+
+export function calculateArticleWordCount(article: Article): number {
+  const chunks: string[] = [
+    article.title,
+    article.subtitle,
+    ...article.executiveSummary,
+  ];
+
+  for (const sec of article.sections) {
+    chunks.push(sec.heading, ...sec.paragraphs);
+    if (sec.pullQuote) {
+      chunks.push(sec.pullQuote.text, sec.pullQuote.attribution);
+    }
+    if (sec.callout) {
+      chunks.push(sec.callout.title, sec.callout.body);
+    }
+    if (sec.expandableNote) {
+      chunks.push(sec.expandableNote.title, sec.expandableNote.methodologyDetail);
+    }
+    if (sec.expandableAdvice) {
+      chunks.push(
+        sec.expandableAdvice.title,
+        sec.expandableAdvice.summaryPreview,
+        ...sec.expandableAdvice.items.map((i) => `${i.label} ${i.detail}`)
+      );
+    }
+    for (const sub of sec.subSections ?? []) {
+      chunks.push(sub.subheading, ...sub.paragraphs);
+      if (sub.bulletList) {
+        if (sub.bulletList.intro) chunks.push(sub.bulletList.intro);
+        chunks.push(...sub.bulletList.items);
+      }
+    }
+  }
+
+  if (article.comparisonTable) {
+    chunks.push(
+      article.comparisonTable.title,
+      article.comparisonTable.caption,
+      ...article.comparisonTable.rows.map(
+        (r) => `${r.dimension} ${r.noveltyGift} ${r.ritualObject} ${r.empiricalEffect}`
+      )
+    );
+  }
+
+  const cleanText = stripInlineCitationTokens(chunks.join(' '));
+  const words = cleanText
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  return words.length;
+}
+
+export function calculateArticleReadingTime(article: Article): number {
+  const words = calculateArticleWordCount(article);
+  return Math.max(1, Math.ceil(words / 210));
+}
 
 export function buildWebsiteJsonLd() {
   return {
@@ -25,38 +113,89 @@ export function buildWebsiteJsonLd() {
   };
 }
 
-export function buildArticleJsonLd(article: Article) {
-  const author = AUTHORS[article.authorId];
+export function buildArticleJsonLd(
+  article: Article,
+  catalog?: CatalogDataOverride
+) {
+  const authorsMap = catalog?.authors ?? AUTHORS;
+  const citationsMap = catalog?.citations ?? CITATIONS;
+  const author = authorsMap[article.authorId];
+  const wordCount = calculateArticleWordCount(article);
+  const readMinutes = calculateArticleReadingTime(article);
+
   const citations = article.citationIds
-    .map((id) => CITATIONS[id])
+    .map((id) => citationsMap[id])
     .filter(Boolean)
-    .map((c) => `${c.authors} (${c.year}). ${c.title}. ${c.publication}.`);
+    .map((c) => ({
+      '@type': 'ScholarlyArticle',
+      headline: c.title,
+      author: c.authors,
+      datePublished: String(c.year),
+      isPartOf: c.publication,
+      url: c.doiOrUrl,
+    }));
 
   return {
     '@context': 'https://schema.org',
-    '@type': 'Article',
-    headline: article.seo.seoTitle,
-    alternativeHeadline: article.title,
-    description: article.seo.metaDescription,
-    datePublished: article.publishedAt,
-    dateModified: article.publishedAt,
-    mainEntityOfPage: `${SITE_ORIGIN}${article.seo.canonicalPath}`,
-    author: {
-      '@type': 'Person',
-      name: author?.name ?? 'Science of Gifts Editorial',
-      jobTitle: author?.role,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'Science of Gifts',
-      url: SITE_ORIGIN,
-    },
-    citation: citations,
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${SITE_ORIGIN}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Stories',
+            item: `${SITE_ORIGIN}/articles`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: article.title,
+            item: `${SITE_ORIGIN}${article.seo.canonicalPath}`,
+          },
+        ],
+      },
+      {
+        '@type': 'Article',
+        headline: article.title,
+        name: article.seo.seoTitle,
+        description: article.seo.metaDescription,
+        articleSection: article.category,
+        datePublished: article.publishedAt,
+        dateModified: article.updatedAt ?? article.publishedAt,
+        wordCount,
+        timeRequired: `PT${readMinutes}M`,
+        mainEntityOfPage: `${SITE_ORIGIN}${article.seo.canonicalPath}`,
+        image: article.heroImageUrl,
+        author: {
+          '@type': 'Person',
+          name: author?.name ?? 'Science of Gifts Editorial',
+          jobTitle: author?.role,
+        },
+        publisher: {
+          '@type': 'Organization',
+          name: 'Science of Gifts',
+          url: SITE_ORIGIN,
+        },
+        citation: citations,
+      },
+    ],
   };
 }
 
-export function buildGiftGuideJsonLd(guide: GiftGuide) {
-  const author = AUTHORS[guide.authorId];
+export function buildGiftGuideJsonLd(
+  guide: GiftGuide,
+  catalog?: CatalogDataOverride
+) {
+  const authorsMap = catalog?.authors ?? AUTHORS;
+  const productsMap = catalog?.products ?? PRODUCTS;
+  const author = authorsMap[guide.authorId];
   const allRecs = guide.sections.flatMap((s) => s.recommendations);
 
   return {
@@ -96,7 +235,7 @@ export function buildGiftGuideJsonLd(guide: GiftGuide) {
           name: author?.name ?? 'Science of Gifts Editorial',
         },
         itemListElement: allRecs.map((rec, index) => {
-          const product = PRODUCTS[rec.productId];
+          const product = productsMap[rec.productId];
           return {
             '@type': 'ListItem',
             position: index + 1,
@@ -148,16 +287,21 @@ export function syncHeadSeoMetadata(config: {
   );
 }
 
-export function validateCatalogIntegrity(): {
+export function validateCatalogIntegrity(catalog?: CatalogDataOverride): {
   passed: boolean;
   checkedEntities: number;
   canonicalProductsCount: number;
   issues: ValidationIssue[];
 } {
+  const productsMap = catalog?.products ?? PRODUCTS;
+  const citationsMap = catalog?.citations ?? CITATIONS;
+  const guidesList = catalog?.guides ?? GIFT_GUIDES;
+  const articlesList = catalog?.articles ?? ARTICLES;
+
   const issues: ValidationIssue[] = [];
   const seenRoutes = new Set<string>();
 
-  const products = Object.values(PRODUCTS);
+  const products = Object.values(productsMap);
   for (const prod of products) {
     const route = `/products/${prod.slug}`;
     if (seenRoutes.has(route)) {
@@ -189,7 +333,7 @@ export function validateCatalogIntegrity(): {
     }
   }
 
-  for (const guide of GIFT_GUIDES) {
+  for (const guide of guidesList) {
     if (seenRoutes.has(guide.seo.canonicalPath)) {
       issues.push({
         severity: 'error',
@@ -200,7 +344,7 @@ export function validateCatalogIntegrity(): {
     }
     seenRoutes.add(guide.seo.canonicalPath);
 
-    if (!PRODUCTS[guide.editorsPick.productId]) {
+    if (!productsMap[guide.editorsPick.productId]) {
       issues.push({
         severity: 'error',
         code: 'BROKEN_PRODUCT_REF',
@@ -210,7 +354,7 @@ export function validateCatalogIntegrity(): {
     }
 
     for (const qp of guide.quickPicks) {
-      if (!PRODUCTS[qp.productId]) {
+      if (!productsMap[qp.productId]) {
         issues.push({
           severity: 'error',
           code: 'BROKEN_PRODUCT_REF',
@@ -222,7 +366,7 @@ export function validateCatalogIntegrity(): {
 
     for (const sec of guide.sections) {
       for (const rec of sec.recommendations) {
-        if (!PRODUCTS[rec.productId]) {
+        if (!productsMap[rec.productId]) {
           issues.push({
             severity: 'error',
             code: 'BROKEN_PRODUCT_REF',
@@ -234,7 +378,7 @@ export function validateCatalogIntegrity(): {
     }
   }
 
-  for (const article of ARTICLES) {
+  for (const article of articlesList) {
     if (seenRoutes.has(article.seo.canonicalPath)) {
       issues.push({
         severity: 'error',
@@ -244,13 +388,114 @@ export function validateCatalogIntegrity(): {
       });
     }
     seenRoutes.add(article.seo.canonicalPath);
+
+    if (!article.heroAlt.trim()) {
+      issues.push({
+        severity: 'error',
+        code: 'MISSING_IMAGE_ALT',
+        entityId: article.id,
+        message: `Article ${article.id} is missing hero alt text.`,
+      });
+    }
+
+    // Validate article citationIds list
+    for (const citId of article.citationIds) {
+      if (!citationsMap[citId]) {
+        issues.push({
+          severity: 'error',
+          code: 'BROKEN_CITATION_REF',
+          entityId: article.id,
+          message: `Article ${article.id} references non-existent citation ID: ${citId}`,
+        });
+      }
+    }
+
+    // Validate inline [cite:...] tokens across all sections, subsections, and expandable advice
+    const textBlocks: string[] = [];
+    for (const sec of article.sections) {
+      textBlocks.push(...sec.paragraphs);
+      for (const sub of sec.subSections ?? []) {
+        textBlocks.push(...sub.paragraphs);
+        if (sub.bulletList) {
+          textBlocks.push(...sub.bulletList.items);
+        }
+      }
+      if (sec.expandableAdvice) {
+        textBlocks.push(...sec.expandableAdvice.items.map((i) => i.detail));
+      }
+      for (const pid of sec.contextualProducts?.productIds ?? []) {
+        if (!productsMap[pid]) {
+          issues.push({
+            severity: 'error',
+            code: 'BROKEN_PRODUCT_REF',
+            entityId: article.id,
+            message: `Article section ${sec.id} contextualProducts references missing product ID: ${pid}`,
+          });
+        }
+      }
+      for (const pid of sec.recommendedProductIds ?? []) {
+        if (!productsMap[pid]) {
+          issues.push({
+            severity: 'error',
+            code: 'BROKEN_PRODUCT_REF',
+            entityId: article.id,
+            message: `Article section ${sec.id} references missing product ID: ${pid}`,
+          });
+        }
+      }
+    }
+
+    const inlineCitIds = textBlocks.flatMap((t) => extractInlineCitationIds(t));
+    for (const inlineId of inlineCitIds) {
+      if (!citationsMap[inlineId]) {
+        issues.push({
+          severity: 'error',
+          code: 'INVALID_INLINE_CITATION_TARGET',
+          entityId: article.id,
+          message: `Inline citation [cite:${inlineId}] does not exist in CITATIONS.`,
+        });
+      } else if (!article.citationIds.includes(inlineId)) {
+        issues.push({
+          severity: 'error',
+          code: 'UNLISTED_INLINE_CITATION',
+          entityId: article.id,
+          message: `Inline citation [cite:${inlineId}] is missing from article.citationIds bibliography.`,
+        });
+      }
+    }
+
+    // Validate related routes
+    for (const relGuideId of article.relatedGuideIds ?? []) {
+      if (!guidesList.some((g) => g.id === relGuideId)) {
+        issues.push({
+          severity: 'error',
+          code: 'BROKEN_RELATED_GUIDE_REF',
+          entityId: article.id,
+          message: `Article ${article.id} references unknown related guide ID: ${relGuideId}`,
+        });
+      }
+    }
+    for (const relArtId of article.relatedArticleIds ?? []) {
+      if (!articlesList.some((a) => a.id === relArtId)) {
+        issues.push({
+          severity: 'error',
+          code: 'BROKEN_RELATED_ARTICLE_REF',
+          entityId: article.id,
+          message: `Article ${article.id} references unknown related article ID: ${relArtId}`,
+        });
+      }
+    }
   }
 
   return {
     passed: issues.filter((i) => i.severity === 'error').length === 0,
     checkedEntities:
-      products.length + GIFT_GUIDES.length + ARTICLES.length + Object.keys(CITATIONS).length,
+      products.length +
+      guidesList.length +
+      articlesList.length +
+      Object.keys(citationsMap).length,
     canonicalProductsCount: products.length,
     issues,
   };
 }
+

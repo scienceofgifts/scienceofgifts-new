@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Article, GiftGuide, GuideSection, Product } from '../types/content';
 import { ARTICLES, AUTHORS, GIFT_GUIDES, PRODUCTS } from '../data/catalog';
+import { CatalogDataOverride } from '../utils/seoAndValidation';
 import { PhotoImage } from './ObjectIllustrations';
 import { ProductCard } from './ProductCard';
 
@@ -24,6 +25,7 @@ interface GiftGuideReaderViewProps {
   onSelectGuide: (slug: string) => void;
   onSelectArticle: (slug: string) => void;
   onBackHome: () => void;
+  catalog?: CatalogDataOverride;
 }
 
 interface GuideBudgetSectionProps {
@@ -31,6 +33,7 @@ interface GuideBudgetSectionProps {
   savedProductIds: string[];
   onToggleSave: (productId: string) => void;
   onSelectProduct: (product: Product) => void;
+  productsMap?: Record<string, Product>;
 }
 
 export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
@@ -38,6 +41,7 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
   savedProductIds,
   onToggleSave,
   onSelectProduct,
+  productsMap = PRODUCTS,
 }) => {
   const surfaceBg =
     section.accentSurface === 'sand'
@@ -76,10 +80,10 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
       </div>
 
       {/* Lead Horizontal Feature Card (Varied Composition) */}
-      {leadRec && PRODUCTS[leadRec.productId] && (
+      {leadRec && productsMap[leadRec.productId] && (
         <ProductCard
           domId={`rec-${leadRec.productId}`}
-          product={PRODUCTS[leadRec.productId]}
+          product={productsMap[leadRec.productId]}
           variant="guide-feature"
           isSaved={savedProductIds.includes(leadRec.productId)}
           onToggleSave={onToggleSave}
@@ -95,7 +99,7 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
       {gridRecs.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
           {gridRecs.map((rec) => {
-            const product = PRODUCTS[rec.productId];
+            const product = productsMap[rec.productId];
             if (!product) return null;
             return (
               <ProductCard
@@ -127,14 +131,20 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
   onSelectGuide,
   onSelectArticle,
   onBackHome,
+  catalog,
 }) => {
   const [activeSectionId, setActiveSectionId] = useState<string>('editors-pick');
   const [expandedTips, setExpandedTips] = useState<Record<string, boolean>>({
     'tip-upgrade-habit': true,
   });
 
-  const author = AUTHORS[guide.authorId];
-  const editorsPickProduct = PRODUCTS[guide.editorsPick.productId];
+  const productsMap = catalog?.products ?? PRODUCTS;
+  const authorsMap = catalog?.authors ?? AUTHORS;
+  const guidesList = catalog?.guides ?? GIFT_GUIDES;
+  const articlesList = catalog?.articles ?? ARTICLES;
+
+  const author = authorsMap[guide.authorId];
+  const editorsPickProduct = productsMap[guide.editorsPick.productId];
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -190,11 +200,11 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
   ).length;
 
   const relatedGuides = (guide.relatedGuideIds ?? [])
-    .map((id) => GIFT_GUIDES.find((g) => g.id === id))
+    .map((id) => guidesList.find((g) => g.id === id))
     .filter((g): g is GiftGuide => Boolean(g));
 
   const relatedArticles = (guide.relatedArticleIds ?? [])
-    .map((id) => ARTICLES.find((a) => a.id === id))
+    .map((id) => articlesList.find((a) => a.id === id))
     .filter((a): a is Article => Boolean(a));
 
   return (
@@ -662,7 +672,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {guide.quickPicks.map((qp, index) => {
-                  const product = PRODUCTS[qp.productId];
+                  const product = productsMap[qp.productId];
                   if (!product) return null;
                   const isSaved = savedProductIds.includes(product.id);
                   const isWide =
@@ -774,6 +784,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                   savedProductIds={savedProductIds}
                   onToggleSave={onToggleSave}
                   onSelectProduct={onSelectProduct}
+                  productsMap={productsMap}
                 />
               ))}
             </div>
