@@ -126,13 +126,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             <div>
               <h3 className="text-xl md:text-2xl font-serif font-semibold text-[#1B3D5F] leading-snug mb-1">
-                <button
-                  type="button"
-                  onClick={() => onSelectProduct(product)}
+                <a
+                  href={`/products/${product.slug}/`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onSelectProduct(product);
+                  }}
                   className="text-left hover:text-[#28537D] transition-colors focus-visible:outline-2 focus-visible:outline-[#28537D]"
                 >
                   {product.title}
-                </button>
+                </a>
               </h3>
               <p className="text-sm font-medium text-[#28537D]">{product.subtitle}</p>
             </div>
@@ -268,13 +271,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Product Name */}
           <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug group-hover:text-[#28537D] transition-colors mb-1">
-            <button
-              type="button"
-              onClick={() => onSelectProduct(product)}
+            <a
+              href={`/products/${product.slug}/`}
+              onClick={(e) => {
+                e.preventDefault();
+                onSelectProduct(product);
+              }}
               className="text-left focus-visible:outline-2 focus-visible:outline-[#28537D]"
             >
               {product.title}
-            </button>
+            </a>
           </h3>
 
           {/* Short, specific description */}

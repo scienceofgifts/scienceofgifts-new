@@ -18,6 +18,7 @@ import {
 import { GiftGuideReaderView } from '../components/GiftGuideReaderView';
 import { SANITY_SCHEMA_TYPES, GROQ_QUERIES } from '../cms/sanitySchemas';
 import { LocalCMSContentStore } from '../cms/cmsContentStore';
+import { contentRepository } from '../cms/contentRepository';
 import {
   buildSuggestedProductDraftFromInput,
   runSafeProductImportPipeline,
@@ -26,6 +27,7 @@ import {
 import {
   buildArticleJsonLd,
   buildGiftGuideJsonLd,
+  buildProductJsonLd,
 } from './seoAndValidation';
 
 test('1. buildArticleCitationMap assigns unique markerIds and maps multiple occurrences to the same reference', () => {
@@ -1002,3 +1004,52 @@ test('14. Safe AI Product Import Pipeline verifies all 6 deterministic edge-case
   assert.equal(resBadAi.publishValidation?.valid, false);
   assert.ok((resBadAi.publishValidation?.errors.length ?? 0) >= 6);
 });
+
+test('15. Astro contentRepository resolves routes for gift guides, articles, and products and generates Product Schema.org JSON-LD', () => {
+  const allGuides = contentRepository.getAllGiftGuides();
+  const allArticles = contentRepository.getAllArticles();
+  const allProducts = contentRepository.getAllProducts();
+
+  assert.equal(allGuides.length, 2);
+  assert.equal(allArticles.length, 2);
+  assert.equal(allProducts.length, 13);
+
+  const guide = contentRepository.getGiftGuideBySlug(
+    'thoughtful-gifts-for-people-who-appreciate-the-little-things'
+  );
+  assert.ok(guide);
+  assert.equal(
+    guide.seo.canonicalPath,
+    '/gift-guides/thoughtful-gifts-for-people-who-appreciate-the-little-things/'
+  );
+
+  const article = contentRepository.getArticleBySlug(
+    'why-thoughtful-gifts-matter-more-than-expensive-ones'
+  );
+  assert.ok(article);
+  assert.equal(
+    article.seo.canonicalPath,
+    '/articles/why-thoughtful-gifts-matter-more-than-expensive-ones/'
+  );
+
+  const product = contentRepository.getProductBySlug(
+    'hand-blown-two-tone-bedside-water-carafe-and-glass'
+  );
+  assert.ok(product);
+  assert.equal(product.id, 'prod_fluted_bedside_carafe_09');
+
+  const guidesWithCarafe = contentRepository.getGuidesFeaturingProduct(product.id);
+  const articlesWithCarafe = contentRepository.getArticlesFeaturingProduct(product.id);
+  assert.ok(guidesWithCarafe.length >= 1);
+  assert.ok(articlesWithCarafe.length >= 1);
+
+  const productJsonLd = buildProductJsonLd(product);
+  assert.equal(productJsonLd['@graph'][1]['@type'], 'Product');
+  assert.equal(
+    productJsonLd['@graph'][1]['@id'],
+    'https://scienceofgifts.com/products/hand-blown-two-tone-bedside-water-carafe-and-glass/'
+  );
+  assert.equal(productJsonLd['@graph'][1].offers.price, 48);
+  assert.equal(productJsonLd['@graph'][1].offers.priceCurrency, 'USD');
+});
+

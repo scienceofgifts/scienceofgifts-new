@@ -49,9 +49,9 @@ interface ArticleReaderViewProps {
   savedProductIds: string[];
   onToggleSave: (productId: string) => void;
   onSelectProduct: (product: Product) => void;
-  onSelectGuide: (slug: string) => void;
-  onSelectArticle: (slug: string) => void;
-  onBackHome: () => void;
+  onSelectGuide?: (slug: string) => void;
+  onSelectArticle?: (slug: string) => void;
+  onBackHome?: () => void;
   catalog?: CatalogDataOverride;
 }
 
@@ -617,13 +617,16 @@ export const ArticleContextualProductsBlock: React.FC<{
                   </div>
 
                   <h4 className="text-base font-serif font-semibold text-[#1B3D5F] leading-snug">
-                    <button
-                      type="button"
-                      onClick={() => onSelectProduct(product)}
+                    <a
+                      href={`/products/${product.slug}/`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        onSelectProduct(product);
+                      }}
                       className="text-left hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
                     >
                       {product.title}
-                    </button>
+                    </a>
                   </h4>
 
                   <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-2">
@@ -884,24 +887,34 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
         >
           <ol className="flex items-center gap-2 text-xs text-[#28537D]">
             <li>
-              <button
-                type="button"
-                onClick={onBackHome}
+              <a
+                href="/"
+                onClick={(e) => {
+                  if (onBackHome) {
+                    e.preventDefault();
+                    onBackHome();
+                  }
+                }}
                 className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D] whitespace-nowrap shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Home</span>
-              </button>
+              </a>
             </li>
             <li aria-hidden="true">/</li>
             <li>
-              <button
-                type="button"
-                onClick={onBackHome}
+              <a
+                href="/"
+                onClick={(e) => {
+                  if (onBackHome) {
+                    e.preventDefault();
+                    onBackHome();
+                  }
+                }}
                 className="hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
               >
                 Stories
-              </button>
+              </a>
             </li>
             <li aria-hidden="true">/</li>
             <li
@@ -1564,41 +1577,57 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     className="rounded-3xl bg-[#E8F8F0] p-5 flex flex-col justify-between space-y-4"
                   >
                     <div className="space-y-3">
-                      <div
-                        onClick={() => onSelectGuide(guide.slug)}
-                        className="aspect-16/10 rounded-2xl overflow-hidden bg-white cursor-pointer group"
+                      <a
+                        href={`/gift-guides/${guide.slug}/`}
+                        onClick={(e) => {
+                          if (onSelectGuide) {
+                            e.preventDefault();
+                            onSelectGuide(guide.slug);
+                          }
+                        }}
+                        className="block aspect-16/10 rounded-2xl overflow-hidden bg-white cursor-pointer group"
                       >
                         <PhotoImage
                           src={guide.heroImageUrl}
                           alt={guide.heroImageAlt}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                      </div>
+                      </a>
                       <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                         Gift Guide · {guide.readTimeMinutes} min read
                       </div>
                       <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug">
-                        <button
-                          type="button"
-                          onClick={() => onSelectGuide(guide.slug)}
+                        <a
+                          href={`/gift-guides/${guide.slug}/`}
+                          onClick={(e) => {
+                            if (onSelectGuide) {
+                              e.preventDefault();
+                              onSelectGuide(guide.slug);
+                            }
+                          }}
                           className="text-left hover:underline"
                         >
                           {guide.title}
-                        </button>
+                        </a>
                       </h3>
                       <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
                         {guide.subtitle}
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onSelectGuide(guide.slug)}
+                    <a
+                      href={`/gift-guides/${guide.slug}/`}
+                      onClick={(e) => {
+                        if (onSelectGuide) {
+                          e.preventDefault();
+                          onSelectGuide(guide.slug);
+                        }
+                      }}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D]"
                     >
                       <span>Explore Gift Guide</span>
                       <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    </a>
                   </article>
                 ))}
 
@@ -1608,41 +1637,57 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     className="rounded-3xl bg-[#FFF4D6] p-5 flex flex-col justify-between space-y-4"
                   >
                     <div className="space-y-3">
-                      <div
-                        onClick={() => onSelectArticle(relArt.slug)}
-                        className="aspect-16/10 rounded-2xl overflow-hidden bg-white cursor-pointer group"
+                      <a
+                        href={`/articles/${relArt.slug}/`}
+                        onClick={(e) => {
+                          if (onSelectArticle) {
+                            e.preventDefault();
+                            onSelectArticle(relArt.slug);
+                          }
+                        }}
+                        className="block aspect-16/10 rounded-2xl overflow-hidden bg-white cursor-pointer group"
                       >
                         <PhotoImage
                           src={relArt.heroImageUrl}
                           alt={relArt.heroAlt}
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
-                      </div>
+                      </a>
                       <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                         Next Story · {relArt.category}
                       </div>
                       <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug">
-                        <button
-                          type="button"
-                          onClick={() => onSelectArticle(relArt.slug)}
+                        <a
+                          href={`/articles/${relArt.slug}/`}
+                          onClick={(e) => {
+                            if (onSelectArticle) {
+                              e.preventDefault();
+                              onSelectArticle(relArt.slug);
+                            }
+                          }}
                           className="text-left hover:underline"
                         >
                           {relArt.title}
-                        </button>
+                        </a>
                       </h3>
                       <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
                         {relArt.subtitle}
                       </p>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onSelectArticle(relArt.slug)}
+                    <a
+                      href={`/articles/${relArt.slug}/`}
+                      onClick={(e) => {
+                        if (onSelectArticle) {
+                          e.preventDefault();
+                          onSelectArticle(relArt.slug);
+                        }
+                      }}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D]"
                     >
                       <span>Read Story</span>
                       <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    </a>
                   </article>
                 ))}
               </div>

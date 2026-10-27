@@ -657,7 +657,7 @@ export const GIFT_GUIDES: GiftGuide[] = [
         'Thoughtful Gifts for People Who Appreciate the Little Things (2026 Guide) | Science of Gifts',
       metaDescription:
         'Discover warm, memorable gifts for people who notice small everyday details—organized from under-$25 pleasures to special keepsakes over $75.',
-      canonicalPath: '/guides/thoughtful-gifts-for-people-who-appreciate-the-little-things',
+      canonicalPath: '/gift-guides/thoughtful-gifts-for-people-who-appreciate-the-little-things/',
       ogType: 'article',
       schemaType: 'ItemList',
     },
@@ -897,7 +897,7 @@ export const GIFT_GUIDES: GiftGuide[] = [
       seoTitle: 'Best Host Gifts & Dinner Party Presents (2026) | Science of Gifts',
       metaDescription:
         'Explore memorable host gifts, tabletop games, and tea rituals under $100 that create zero extra work for the host.',
-      canonicalPath: '/guides/thoughtful-host-and-gathering-gifts-under-100',
+      canonicalPath: '/gift-guides/thoughtful-host-and-gathering-gifts-under-100/',
       ogType: 'article',
       schemaType: 'ItemList',
     },
@@ -1019,7 +1019,7 @@ export const ARTICLES: Article[] = [
       seoTitle: 'Why Thoughtful Gifts Matter More Than Expensive Ones | Science of Gifts',
       metaDescription:
         'Explore the psychology of why gift price rarely predicts gratitude, how to avoid the "smile-seeking" trap, and practical ways to choose gifts that feel personal.',
-      canonicalPath: '/articles/why-thoughtful-gifts-matter-more-than-expensive-ones',
+      canonicalPath: '/articles/why-thoughtful-gifts-matter-more-than-expensive-ones/',
       ogType: 'article',
       schemaType: 'Article',
     },
@@ -1240,7 +1240,7 @@ export const ARTICLES: Article[] = [
       seoTitle: 'Thoughtful Host Gifts That Create Zero Extra Work | Science of Gifts',
       metaDescription:
         'Skip cut flowers that need trimming and a vase while the host is cooking. Discover effortless, memorable host gifts under $50.',
-      canonicalPath: '/articles/what-to-bring-when-the-host-says-bring-nothing',
+      canonicalPath: '/articles/what-to-bring-when-the-host-says-bring-nothing/',
       ogType: 'article',
       schemaType: 'Article',
     },

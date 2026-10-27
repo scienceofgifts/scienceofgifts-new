@@ -161,7 +161,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </p>
               </div>
 
-              <div className="px-1 pt-2 border-t border-[#1B3D5F]/10 text-xs text-[#28537D] space-y-1">
+              <div className="px-1 pt-2 border-t border-[#1B3D5F]/10 text-xs text-[#28537D] space-y-2">
                 <div>
                   <strong className="text-[#1B3D5F]">Best for:</strong>{' '}
                   {product.bestForSummary}
@@ -169,6 +169,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <div>
                   <strong className="text-[#1B3D5F]">Occasions:</strong>{' '}
                   {product.occasions.join(' · ')}
+                </div>
+                <div className="pt-1">
+                  <a
+                    href={`/products/${product.slug}/`}
+                    className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:text-[#28537D] hover:underline"
+                  >
+                    <span>Open Canonical Product Page (/products/{product.slug}/)</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
                 </div>
               </div>
             </div>
@@ -187,6 +196,7 @@ interface SavedGiftsDrawerProps {
   onToggleSave: (productId: string) => void;
   onSelectProduct: (product: Product) => void;
   onClose: () => void;
+  productsMap?: Record<string, Product>;
 }
 
 export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
@@ -197,10 +207,11 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
   onToggleSave,
   onSelectProduct,
   onClose,
+  productsMap = PRODUCTS,
 }) => {
   if (!isOpen) return null;
 
-  const savedProducts = savedProductIds.map((id) => PRODUCTS[id]).filter(Boolean);
+  const savedProducts = savedProductIds.map((id) => productsMap[id]).filter(Boolean);
   const totalBudget = savedProducts.reduce((sum, p) => sum + p.price, 0);
 
   return (

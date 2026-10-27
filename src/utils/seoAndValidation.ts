@@ -214,7 +214,7 @@ export function buildGiftGuideJsonLd(
             '@type': 'ListItem',
             position: 2,
             name: 'Gift Guides',
-            item: `${SITE_ORIGIN}/guides`,
+            item: `${SITE_ORIGIN}/gift-guides/`,
           },
           {
             '@type': 'ListItem',
@@ -241,7 +241,7 @@ export function buildGiftGuideJsonLd(
             position: index + 1,
             item: {
               '@type': 'Product',
-              '@id': `${SITE_ORIGIN}/products/${product?.slug ?? rec.productId}`,
+              '@id': `${SITE_ORIGIN}/products/${product?.slug ?? rec.productId}/`,
               name: product?.title,
               description: rec.customEditorialNote || product?.subtitle,
               offers: {
@@ -253,6 +253,58 @@ export function buildGiftGuideJsonLd(
             },
           };
         }),
+      },
+    ],
+  };
+}
+
+export function buildProductJsonLd(product: Product) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${SITE_ORIGIN}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Products',
+            item: `${SITE_ORIGIN}/#gift-finder`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.title,
+            item: `${SITE_ORIGIN}/products/${product.slug}/`,
+          },
+        ],
+      },
+      {
+        '@type': 'Product',
+        '@id': `${SITE_ORIGIN}/products/${product.slug}/`,
+        name: product.title,
+        description: product.whyToGiveIt,
+        image: product.images.map((img) => img.url),
+        brand: {
+          '@type': 'Brand',
+          name: product.vendor,
+        },
+        category: product.productType,
+        offers: {
+          '@type': 'Offer',
+          price: product.price,
+          priceCurrency: product.currency,
+          availability: product.inStock
+            ? 'https://schema.org/InStock'
+            : 'https://schema.org/OutOfStock',
+          url: product.purchaseUrl,
+        },
       },
     ],
   };

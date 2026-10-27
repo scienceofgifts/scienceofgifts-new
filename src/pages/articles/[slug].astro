@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import { buildArticleJsonLd } from '../../utils/seoAndValidation';
+import { ArticleInteractiveIsland } from '../../components/islands/AstroIslands';
+import type { Article } from '../../types/content';
+
+export function getStaticPaths() {
+  const articles = contentRepository.getAllArticles();
+  return articles.map((article) => ({
+    params: { slug: article.slug },
+    props: { article },
+  }));
+}
+
+interface Props {
+  article: Article;
+}
+
+const { article } = Astro.props;
+const catalog = contentRepository.getCatalogSnapshot();
+const articleJsonLd = buildArticleJsonLd(article, catalog);
+---
+
+<BaseLayout
+  title={article.seo.seoTitle}
+  description={article.seo.metaDescription}
+  canonicalPath={`/articles/${article.slug}/`}
+  ogType={article.seo.ogType}
+  ogImage={article.heroImageUrl}
+  jsonLd={articleJsonLd}
+  activeSection="articles"
+  pageBgClass="bg-[#FAF8F3]"
+>
+  <ArticleInteractiveIsland
+    client:load
+    article={article}
+    catalog={catalog}
+  />
+</BaseLayout>

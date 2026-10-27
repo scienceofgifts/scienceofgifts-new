@@ -1,0 +1,246 @@
+---
+import '../index.css';
+import { contentRepository } from '../cms/contentRepository';
+import {
+  HeaderSavedButtonIsland,
+  FooterSavedActionsIsland,
+  GlobalOverlaysIsland,
+} from '../components/islands/AstroIslands';
+
+export interface Props {
+  title: string;
+  description: string;
+  canonicalPath: string;
+  ogType?: 'website' | 'article';
+  ogImage?: string;
+  jsonLd?: Record<string, unknown>;
+  activeSection?: 'home' | 'guides' | 'articles' | 'products';
+  pageBgClass?: string;
+}
+
+const {
+  title,
+  description,
+  canonicalPath,
+  ogType = 'website',
+  ogImage = 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1400&q=85',
+  jsonLd,
+  activeSection = 'home',
+  pageBgClass = 'bg-[#FAF7F2]',
+} = Astro.props;
+
+const canonicalUrl = canonicalPath.startsWith('http')
+  ? canonicalPath
+  : `https://scienceofgifts.com${canonicalPath}`;
+
+const guides = contentRepository.getAllGiftGuides();
+const articles = contentRepository.getAllArticles();
+const productsMap = contentRepository.getCatalogSnapshot().products;
+const featuredGuide = guides[0];
+const featuredArticle = articles[0];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- OpenGraph Metadata -->
+    <meta property="og:site_name" content="Science of Gifts" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImage} />
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Editorial Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    {
+      jsonLd && (
+        <script
+          type="application/ld+json"
+          set:html={JSON.stringify(jsonLd)}
+        />
+      )
+    }
+  </head>
+  <body
+    class={`${pageBgClass} text-[#1B3D5F] antialiased selection:bg-[#C3F3DF] selection:text-[#1B3D5F] min-h-screen flex flex-col`}
+  >
+    <!-- =====================================================================
+         TOP NAVIGATION BAR (Clean 3-Zone Contract)
+        ===================================================================== -->
+    <header class="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#1B3D5F]/8">
+      <div class="max-w-7xl mx-auto flex items-center justify-between gap-8 px-6 py-4">
+        <!-- Zone 1: Brand Wordmark -->
+        <a
+          href="/"
+          class="text-2xl font-serif font-semibold tracking-tight text-[#1B3D5F] whitespace-nowrap shrink-0"
+        >
+          Science of Gifts
+        </a>
+
+        <!-- Zone 2: 5 Single-Line Navigation Links -->
+        <nav
+          aria-label="Primary Navigation"
+          class="hidden md:flex items-center gap-7 text-sm font-medium text-[#28537D]"
+        >
+          <a
+            href={`/gift-guides/${featuredGuide.slug}/`}
+            class={`hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 ${
+              activeSection === 'guides'
+                ? 'text-[#1B3D5F] font-semibold underline'
+                : ''
+            }`}
+          >
+            Gift Guides
+          </a>
+          <a
+            href="/#gift-finder"
+            class="hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+          >
+            Gift Finder
+          </a>
+          <a
+            href="/#under-50-edit"
+            class="hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+          >
+            Under $50
+          </a>
+          <a
+            href={`/articles/${featuredArticle.slug}/`}
+            class={`hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 ${
+              activeSection === 'articles'
+                ? 'text-[#1B3D5F] font-semibold underline'
+                : ''
+            }`}
+          >
+            Stories
+          </a>
+          <HeaderSavedButtonIsland client:idle variant="desktop" />
+        </nav>
+
+        <!-- Zone 3: 1 Primary CTA -->
+        <div class="flex items-center shrink-0">
+          <a
+            href="/#gift-finder"
+            class="px-4 py-2.5 text-xs font-semibold text-[#FAF7F2] bg-[#1B3D5F] rounded-full hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
+          >
+            Find a Gift
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile Secondary Navigation Strip (Non-sticky so it never obscures mobile viewport) -->
+    <nav
+      aria-label="Mobile navigation"
+      class="md:hidden bg-[#F3ECE1] border-b border-[#1B3D5F]/10 px-6 py-2.5 flex items-center gap-5 overflow-x-auto text-xs font-semibold text-[#1B3D5F]"
+    >
+      <a href="/" class="whitespace-nowrap shrink-0 hover:underline">
+        Home
+      </a>
+      <a
+        href={`/gift-guides/${featuredGuide.slug}/`}
+        class="whitespace-nowrap shrink-0 hover:underline"
+      >
+        Little Things Guide
+      </a>
+      <a href="/#gift-finder" class="whitespace-nowrap shrink-0 hover:underline">
+        Gift Finder
+      </a>
+      <a
+        href={`/articles/${featuredArticle.slug}/`}
+        class="whitespace-nowrap shrink-0 hover:underline"
+      >
+        Stories
+      </a>
+      <HeaderSavedButtonIsland client:idle variant="mobile" />
+    </nav>
+
+    <!-- Main Page Content Slot -->
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <!-- =====================================================================
+         WARM EDITORIAL FOOTER
+        ===================================================================== -->
+    <footer class="bg-[#F3ECE1] text-[#1B3D5F] border-t border-[#1B3D5F]/10">
+      <div class="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-12 gap-10">
+        <div class="md:col-span-5 space-y-3">
+          <a
+            href="/"
+            class="inline-block text-2xl font-serif font-semibold tracking-tight text-[#1B3D5F]"
+          >
+            Science of Gifts
+          </a>
+          <p class="text-sm text-[#28537D] leading-relaxed max-w-sm">
+            A magazine and gift-discovery destination dedicated to thoughtful giving, memorable objects, and the human stories behind why we give.
+          </p>
+        </div>
+
+        <div class="md:col-span-4 space-y-2 text-xs">
+          <div class="font-semibold uppercase tracking-wider text-[#28537D] mb-3">
+            Guides & Stories
+          </div>
+          <ul class="space-y-2.5 text-sm">
+            {
+              guides.map((guide) => (
+                <li>
+                  <a
+                    href={`/gift-guides/${guide.slug}/`}
+                    class="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left block"
+                  >
+                    {guide.title}
+                  </a>
+                </li>
+              ))
+            }
+            {
+              articles.map((article) => (
+                <li>
+                  <a
+                    href={`/articles/${article.slug}/`}
+                    class="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left block"
+                  >
+                    {article.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+
+        <div class="md:col-span-3 space-y-3 text-xs">
+          <div class="font-semibold uppercase tracking-wider text-[#28537D] mb-2">
+            Your Gift List
+          </div>
+          <p class="text-[#28537D] leading-relaxed">
+            Bookmark favorite ideas as you browse—your shortlist stays saved right in your browser.
+          </p>
+          <FooterSavedActionsIsland client:visible />
+        </div>
+      </div>
+    </footer>
+
+    <!-- Shared Overlays Island (Product Quick-View Modal, Saved List Drawer, Technical Spec Modal) -->
+    <GlobalOverlaysIsland client:idle productsMap={productsMap} />
+  </body>
+</html>

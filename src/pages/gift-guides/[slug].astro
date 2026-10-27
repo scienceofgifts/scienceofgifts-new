@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import { buildGiftGuideJsonLd } from '../../utils/seoAndValidation';
+import { GiftGuideInteractiveIsland } from '../../components/islands/AstroIslands';
+import type { GiftGuide } from '../../types/content';
+
+export function getStaticPaths() {
+  const guides = contentRepository.getAllGiftGuides();
+  return guides.map((guide) => ({
+    params: { slug: guide.slug },
+    props: { guide },
+  }));
+}
+
+interface Props {
+  guide: GiftGuide;
+}
+
+const { guide } = Astro.props;
+const catalog = contentRepository.getCatalogSnapshot();
+const guideJsonLd = buildGiftGuideJsonLd(guide, catalog);
+---
+
+<BaseLayout
+  title={guide.seo.seoTitle}
+  description={guide.seo.metaDescription}
+  canonicalPath={`/gift-guides/${guide.slug}/`}
+  ogType={guide.seo.ogType}
+  ogImage={guide.heroImageUrl}
+  jsonLd={guideJsonLd}
+  activeSection="guides"
+>
+  <GiftGuideInteractiveIsland
+    client:load
+    guide={guide}
+    catalog={catalog}
+  />
+</BaseLayout>
