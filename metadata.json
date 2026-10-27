@@ -1,0 +1,6 @@
+{
+  "name": "Science of Gifts",
+  "description": "An editorial gift-discovery destination combining behavioral research, curated gift guides, and interactive product discovery.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
