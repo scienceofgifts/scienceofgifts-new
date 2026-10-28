@@ -1810,5 +1810,298 @@ test('27. GiftThinkingAnimation renders accessible status region, submitted quer
   assert.match(reducedMotionQuizHtml, /≤ \$75 USD/);
 });
 
+test('28. Refined Filter Sidebar renders sections in exact hierarchy with Clear All, active filter chips, and standardized selectable rows', () => {
+  const html = renderToStaticMarkup(
+    <GiftFinderExperience
+      products={contentRepository.getAllProducts()}
+      guides={contentRepository.getAllGiftGuides()}
+      articles={contentRepository.getAllArticles()}
+      initialSearchString="?q=tea+gifts&recipient=parent&occasion=birthday&interest=Coffee+%26+Tea&style=everyday-ritual&category=Plants+%26+Gardening&budget=25-to-75"
+    />
+  );
 
+  // Verify exact order of sidebar headings inside the desktop filter aside
+  const asideStart = html.indexOf('aria-label="Gift Finder Filters"');
+  assert.ok(asideStart !== -1, 'Desktop Gift Finder Filters aside must exist');
+  const asideHtml = html.slice(asideStart, html.indexOf('</aside>', asideStart));
 
+  const idxFilterGifts = asideHtml.indexOf('Filter Gifts');
+  const idxClearAll = asideHtml.indexOf('Clear All');
+  const idxBudget = asideHtml.indexOf('id="desktop-heading-budget"');
+  const idxRecipient = asideHtml.indexOf('id="desktop-heading-recipient"');
+  const idxOccasion = asideHtml.indexOf('id="desktop-heading-occasion"');
+  const idxInterests = asideHtml.indexOf('id="desktop-heading-interests"');
+  const idxStyle = asideHtml.indexOf('id="desktop-heading-style"');
+  const idxCategory = asideHtml.indexOf('id="desktop-heading-category"');
+  const idxEditorial = asideHtml.indexOf('Editorial Curation');
+
+  assert.ok(idxFilterGifts !== -1, '1. Filter Gifts header must appear');
+  assert.ok(idxClearAll > idxFilterGifts, 'Contextual Clear All action must appear when filters are active');
+  assert.ok(idxBudget > idxFilterGifts, '2. Budget & Price must follow Filter Gifts header');
+  assert.ok(idxRecipient > idxBudget, '3. Who Is It For? must follow Budget & Price');
+  assert.ok(idxOccasion > idxRecipient, '4. Occasion must follow Who Is It For?');
+  assert.ok(idxInterests > idxOccasion, '5. Interests must follow Occasion');
+  assert.ok(idxStyle > idxInterests, '6. Gift Style & Vibe must follow Interests');
+  assert.ok(idxCategory > idxStyle, '7. Product Category must follow Gift Style & Vibe');
+  assert.ok(idxEditorial > idxCategory, 'Editorial Curation must follow Product Category');
+
+  // Verify Budget & Price and Who Is It For? start collapsed on initial load while showing active filter badges and chips
+  assert.match(
+    asideHtml,
+    /data-testid="desktop-badge-budget"[^>]*>\$25 – \$75<\/span>/
+  );
+  assert.match(
+    asideHtml,
+    /data-testid="desktop-badge-recipient"[^>]*>Parents &amp; In-Laws<\/span>/
+  );
+  assert.match(asideHtml, /Active filters \(6\)/);
+});
+
+test('29. Coherent Budget Selection: quick-select ranges, boundary prices ($25 and $75), custom max price, and missing-price exclusion stay synchronized', () => {
+  const baseProducts = contentRepository.getAllProducts();
+
+  // Add synthetic boundary products at $25.00, $75.00, $75.50, and a missing-price product
+  const boundary25 = {
+    ...structuredClone(baseProducts[0]),
+    id: 'prod_boundary_25',
+    price: 25,
+  };
+  const boundary75 = {
+    ...structuredClone(baseProducts[0]),
+    id: 'prod_boundary_75',
+    price: 75,
+  };
+  const boundary76 = {
+    ...structuredClone(baseProducts[0]),
+    id: 'prod_boundary_76',
+    price: 76,
+  };
+  const unpricedProduct = {
+    ...structuredClone(baseProducts[0]),
+    id: 'prod_boundary_unpriced',
+    price: NaN,
+  };
+
+  const testCatalog = [
+    ...baseProducts,
+    boundary25,
+    boundary75,
+    boundary76,
+    unpricedProduct,
+  ];
+
+  // Evaluate unfiltered catalog facet counts for budget tiers
+  const baseEval = evaluateGiftFinder(testCatalog, DEFAULT_FINDER_FILTERS);
+
+  for (const tier of ['under-25', '25-to-75', 'over-75'] as const) {
+    const facetCount =
+      baseEval.facets.budgetTiers.find((b) => b.value === tier)?.count ?? -1;
+    const tierEval = evaluateGiftFinder(testCatalog, {
+      ...DEFAULT_FINDER_FILTERS,
+      budgetTier: tier,
+    });
+
+    assert.equal(
+      facetCount,
+      tierEval.totalEligibleCount,
+      `Facet count for ${tier} (${facetCount}) must exactly equal rendered result count (${tierEval.totalEligibleCount})`
+    );
+
+    // Unpriced product must never appear in any budget tier
+    assert.ok(
+      !tierEval.results.some((r) => r.product.id === 'prod_boundary_unpriced'),
+      `Unpriced product must be excluded from ${tier}`
+    );
+  }
+
+  // Verify boundary behavior at $75: $75 is in '25-to-75' and NOT in 'over-75'; $76 is in 'over-75'
+  const midTierEval = evaluateGiftFinder(testCatalog, {
+    budgetTier: '25-to-75',
+  });
+  const over75Eval = evaluateGiftFinder(testCatalog, {
+    budgetTier: 'over-75',
+  });
+  assert.ok(
+    midTierEval.results.some((r) => r.product.id === 'prod_boundary_75'),
+    '$75 product must be included in $25–$75 range'
+  );
+  assert.ok(
+    !over75Eval.results.some((r) => r.product.id === 'prod_boundary_75'),
+    '$75 product must not overlap into Over $75 range'
+  );
+  assert.ok(
+    over75Eval.results.some((r) => r.product.id === 'prod_boundary_76'),
+    '$76 product must be included in Over $75 range'
+  );
+});
+
+test('30. Contextual Facet Counts & Individual Filter Removal: facet counts match actual results across search + filters and individual filter removal preserves other state', () => {
+  const allProducts = contentRepository.getAllProducts();
+  const guides = contentRepository.getAllGiftGuides();
+  const articles = contentRepository.getAllArticles();
+
+  const activeFilters = {
+    ...DEFAULT_FINDER_FILTERS,
+    query: 'tea gifts',
+    recipient: 'parent' as const,
+    maxPrice: 60,
+  };
+
+  const contextEval = evaluateGiftFinder(allProducts, activeFilters, {
+    guides,
+    articles,
+  });
+  assert.ok(contextEval.totalEligibleCount >= 1);
+
+  // 1. Every occasion facet count must equal the actual result count if that occasion is selected
+  for (const occFacet of contextEval.facets.occasions) {
+    const withOccasion = evaluateGiftFinder(
+      allProducts,
+      { ...activeFilters, occasion: occFacet.value },
+      { guides, articles }
+    );
+    assert.equal(
+      occFacet.count,
+      withOccasion.totalEligibleCount,
+      `Contextual occasion count for "${occFacet.value}" (${occFacet.count}) must match actual results (${withOccasion.totalEligibleCount})`
+    );
+  }
+
+  // 2. Every recipient facet count must equal the actual result count if switching to that recipient
+  for (const recFacet of contextEval.facets.recipients) {
+    const withRecipient = evaluateGiftFinder(
+      allProducts,
+      { ...activeFilters, recipient: recFacet.value },
+      { guides, articles }
+    );
+    assert.equal(
+      recFacet.count,
+      withRecipient.totalEligibleCount,
+      `Contextual recipient count for "${recFacet.value}" (${recFacet.count}) must match actual results (${withRecipient.totalEligibleCount})`
+    );
+  }
+
+  // 3. Every interest facet count must equal the actual result count if selecting that interest
+  for (const intFacet of contextEval.facets.interests) {
+    const withInterest = evaluateGiftFinder(
+      allProducts,
+      { ...activeFilters, interest: intFacet.value },
+      { guides, articles }
+    );
+    assert.equal(
+      intFacet.count,
+      withInterest.totalEligibleCount,
+      `Contextual interest count for "${intFacet.value}" (${intFacet.count}) must match actual results (${withInterest.totalEligibleCount})`
+    );
+  }
+
+  // 4. Every gift style (personalityTrait) facet count must equal the actual result count if selecting that style
+  for (const styleFacet of contextEval.facets.personalityTraits) {
+    const withStyle = evaluateGiftFinder(
+      allProducts,
+      { ...activeFilters, personalityTrait: styleFacet.value },
+      { guides, articles }
+    );
+    assert.equal(
+      styleFacet.count,
+      withStyle.totalEligibleCount,
+      `Contextual style count for "${styleFacet.value}" (${styleFacet.count}) must match actual results (${withStyle.totalEligibleCount})`
+    );
+  }
+
+  // 5. Removing an individual filter (e.g., maxPrice) preserves search query and recipient filter and broadens results
+  const afterRemovingMaxPrice = {
+    ...activeFilters,
+    maxPrice: null,
+  };
+  const broadenedEval = evaluateGiftFinder(
+    allProducts,
+    afterRemovingMaxPrice,
+    { guides, articles }
+  );
+  assert.equal(afterRemovingMaxPrice.query, 'tea gifts');
+  assert.equal(afterRemovingMaxPrice.recipient, 'parent');
+  assert.ok(
+    broadenedEval.totalEligibleCount >= contextEval.totalEligibleCount
+  );
+
+  // 6. Contradictory or zero-result query ("quantum surfboard") yields 0 results AND 0 contextual facet counts
+  const zeroEval = evaluateGiftFinder(
+    allProducts,
+    { ...DEFAULT_FINDER_FILTERS, query: 'quantum surfboard' },
+    { guides, articles }
+  );
+  assert.equal(zeroEval.totalEligibleCount, 0);
+  assert.ok(zeroEval.facets.recipients.every((r) => r.count === 0));
+  assert.ok(zeroEval.facets.occasions.every((o) => o.count === 0));
+  assert.ok(zeroEval.facets.interests.every((i) => i.count === 0));
+});
+
+test('31. Collapsible Budget & Price and Who Is It For? sections start collapsed by default, preserve active filters and badges when collapsed, and expose full controls when expanded', () => {
+  // 1. Default initial load: both Budget & Price and Who Is It For? are collapsed (aria-expanded="false")
+  // while Interests and Gift Style & Vibe remain expanded by default (aria-expanded="true")
+  const defaultHtml = renderToStaticMarkup(
+    <GiftFinderExperience
+      products={contentRepository.getAllProducts()}
+      guides={contentRepository.getAllGiftGuides()}
+      articles={contentRepository.getAllArticles()}
+      initialSearchString="?recipient=friend&maxPrice=45"
+    />
+  );
+
+  assert.match(
+    defaultHtml,
+    /id="desktop-heading-budget"[^>]*aria-expanded="false"[^>]*aria-controls="desktop-panel-budget"/
+  );
+  assert.match(
+    defaultHtml,
+    /id="desktop-heading-recipient"[^>]*aria-expanded="false"[^>]*aria-controls="desktop-panel-recipient"/
+  );
+  assert.match(
+    defaultHtml,
+    /id="desktop-heading-interests"[^>]*aria-expanded="true"[^>]*aria-controls="desktop-panel-interests"/
+  );
+  assert.match(
+    defaultHtml,
+    /id="desktop-heading-style"[^>]*aria-expanded="true"[^>]*aria-controls="desktop-panel-style"/
+  );
+
+  // Panels for Budget & Price and Who Is It For? are hidden when collapsed
+  assert.doesNotMatch(defaultHtml, /id="desktop-panel-budget"/);
+  assert.doesNotMatch(defaultHtml, /id="desktop-panel-recipient"/);
+
+  // Selected filters in collapsed sections remain active and show badges beside the headings
+  assert.match(
+    defaultHtml,
+    /data-testid="desktop-badge-budget"[^>]*>≤ \$45<\/span>/
+  );
+  assert.match(
+    defaultHtml,
+    /data-testid="desktop-badge-recipient"[^>]*>Close Friend<\/span>/
+  );
+  assert.match(defaultHtml, /Active filters \(2\)/);
+
+  // 2. Expanded state: expanding Budget & Price and Who Is It For? reveals quick-select price ranges, custom max input, and recipient option rows
+  const expandedHtml = renderToStaticMarkup(
+    <GiftFinderExperience
+      products={contentRepository.getAllProducts()}
+      guides={contentRepository.getAllGiftGuides()}
+      articles={contentRepository.getAllArticles()}
+      initialSearchString="?recipient=friend&budget=25-to-75"
+      initialCollapsedSections={{ budget: false, recipient: false }}
+    />
+  );
+
+  assert.match(
+    expandedHtml,
+    /id="desktop-heading-budget"[^>]*aria-expanded="true"[^>]*aria-controls="desktop-panel-budget"/
+  );
+  assert.match(
+    expandedHtml,
+    /id="desktop-heading-recipient"[^>]*aria-expanded="true"[^>]*aria-controls="desktop-panel-recipient"/
+  );
+  assert.match(expandedHtml, /id="desktop-panel-budget"/);
+  assert.match(expandedHtml, /id="desktop-panel-recipient"/);
+  assert.match(expandedHtml, /Active range:/);
+  assert.match(expandedHtml, /Custom max replaces range/);
+});

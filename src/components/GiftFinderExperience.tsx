@@ -9,6 +9,7 @@ import {
   ArrowRight,
   ArrowLeft,
   Check,
+  ChevronDown,
   Gift,
   Plus,
   Trash2,
@@ -60,11 +61,21 @@ import {
 import { GiftThinkingAnimation } from './GiftThinkingAnimation';
 import { PhotoImage } from './ObjectIllustrations';
 
+export type SidebarSectionKey =
+  | 'budget'
+  | 'recipient'
+  | 'occasion'
+  | 'interests'
+  | 'style'
+  | 'category'
+  | 'editorial';
+
 export interface GiftFinderExperienceProps {
   products: Product[];
   guides: GiftGuide[];
   articles: Article[];
   initialSearchString?: string;
+  initialCollapsedSections?: Partial<Record<SidebarSectionKey, boolean>>;
 }
 
 const EXAMPLE_NATURAL_QUERIES: Array<{ label: string; query: string }> = [
@@ -133,6 +144,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
   guides,
   articles,
   initialSearchString = '',
+  initialCollapsedSections,
 }) => {
   const {
     giftLists,
@@ -194,6 +206,41 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
   // Shareable URL feedback
   const [copiedShareUrl, setCopiedShareUrl] = useState(false);
+
+  // Sidebar collapsible sections & compact interest list state
+  const [collapsedSections, setCollapsedSections] = useState<
+    Record<SidebarSectionKey, boolean>
+  >(() => {
+    return {
+      budget: true,
+      recipient: true,
+      occasion: true,
+      interests: true,
+      style: true,
+      category: true,
+      editorial: true,
+      ...initialCollapsedSections,
+    };
+  });
+  const [showAllInterests, setShowAllInterests] = useState(false);
+  const [customMaxInput, setCustomMaxInput] = useState<string>(() => {
+    const initialMax = parseFinderUrlSearchParams(
+      initialSearchString,
+      products
+    ).maxPrice;
+    return initialMax !== null ? String(initialMax) : '';
+  });
+
+  useEffect(() => {
+    setCustomMaxInput(filters.maxPrice !== null ? String(filters.maxPrice) : '');
+  }, [filters.maxPrice]);
+
+  const toggleSidebarSection = (section: SidebarSectionKey) => {
+    setCollapsedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   const isHydratedRef = useRef(false);
 
@@ -446,11 +493,76 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
     });
   };
 
-  // Count active filter dimensions for mobile badge and summary bar
+  // Strip inline budget phrase from a natural-language query when clearing or overriding budget in sidebar
+  const stripInlineBudgetFromQuery = (rawQuery: string): string =>
+    rawQuery
+      .replace(
+        /\b(?:under|below|less\s+than|max|maximum|up\s+to|within|at\s+most|over|above|more\s+than|at\s+least|between|around|about)\s*\$?\d+(?:\.\d{1,2})?(?:\s*(?:and|to|-)\s*\$?\d+(?:\.\d{1,2})?)?\b/gi,
+        ''
+      )
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  const handleClearBudget = () => {
+    const cleanedQuery = stripInlineBudgetFromQuery(filters.query);
+    setCustomMaxInput('');
+    applyFilterPatch(
+      {
+        maxPrice: null,
+        minPrice: null,
+        budgetTier: 'all',
+        query: cleanedQuery,
+      },
+      'filter',
+      'Cleared budget limit'
+    );
+  };
+
+  const handleSelectBudgetTier = (tier: BudgetTier) => {
+    const isSelected = filters.budgetTier === tier;
+    const nextTier = isSelected ? 'all' : tier;
+    const cleanedQuery = evaluation.parsedQuery.hasExplicitBudgetConstraint
+      ? stripInlineBudgetFromQuery(filters.query)
+      : filters.query;
+    setCustomMaxInput('');
+    applyFilterPatch(
+      {
+        budgetTier: nextTier,
+        maxPrice: null,
+        minPrice: null,
+        query: cleanedQuery,
+      },
+      'filter',
+      nextTier === 'all'
+        ? 'All Budgets'
+        : `Budget: ${BUDGET_TIER_LABELS[nextTier]}`
+    );
+  };
+
+  const handleApplyCustomMaxPrice = (nextMax: number | null) => {
+    const cleanedQuery =
+      nextMax !== null && evaluation.parsedQuery.hasExplicitBudgetConstraint
+        ? stripInlineBudgetFromQuery(filters.query)
+        : filters.query;
+    setCustomMaxInput(nextMax !== null ? String(nextMax) : '');
+    applyFilterPatch(
+      {
+        maxPrice: nextMax,
+        minPrice: null,
+        budgetTier: 'all',
+        query: cleanedQuery,
+      },
+      'filter',
+      nextMax !== null ? `Max Price: $${nextMax}` : 'Cleared custom max price'
+    );
+  };
+
+  // Count active filter dimensions for mobile badge, sidebar summary, and top summary bar
   const activeFilterPills = useMemo(() => {
     const list: Array<{
       id: string;
       label: string;
+      shortLabel: string;
       onRemove: () => void;
     }> = [];
 
@@ -458,13 +570,52 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       list.push({
         id: 'query',
         label: `Search: “${filters.query.trim()}”`,
+        shortLabel: `“${filters.query.trim()}”`,
         onRemove: () => updateFilter('query', ''),
+      });
+    }
+    if (filters.budgetTier !== 'all') {
+      list.push({
+        id: 'budgetTier',
+        label: `Budget: ${BUDGET_TIER_LABELS[filters.budgetTier]}`,
+        shortLabel: BUDGET_TIER_LABELS[filters.budgetTier],
+        onRemove: () => updateFilter('budgetTier', 'all'),
+      });
+    } else if (filters.maxPrice !== null) {
+      list.push({
+        id: 'maxPrice',
+        label: `Max Price: $${filters.maxPrice}`,
+        shortLabel: `Up to $${filters.maxPrice}`,
+        onRemove: () => updateFilter('maxPrice', null),
+      });
+    } else if (evaluation.parsedQuery.hasExplicitBudgetConstraint) {
+      const boundLabel =
+        evaluation.effectiveMinPrice !== null &&
+        evaluation.effectiveMaxPrice !== null
+          ? `$${evaluation.effectiveMinPrice}–$${evaluation.effectiveMaxPrice}`
+          : evaluation.effectiveMaxPrice !== null
+            ? `Up to $${evaluation.effectiveMaxPrice}`
+            : `$${evaluation.effectiveMinPrice}+`;
+      list.push({
+        id: 'queryBudget',
+        label: `Budget: ${boundLabel}`,
+        shortLabel: boundLabel,
+        onRemove: handleClearBudget,
+      });
+    }
+    if (filters.minPrice !== null && filters.budgetTier === 'all') {
+      list.push({
+        id: 'minPrice',
+        label: `Min Price: $${filters.minPrice}`,
+        shortLabel: `$${filters.minPrice}+`,
+        onRemove: () => updateFilter('minPrice', null),
       });
     }
     if (filters.recipient !== 'all') {
       list.push({
         id: 'recipient',
         label: `For: ${RECIPIENT_LABELS[filters.recipient]}`,
+        shortLabel: RECIPIENT_LABELS[filters.recipient],
         onRemove: () => updateFilter('recipient', 'all'),
       });
     }
@@ -472,13 +623,23 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       list.push({
         id: 'occasion',
         label: `Occasion: ${OCCASION_LABELS[filters.occasion]}`,
+        shortLabel: OCCASION_LABELS[filters.occasion],
         onRemove: () => updateFilter('occasion', 'all'),
+      });
+    }
+    if (filters.interest !== 'all') {
+      list.push({
+        id: 'interest',
+        label: `Interest: ${filters.interest}`,
+        shortLabel: filters.interest,
+        onRemove: () => updateFilter('interest', 'all'),
       });
     }
     if (filters.personalityTrait !== 'all') {
       list.push({
         id: 'style',
         label: `Style: ${PERSONALITY_LABELS[filters.personalityTrait]}`,
+        shortLabel: PERSONALITY_LABELS[filters.personalityTrait],
         onRemove: () => updateFilter('personalityTrait', 'all'),
       });
     }
@@ -486,47 +647,27 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       list.push({
         id: 'category',
         label: `Category: ${filters.category}`,
+        shortLabel: filters.category,
         onRemove: () => updateFilter('category', 'all'),
-      });
-    }
-    if (filters.interest !== 'all') {
-      list.push({
-        id: 'interest',
-        label: `Interest: ${filters.interest}`,
-        onRemove: () => updateFilter('interest', 'all'),
-      });
-    }
-    if (filters.budgetTier !== 'all') {
-      list.push({
-        id: 'budgetTier',
-        label: `Budget: ${BUDGET_TIER_LABELS[filters.budgetTier]}`,
-        onRemove: () => updateFilter('budgetTier', 'all'),
-      });
-    }
-    if (filters.maxPrice !== null) {
-      list.push({
-        id: 'maxPrice',
-        label: `Max Price: $${filters.maxPrice}`,
-        onRemove: () => updateFilter('maxPrice', null),
-      });
-    }
-    if (filters.minPrice !== null) {
-      list.push({
-        id: 'minPrice',
-        label: `Min Price: $${filters.minPrice}`,
-        onRemove: () => updateFilter('minPrice', null),
       });
     }
     if (filters.editorialOnly) {
       list.push({
         id: 'editorialOnly',
         label: 'Editor’s Picks Only',
+        shortLabel: 'Editor’s Picks',
         onRemove: () => updateFilter('editorialOnly', false),
       });
     }
 
     return list;
-  }, [filters]);
+  }, [filters, evaluation.parsedQuery.hasExplicitBudgetConstraint, evaluation.effectiveMaxPrice, evaluation.effectiveMinPrice]);
+
+  // Active sidebar-specific pills (excludes raw search query text pill if it's already in the search input, or shows all removable filters)
+  const activeSidebarFilterPills = useMemo(
+    () => activeFilterPills.filter((p) => p.id !== 'query'),
+    [activeFilterPills]
+  );
 
   const productsMap = useMemo(() => {
     const map: Record<string, Product> = {};
@@ -565,312 +706,717 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
     setNewListOccasion('');
   };
 
-  // Shared Filter Controls Renderer (used in Desktop Sidebar & Mobile Drawer)
-  const renderFacetControls = (idPrefix: string) => (
-    <div className="space-y-6">
-      {/* 1. Budget & Maximum Price Hard Constraint */}
-      <div className="space-y-2.5">
-        <div className="flex items-center justify-between">
-          <label
-            htmlFor={`${idPrefix}-max-price`}
-            className="text-xs font-semibold uppercase tracking-wider text-[#1B3D5F]"
-          >
-            Budget & Price Limit
-          </label>
-          {(filters.maxPrice !== null ||
-            filters.budgetTier !== 'all' ||
-            evaluation.effectiveMaxPrice !== null) && (
-            <button
-              type="button"
-              onClick={() => {
-                // Also strip budget phrase from query if user clears budget cap
-                const cleanedQuery = evaluation.parsedQuery.rawQuery
-                  .replace(
-                    /\b(?:under|below|less\s+than|max|maximum|up\s+to|within|at\s+most)\s*\$?\d+(?:\.\d{1,2})?\b/gi,
-                    ''
-                  )
-                  .replace(/\s+/g, ' ')
-                  .trim();
-                applyFilterPatch({
-                  maxPrice: null,
-                  minPrice: null,
-                  budgetTier: 'all',
-                  query: cleanedQuery,
-                });
-              }}
-              className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
-            >
-              Clear budget
-            </button>
-          )}
-        </div>
+  // Standardized, compact selectable filter option row (shared across Recipient, Occasion, Interests, Gift Style, Category, and Editorial Picks)
+  const renderFilterOptionRow = (params: {
+    key: string;
+    label: string;
+    count: number;
+    isSelected: boolean;
+    onSelect: () => void;
+  }) => {
+    const { key, label, count, isSelected, onSelect } = params;
+    const isZeroUnselected = count === 0 && !isSelected;
 
-        <select
-          id={`${idPrefix}-max-price`}
-          value={filters.maxPrice !== null ? String(filters.maxPrice) : 'all'}
-          onChange={(e) => {
-            const val = e.target.value;
-            applyFilterPatch({
-              maxPrice: val === 'all' ? null : Number(val),
-              budgetTier: 'all',
-            });
-          }}
-          className="w-full px-3.5 py-2.5 text-xs rounded-2xl bg-white text-[#1B3D5F] font-medium border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#28537D]"
+    return (
+      <button
+        key={key}
+        type="button"
+        onClick={onSelect}
+        aria-pressed={isSelected}
+        className={`group w-full px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between gap-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#1B3D5F] ${
+          isSelected
+            ? 'bg-[#E8F8F0] text-[#1B3D5F] font-semibold ring-1 ring-[#1B3D5F]/20 shadow-2xs'
+            : isZeroUnselected
+              ? 'text-[#405B70]/65 opacity-55 hover:opacity-80 hover:bg-white/40 font-normal'
+              : 'text-[#1B3D5F] hover:bg-white/75 font-medium'
+        }`}
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          <span
+            aria-hidden="true"
+            className={`w-3.5 h-3.5 rounded-xs border flex items-center justify-center shrink-0 transition-colors ${
+              isSelected
+                ? 'bg-[#1B3D5F] border-[#1B3D5F] text-white'
+                : isZeroUnselected
+                  ? 'border-[#1B3D5F]/20 bg-transparent'
+                  : 'border-[#1B3D5F]/30 bg-white/80 group-hover:border-[#1B3D5F]/60'
+            }`}
+          >
+            {isSelected && <Check className="w-2.5 h-2.5 stroke-[2.75]" />}
+          </span>
+          <span className="truncate">{label}</span>
+        </span>
+        <span
+          className={`tabular-nums text-[11px] shrink-0 ${
+            isSelected
+              ? 'font-semibold text-[#1B3D5F]'
+              : isZeroUnselected
+                ? 'text-[#405B70]/55'
+                : 'font-medium text-[#28537D]'
+          }`}
         >
-          <option value="all">No Maximum Cap (All Verified Prices)</option>
-          <option value="25">Strict Under $25 Max</option>
-          <option value="40">Strict Under $40 Max</option>
-          <option value="50">Strict Under $50 Max</option>
-          <option value="75">Strict Under $75 Max</option>
-          <option value="100">Strict Under $100 Max</option>
-        </select>
+          {count}
+        </span>
+      </button>
+    );
+  };
 
-        <div className="grid grid-cols-3 gap-1.5 pt-1">
-          {(['under-25', '25-to-75', 'over-75'] as BudgetTier[]).map((tier) => {
-            const facet = evaluation.facets.budgetTiers.find(
-              (b) => b.value === tier
-            );
-            const isSelected = filters.budgetTier === tier;
-            return (
+  // Ordered Interests list for Sidebar Section 5: keeps active interest visible at top, followed by highest contextual count
+  const orderedInterestFacets = useMemo(() => {
+    return [...evaluation.facets.interests].sort((a, b) => {
+      const aSelected = filters.interest === a.value ? 1 : 0;
+      const bSelected = filters.interest === b.value ? 1 : 0;
+      if (aSelected !== bSelected) return bSelected - aSelected;
+      if (b.count !== a.count) return b.count - a.count;
+      return a.label.localeCompare(b.label);
+    });
+  }, [evaluation.facets.interests, filters.interest]);
+
+  // Shared Filter Controls Renderer (used in Desktop Sidebar & Mobile Drawer)
+  // Organized in exact hierarchy:
+  // 1. Filter Gifts header (with Clear All & active filter chips)
+  // 2. Budget & Price
+  // 3. Who Is It For?
+  // 4. Occasion
+  // 5. Interests
+  // 6. Gift Style & Vibe
+  // 7. Other Supported Facets (Product Category & Editor's Picks)
+  const renderFacetControls = (idPrefix: string) => {
+    const hasAnyBudgetConstraint =
+      filters.budgetTier !== 'all' ||
+      filters.maxPrice !== null ||
+      filters.minPrice !== null ||
+      evaluation.parsedQuery.hasExplicitBudgetConstraint ||
+      evaluation.effectiveMaxPrice !== null;
+
+    const visibleInterests = showAllInterests
+      ? orderedInterestFacets
+      : orderedInterestFacets.slice(0, 6);
+
+    return (
+      <div className="space-y-3.5">
+        {/* Active Filter Chips inside Sidebar (for immediate visibility & individual removal) */}
+        {activeSidebarFilterPills.length > 0 && (
+          <div className="pb-3 border-b border-[#1B3D5F]/10 space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-[#28537D]">
+              <span className="font-medium">
+                Active filters ({activeSidebarFilterPills.length})
+              </span>
               <button
-                key={tier}
                 type="button"
-                onClick={() =>
-                  applyFilterPatch({
-                    budgetTier: isSelected ? 'all' : tier,
-                    maxPrice: null,
-                    minPrice: null,
-                  })
-                }
-                aria-pressed={isSelected}
-                className={`px-2.5 py-2 rounded-xl text-[11px] font-semibold transition-colors text-center ${
-                  isSelected
-                    ? 'bg-[#1B3D5F] text-white'
-                    : 'bg-white text-[#1B3D5F] hover:bg-[#EBF3FE] border border-[#1B3D5F]/10'
-                }`}
+                onClick={() => {
+                  // Preserve search query text when clearing only sidebar filters, or reset all if user clicks Clear All in header
+                  const cleanedQuery = stripInlineBudgetFromQuery(filters.query);
+                  setCustomMaxInput('');
+                  applyFilterPatch(
+                    {
+                      ...DEFAULT_FINDER_FILTERS,
+                      query: cleanedQuery,
+                      sort: filters.sort,
+                    },
+                    'filter',
+                    'Cleared active filters'
+                  );
+                }}
+                className="font-semibold text-[#1B3D5F] hover:text-[#F2846B] underline"
               >
-                <div>{BUDGET_TIER_LABELS[tier]}</div>
-                <div
-                  className={`text-[10px] font-normal ${
-                    isSelected ? 'text-[#C3F3DF]' : 'text-[#28537D]'
-                  }`}
+                Clear filters
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {activeSidebarFilterPills.map((pill) => (
+                <button
+                  key={`${idPrefix}-pill-${pill.id}`}
+                  type="button"
+                  onClick={pill.onRemove}
+                  aria-label={`Remove filter ${pill.label}`}
+                  className="px-2 py-1 rounded-md bg-white hover:bg-[#1B3D5F] text-[#1B3D5F] hover:text-white text-[11px] font-medium inline-flex items-center gap-1 transition-colors border border-[#1B3D5F]/12 focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
                 >
-                  ({facet?.count ?? 0})
+                  <span className="truncate max-w-[150px]">
+                    {pill.shortLabel}
+                  </span>
+                  <X className="w-3 h-3 shrink-0 opacity-75" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 2. Budget & Price (Collapsible, starts collapsed) */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-budget`}
+          className="space-y-2"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              id={`${idPrefix}-heading-budget`}
+              aria-expanded={!collapsedSections.budget}
+              aria-controls={`${idPrefix}-panel-budget`}
+              onClick={() => toggleSidebarSection('budget')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+            >
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Budget & Price</span>
+                {hasAnyBudgetConstraint && (
+                  <span
+                    data-testid={`${idPrefix}-badge-budget`}
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                  >
+                    {filters.budgetTier !== 'all'
+                      ? BUDGET_TIER_LABELS[filters.budgetTier]
+                      : `≤ $${filters.maxPrice ?? evaluation.effectiveMaxPrice}`}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.budget ? '' : 'rotate-180'
+                }`}
+              />
+            </button>
+            {hasAnyBudgetConstraint && (
+              <button
+                type="button"
+                onClick={handleClearBudget}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F] shrink-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {!collapsedSections.budget && (
+            <div id={`${idPrefix}-panel-budget`} className="space-y-2">
+              {/* Quick-Select Price Ranges */}
+              <div
+                role="group"
+                aria-label="Quick-select price ranges"
+                className="grid grid-cols-3 gap-1.5"
+              >
+                {(['under-25', '25-to-75', 'over-75'] as BudgetTier[]).map(
+                  (tier) => {
+                    const facet = evaluation.facets.budgetTiers.find(
+                      (b) => b.value === tier
+                    );
+                    const count = facet?.count ?? 0;
+                    const isSelected = filters.budgetTier === tier;
+                    const isZeroUnselected = count === 0 && !isSelected;
+
+                    return (
+                      <button
+                        key={tier}
+                        type="button"
+                        onClick={() => handleSelectBudgetTier(tier)}
+                        aria-pressed={isSelected}
+                        className={`px-2 py-1.5 rounded-lg text-[11px] transition-colors text-center focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#1B3D5F] ${
+                          isSelected
+                            ? 'bg-[#1B3D5F] text-white font-semibold shadow-2xs'
+                            : isZeroUnselected
+                              ? 'bg-white/45 text-[#405B70]/60 opacity-55 hover:opacity-80 border border-[#1B3D5F]/8'
+                              : 'bg-white/85 text-[#1B3D5F] hover:bg-white font-medium border border-[#1B3D5F]/12'
+                        }`}
+                      >
+                        <div className="leading-tight">
+                          {BUDGET_TIER_LABELS[tier]}
+                        </div>
+                        <div
+                          className={`text-[10px] tabular-nums mt-0.5 ${
+                            isSelected
+                              ? 'text-[#C3F3DF] font-semibold'
+                              : isZeroUnselected
+                                ? 'text-[#405B70]/50'
+                                : 'text-[#28537D]'
+                          }`}
+                        >
+                          {count} {count === 1 ? 'gift' : 'gifts'}
+                        </div>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+
+              {/* Coherent Custom Maximum Price Control */}
+              <div className="pt-1 space-y-1.5">
+                <div className="flex items-center justify-between gap-2">
+                  <label
+                    htmlFor={`${idPrefix}-custom-max-price`}
+                    className="text-[11px] font-medium text-[#28537D]"
+                  >
+                    Or custom max ($):
+                  </label>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      const trimmed = customMaxInput.trim();
+                      if (!trimmed) {
+                        handleApplyCustomMaxPrice(null);
+                        return;
+                      }
+                      const parsed = Number(trimmed);
+                      if (Number.isFinite(parsed) && parsed > 0) {
+                        handleApplyCustomMaxPrice(Math.round(parsed));
+                      }
+                    }}
+                    className="flex items-center gap-1"
+                  >
+                    <div className="relative flex items-center">
+                      <span className="text-[11px] text-[#28537D] absolute left-2 pointer-events-none">
+                        $
+                      </span>
+                      <input
+                        id={`${idPrefix}-custom-max-price`}
+                        type="number"
+                        min={1}
+                        max={1000}
+                        step={1}
+                        value={customMaxInput}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setCustomMaxInput(val);
+                          if (val === '' && filters.maxPrice !== null) {
+                            handleApplyCustomMaxPrice(null);
+                          }
+                        }}
+                        placeholder="Max"
+                        aria-label="Custom maximum price in USD"
+                        className="w-20 pl-5 pr-2 py-1 text-xs rounded-lg bg-white text-[#1B3D5F] font-medium border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#1B3D5F] tabular-nums"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="px-2.5 py-1 rounded-lg bg-[#1B3D5F] hover:bg-[#28537D] text-white text-[11px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+                    >
+                      Set
+                    </button>
+                  </form>
                 </div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* 2. Recipient / Relationship */}
-      <div className="space-y-2 pt-4 border-t border-[#1B3D5F]/10">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#1B3D5F]">
-            Who Is It For?
-          </span>
-          {filters.recipient !== 'all' && (
+                {/* Quick Custom Max Presets ($40, $50, $100) */}
+                <div className="flex items-center justify-between gap-1 text-[11px]">
+                  <span className="text-[#405B70] text-[10px]">Quick caps:</span>
+                  <div className="flex items-center gap-1">
+                    {[40, 50, 100].map((cap) => {
+                      const isCapActive =
+                        filters.maxPrice === cap && filters.budgetTier === 'all';
+                      return (
+                        <button
+                          key={cap}
+                          type="button"
+                          onClick={() =>
+                            handleApplyCustomMaxPrice(isCapActive ? null : cap)
+                          }
+                          aria-pressed={isCapActive}
+                          className={`px-2 py-0.5 rounded-md text-[11px] tabular-nums transition-colors ${
+                            isCapActive
+                              ? 'bg-[#E8F8F0] text-[#1B3D5F] font-semibold ring-1 ring-[#1B3D5F]/25'
+                              : 'bg-white/70 hover:bg-white text-[#28537D] font-medium'
+                          }`}
+                        >
+                          ≤ ${cap}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Active Budget Rule Explanation (prevents silent contradiction between ranges & custom max) */}
+                {hasAnyBudgetConstraint && (
+                  <div className="px-2.5 py-1.5 rounded-lg bg-[#E8F8F0]/80 text-[11px] text-[#1B3D5F] flex items-center justify-between gap-2">
+                    <span className="truncate">
+                      {filters.budgetTier !== 'all' ? (
+                        <>
+                          Active range:{' '}
+                          <strong>{BUDGET_TIER_LABELS[filters.budgetTier]}</strong>
+                        </>
+                      ) : filters.maxPrice !== null ? (
+                        <>
+                          Active custom max: <strong>≤ ${filters.maxPrice}</strong>
+                        </>
+                      ) : (
+                        <>
+                          Query budget:{' '}
+                          <strong>≤ ${evaluation.effectiveMaxPrice}</strong>
+                        </>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-[#28537D] shrink-0">
+                      {filters.budgetTier !== 'all'
+                        ? 'Custom max replaces range'
+                        : 'Range replaces custom max'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* 3. Who Is It For? (Collapsible, starts collapsed) */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-recipient`}
+          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+        >
+          <div className="flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={() => updateFilter('recipient', 'all')}
-              className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
+              id={`${idPrefix}-heading-recipient`}
+              aria-expanded={!collapsedSections.recipient}
+              aria-controls={`${idPrefix}-panel-recipient`}
+              onClick={() => toggleSidebarSection('recipient')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
-              All
-            </button>
-          )}
-        </div>
-        <div className="space-y-1">
-          {evaluation.facets.recipients.map((rec) => {
-            const isSelected = filters.recipient === rec.value;
-            return (
-              <button
-                key={rec.value}
-                type="button"
-                onClick={() =>
-                  updateFilter('recipient', isSelected ? 'all' : rec.value)
-                }
-                aria-pressed={isSelected}
-                className={`w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
-                  isSelected
-                    ? 'bg-[#1B3D5F] text-white font-semibold'
-                    : 'text-[#1B3D5F] hover:bg-white font-medium'
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Who Is It For?</span>
+                {filters.recipient !== 'all' && (
+                  <span
+                    data-testid={`${idPrefix}-badge-recipient`}
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                  >
+                    {RECIPIENT_LABELS[filters.recipient]}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.recipient ? '' : 'rotate-180'
                 }`}
+              />
+            </button>
+            {filters.recipient !== 'all' && (
+              <button
+                type="button"
+                onClick={() => updateFilter('recipient', 'all')}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline shrink-0"
               >
-                <span>{rec.label}</span>
-                <span
-                  className={`tabular-nums text-[11px] ${
-                    isSelected ? 'text-[#C3F3DF]' : 'text-[#28537D]'
-                  }`}
-                >
-                  {rec.count}
-                </span>
+                Clear
               </button>
-            );
-          })}
-        </div>
-      </div>
+            )}
+          </div>
+          {!collapsedSections.recipient && (
+            <div id={`${idPrefix}-panel-recipient`} className="space-y-0.5">
+              {evaluation.facets.recipients.map((rec) =>
+                renderFilterOptionRow({
+                  key: rec.value,
+                  label: rec.label,
+                  count: rec.count,
+                  isSelected: filters.recipient === rec.value,
+                  onSelect: () =>
+                    updateFilter(
+                      'recipient',
+                      filters.recipient === rec.value ? 'all' : rec.value
+                    ),
+                })
+              )}
+            </div>
+          )}
+        </section>
 
-      {/* 3. Gift Style / Personality */}
-      <div className="space-y-2 pt-4 border-t border-[#1B3D5F]/10">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#1B3D5F]">
-            Gift Style & Vibe
-          </span>
-          {filters.personalityTrait !== 'all' && (
+        {/* 4. Occasion (Collapsible, starts collapsed) */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-occasion`}
+          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+        >
+          <div className="flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={() => updateFilter('personalityTrait', 'all')}
-              className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
+              id={`${idPrefix}-heading-occasion`}
+              aria-expanded={!collapsedSections.occasion}
+              aria-controls={`${idPrefix}-panel-occasion`}
+              onClick={() => toggleSidebarSection('occasion')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
-              All
-            </button>
-          )}
-        </div>
-        <div className="space-y-1">
-          {evaluation.facets.personalityTraits.map((trait) => {
-            const isSelected = filters.personalityTrait === trait.value;
-            return (
-              <button
-                key={trait.value}
-                type="button"
-                onClick={() =>
-                  updateFilter(
-                    'personalityTrait',
-                    isSelected ? 'all' : trait.value
-                  )
-                }
-                aria-pressed={isSelected}
-                className={`w-full px-3 py-2 rounded-xl text-xs flex items-center justify-between text-left transition-colors ${
-                  isSelected
-                    ? 'bg-[#1B3D5F] text-white font-semibold'
-                    : 'text-[#1B3D5F] hover:bg-white font-medium'
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Occasion</span>
+                {filters.occasion !== 'all' && (
+                  <span
+                    data-testid={`${idPrefix}-badge-occasion`}
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                  >
+                    {OCCASION_LABELS[filters.occasion]}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.occasion ? '' : 'rotate-180'
                 }`}
+              />
+            </button>
+            {filters.occasion !== 'all' && (
+              <button
+                type="button"
+                onClick={() => updateFilter('occasion', 'all')}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F] shrink-0"
               >
-                <span className="pr-2">{trait.label}</span>
-                <span
-                  className={`tabular-nums text-[11px] shrink-0 ${
-                    isSelected ? 'text-[#C3F3DF]' : 'text-[#28537D]'
-                  }`}
-                >
-                  {trait.count}
-                </span>
+                Clear
               </button>
-            );
-          })}
-        </div>
-      </div>
+            )}
+          </div>
+          {!collapsedSections.occasion && (
+            <div id={`${idPrefix}-panel-occasion`} className="space-y-0.5">
+              {evaluation.facets.occasions.map((occ) =>
+                renderFilterOptionRow({
+                  key: occ.value,
+                  label: occ.label,
+                  count: occ.count,
+                  isSelected: filters.occasion === occ.value,
+                  onSelect: () =>
+                    updateFilter(
+                      'occasion',
+                      filters.occasion === occ.value ? 'all' : occ.value
+                    ),
+                })
+              )}
+            </div>
+          )}
+        </section>
 
-      {/* 4. Occasion */}
-      <div className="space-y-2 pt-4 border-t border-[#1B3D5F]/10">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wider text-[#1B3D5F]">
-            Occasion
-          </span>
-          {filters.occasion !== 'all' && (
+        {/* 5. Interests (Collapsible with Active Selection Indicator + Compact Top-6 / Expand All) */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-interests`}
+          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+        >
+          <div className="flex items-center justify-between gap-2">
             <button
               type="button"
-              onClick={() => updateFilter('occasion', 'all')}
-              className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
+              id={`${idPrefix}-heading-interests`}
+              aria-expanded={!collapsedSections.interests}
+              aria-controls={`${idPrefix}-panel-interests`}
+              onClick={() => toggleSidebarSection('interests')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
-              All
-            </button>
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          {evaluation.facets.occasions.map((occ) => {
-            const isSelected = filters.occasion === occ.value;
-            return (
-              <button
-                key={occ.value}
-                type="button"
-                onClick={() =>
-                  updateFilter('occasion', isSelected ? 'all' : occ.value)
-                }
-                aria-pressed={isSelected}
-                className={`px-2.5 py-2 rounded-xl text-xs flex items-center justify-between transition-colors ${
-                  isSelected
-                    ? 'bg-[#1B3D5F] text-white font-semibold'
-                    : 'bg-white text-[#1B3D5F] hover:bg-[#EBF3FE] font-medium border border-[#1B3D5F]/8'
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Interests</span>
+                {filters.interest !== 'all' && (
+                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]">
+                    {filters.interest}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.interests ? '' : 'rotate-180'
                 }`}
+              />
+            </button>
+            {filters.interest !== 'all' && (
+              <button
+                type="button"
+                onClick={() => updateFilter('interest', 'all')}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline shrink-0"
               >
-                <span className="truncate pr-1">{occ.label}</span>
-                <span
-                  className={`tabular-nums text-[10px] shrink-0 ${
-                    isSelected ? 'text-[#C3F3DF]' : 'text-[#28537D]'
-                  }`}
-                >
-                  {occ.count}
-                </span>
+                Clear
               </button>
-            );
-          })}
-        </div>
-      </div>
+            )}
+          </div>
 
-      {/* 5. Product Category & Interest Selectors */}
-      <div className="space-y-3 pt-4 border-t border-[#1B3D5F]/10">
-        <div>
-          <label
-            htmlFor={`${idPrefix}-category`}
-            className="block text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] mb-1.5"
-          >
-            Product Category
-          </label>
-          <select
-            id={`${idPrefix}-category`}
-            value={filters.category}
-            onChange={(e) => updateFilter('category', e.target.value)}
-            className="w-full px-3 py-2.5 text-xs rounded-2xl bg-white text-[#1B3D5F] font-medium border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#28537D]"
-          >
-            <option value="all">All Categories ({products.length})</option>
-            {evaluation.facets.categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label} ({cat.count})
-              </option>
-            ))}
-          </select>
-        </div>
+          {!collapsedSections.interests && (
+            <div id={`${idPrefix}-panel-interests`} className="space-y-0.5">
+              {visibleInterests.map((intItem) =>
+                renderFilterOptionRow({
+                  key: intItem.value,
+                  label: intItem.label,
+                  count: intItem.count,
+                  isSelected: filters.interest === intItem.value,
+                  onSelect: () =>
+                    updateFilter(
+                      'interest',
+                      filters.interest === intItem.value ? 'all' : intItem.value
+                    ),
+                })
+              )}
+              {orderedInterestFacets.length > 6 && (
+                <button
+                  type="button"
+                  onClick={() => setShowAllInterests((prev) => !prev)}
+                  className="w-full pt-1 px-2.5 text-left text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
+                >
+                  {showAllInterests
+                    ? 'Show fewer interests'
+                    : `Show all ${orderedInterestFacets.length} interests`}
+                </button>
+              )}
+            </div>
+          )}
+        </section>
 
-        <div>
-          <label
-            htmlFor={`${idPrefix}-interest`}
-            className="block text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] mb-1.5"
-          >
-            Interest or Hobby Tag
-          </label>
-          <select
-            id={`${idPrefix}-interest`}
-            value={filters.interest}
-            onChange={(e) => updateFilter('interest', e.target.value)}
-            className="w-full px-3 py-2.5 text-xs rounded-2xl bg-white text-[#1B3D5F] font-medium border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#28537D]"
-          >
-            <option value="all">All Interests & Hobbies</option>
-            {evaluation.facets.interests.map((intItem) => (
-              <option key={intItem.value} value={intItem.value}>
-                {intItem.label} ({intItem.count})
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
+        {/* 6. Gift Style & Vibe (Collapsible with Active Selection Indicator) */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-style`}
+          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              id={`${idPrefix}-heading-style`}
+              aria-expanded={!collapsedSections.style}
+              aria-controls={`${idPrefix}-panel-style`}
+              onClick={() => toggleSidebarSection('style')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+            >
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Gift Style & Vibe</span>
+                {filters.personalityTrait !== 'all' && (
+                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[100px]">
+                    {PERSONALITY_LABELS[filters.personalityTrait]}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.style ? '' : 'rotate-180'
+                }`}
+              />
+            </button>
+            {filters.personalityTrait !== 'all' && (
+              <button
+                type="button"
+                onClick={() => updateFilter('personalityTrait', 'all')}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline shrink-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
 
-      {/* 6. Editorial Curation Toggle */}
-      <div className="pt-4 border-t border-[#1B3D5F]/10">
-        <label className="flex items-start gap-2.5 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={filters.editorialOnly}
-            onChange={(e) => updateFilter('editorialOnly', e.target.checked)}
-            className="mt-0.5 rounded text-[#1B3D5F] focus:ring-[#28537D]"
-          />
-          <span className="text-xs text-[#1B3D5F] font-medium leading-snug">
-            Editor’s Standout & Quick Picks only (
-            {evaluation.facets.editorialPickCount})
-          </span>
-        </label>
+          {!collapsedSections.style && (
+            <div id={`${idPrefix}-panel-style`} className="space-y-0.5">
+              {evaluation.facets.personalityTraits.map((trait) =>
+                renderFilterOptionRow({
+                  key: trait.value,
+                  label: trait.label,
+                  count: trait.count,
+                  isSelected: filters.personalityTrait === trait.value,
+                  onSelect: () =>
+                    updateFilter(
+                      'personalityTrait',
+                      filters.personalityTrait === trait.value
+                        ? 'all'
+                        : trait.value
+                    ),
+                })
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* 7. Other Supported Facets: Product Category (Collapsible) & Editorial Picks */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-category`}
+          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              id={`${idPrefix}-heading-category`}
+              aria-expanded={!collapsedSections.category}
+              aria-controls={`${idPrefix}-panel-category`}
+              onClick={() => toggleSidebarSection('category')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+            >
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Product Category</span>
+                {filters.category !== 'all' && (
+                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[100px]">
+                    {filters.category}
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.category ? '' : 'rotate-180'
+                }`}
+              />
+            </button>
+            {filters.category !== 'all' && (
+              <button
+                type="button"
+                onClick={() => updateFilter('category', 'all')}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline shrink-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {!collapsedSections.category && (
+            <div id={`${idPrefix}-panel-category`} className="space-y-0.5">
+              {evaluation.facets.categories.map((cat) =>
+                renderFilterOptionRow({
+                  key: cat.value,
+                  label: cat.label,
+                  count: cat.count,
+                  isSelected: filters.category === cat.value,
+                  onSelect: () =>
+                    updateFilter(
+                      'category',
+                      filters.category === cat.value ? 'all' : cat.value
+                    ),
+                })
+              )}
+            </div>
+          )}
+        </section>
+
+        {/* 8. Editorial Curation (Collapsible, starts collapsed) */}
+        <section
+          aria-labelledby={`${idPrefix}-heading-editorial`}
+          className="pt-3.5 border-t border-[#1B3D5F]/10 space-y-1.5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <button
+              type="button"
+              id={`${idPrefix}-heading-editorial`}
+              aria-expanded={!collapsedSections.editorial}
+              aria-controls={`${idPrefix}-panel-editorial`}
+              onClick={() => toggleSidebarSection('editorial')}
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+            >
+              <span className="flex items-center gap-1.5 min-w-0">
+                <span>Editorial Curation</span>
+                {filters.editorialOnly && (
+                  <span
+                    data-testid={`${idPrefix}-badge-editorial`}
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                  >
+                    Editor’s Picks
+                  </span>
+                )}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-[#28537D] shrink-0 transition-transform duration-150 motion-reduce:transition-none ${
+                  collapsedSections.editorial ? '' : 'rotate-180'
+                }`}
+              />
+            </button>
+            {filters.editorialOnly && (
+              <button
+                type="button"
+                onClick={() => updateFilter('editorialOnly', false)}
+                className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F] shrink-0"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          {!collapsedSections.editorial && (
+            <div id={`${idPrefix}-panel-editorial`} className="pt-0.5">
+              {renderFilterOptionRow({
+                key: 'editorial-only',
+                label: 'Editor’s Standout & Quick Picks',
+                count: evaluation.facets.editorialPickCount,
+                isSelected: filters.editorialOnly,
+                onSelect: () =>
+                  updateFilter('editorialOnly', !filters.editorialOnly),
+              })}
+            </div>
+          )}
+        </section>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-12">
@@ -1952,20 +2498,20 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* Desktop Faceted Filter Column (3 cols) */}
         <aside
           aria-label="Gift Finder Filters"
-          className="hidden lg:block lg:col-span-3 p-6 rounded-3xl bg-[#F3ECE1]/85 border border-[#1B3D5F]/8 space-y-6 sticky top-24"
+          className="hidden lg:block lg:col-span-3 p-5 rounded-3xl bg-[#F3ECE1]/85 border border-[#1B3D5F]/8 space-y-4 sticky top-24"
         >
-          <div className="flex items-center justify-between border-b border-[#1B3D5F]/10 pb-3">
-            <div className="flex items-center gap-2 text-sm font-serif font-semibold text-[#1B3D5F]">
+          <div className="flex items-center justify-between border-b border-[#1B3D5F]/10 pb-2.5">
+            <h2 className="flex items-center gap-2 text-sm font-serif font-semibold text-[#1B3D5F]">
               <SlidersHorizontal className="w-4 h-4 text-[#28537D]" />
-              <span>Filter Collection</span>
-            </div>
+              <span>Filter Gifts</span>
+            </h2>
             {evaluation.hasActiveCriteria && (
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
+                className="text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
               >
-                Reset
+                Clear All
               </button>
             )}
           </div>

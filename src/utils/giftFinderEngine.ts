@@ -1036,6 +1036,14 @@ export function passesHardEligibilityConstraints(
     if (effectiveMinPrice !== null && product.price < effectiveMinPrice) {
       return false;
     }
+    // Keep 'over-75' strictly above $75 so $25–$75 and Over $75 have a clean, non-overlapping boundary at $75
+    if (
+      ignoreFacet !== 'budgetTier' &&
+      filters.budgetTier === 'over-75' &&
+      product.price <= 75
+    ) {
+      return false;
+    }
   }
 
   // 2. Explicit Recipient Filter
@@ -1364,6 +1372,129 @@ export function scoreProductDeterministically(
 }
 
 /**
+ * Shared filter + query-signal pipeline used by both `evaluateGiftFinder` and `computeFacetCounts`
+ * so facet counts always reflect the exact contextual result count for each option.
+ */
+function runFinderFilterAndScorePipeline(
+  products: Product[],
+  candidateFilters: GiftFinderFilters,
+  parsedQuery: ParsedGiftQuery,
+  editorialMap: Record<string, EditorialProductContext>
+): RankedGiftResult[] {
+  const { effectiveMaxPrice, effectiveMinPrice } = resolveEffectivePriceBounds(
+    candidateFilters,
+    parsedQuery
+  );
+
+  // Step 1: Filter by hard eligibility constraints
+  const hardEligibleProducts = products.filter((product) =>
+    passesHardEligibilityConstraints(
+      product,
+      candidateFilters,
+      effectiveMaxPrice,
+      effectiveMinPrice,
+      editorialMap[product.id]
+    )
+  );
+
+  // Step 2: Score all hard-eligible products
+  const scoredResults = hardEligibleProducts.map((product) =>
+    scoreProductDeterministically(
+      product,
+      candidateFilters,
+      parsedQuery,
+      effectiveMaxPrice,
+      effectiveMinPrice,
+      editorialMap[product.id]
+    )
+  );
+
+  // Step 3: When a natural-language query has specific topic/intent tokens,
+  // exclude products that have zero matching query signals (distinguishing strong matches from non-matches).
+  const hasQueryText = parsedQuery.meaningfulTokens.length > 0;
+  if (!hasQueryText) {
+    return scoredResults;
+  }
+
+  const hasTopicConstraintInQuery =
+    parsedQuery.topicTokens.length > 0 ||
+    parsedQuery.inferredInterests.length > 0 ||
+    parsedQuery.inferredCategories.length > 0 ||
+    parsedQuery.inferredPersonalityTraits.length > 0;
+
+  const hasIntentConstraintInQuery =
+    hasTopicConstraintInQuery ||
+    parsedQuery.inferredRecipients.length > 0 ||
+    parsedQuery.inferredOccasions.length > 0;
+
+  const queryOnlyFilters: GiftFinderFilters = {
+    ...DEFAULT_FINDER_FILTERS,
+    query: candidateFilters.query,
+  };
+
+  const querySignalTypes = new Set([
+    'recipient',
+    'interest',
+    'occasion',
+    'category',
+    'style',
+    'keyword',
+  ]);
+  const topicSignalTypes = new Set([
+    'interest',
+    'category',
+    'style',
+    'keyword',
+  ]);
+
+  const querySignalsByProductId = new Map<string, MatchedSignal[]>();
+  for (const r of scoredResults) {
+    const queryScored = scoreProductDeterministically(
+      r.product,
+      queryOnlyFilters,
+      parsedQuery,
+      null,
+      null,
+      editorialMap[r.product.id]
+    );
+    querySignalsByProductId.set(r.product.id, queryScored.matchedSignals);
+  }
+
+  const matchingAnyQuerySignal = scoredResults.filter((r) =>
+    (querySignalsByProductId.get(r.product.id) ?? []).some((s) =>
+      querySignalTypes.has(s.type)
+    )
+  );
+
+  if (hasTopicConstraintInQuery) {
+    const matchingTopicSignal = matchingAnyQuerySignal.filter((r) =>
+      (querySignalsByProductId.get(r.product.id) ?? []).some((s) =>
+        topicSignalTypes.has(s.type)
+      )
+    );
+
+    const hasUnmatchedRawTopicWords =
+      parsedQuery.topicTokens.length > 0 &&
+      parsedQuery.inferredInterests.length === 0 &&
+      parsedQuery.inferredCategories.length === 0 &&
+      parsedQuery.inferredPersonalityTraits.length === 0 &&
+      matchingTopicSignal.length === 0;
+
+    if (hasUnmatchedRawTopicWords) {
+      return [];
+    } else if (matchingTopicSignal.length > 0) {
+      return matchingTopicSignal;
+    } else {
+      return matchingAnyQuerySignal;
+    }
+  } else if (hasIntentConstraintInQuery) {
+    return matchingAnyQuerySignal;
+  }
+
+  return [];
+}
+
+/**
  * Evaluates the canonical product catalog against natural-language search, faceted filters,
  * or guided quiz state using a single shared deterministic ranking engine.
  */
@@ -1391,18 +1522,6 @@ export function evaluateGiftFinder(
     options?.articles ?? []
   );
 
-  const hasQueryText = parsedQuery.meaningfulTokens.length > 0;
-  const hasTopicConstraintInQuery =
-    parsedQuery.topicTokens.length > 0 ||
-    parsedQuery.inferredInterests.length > 0 ||
-    parsedQuery.inferredCategories.length > 0 ||
-    parsedQuery.inferredPersonalityTraits.length > 0;
-
-  const hasIntentConstraintInQuery =
-    hasTopicConstraintInQuery ||
-    parsedQuery.inferredRecipients.length > 0 ||
-    parsedQuery.inferredOccasions.length > 0;
-
   const hasActiveCriteria =
     Boolean(mergedFilters.query.trim()) ||
     mergedFilters.recipient !== 'all' ||
@@ -1415,82 +1534,13 @@ export function evaluateGiftFinder(
     effectiveMinPrice !== null ||
     mergedFilters.editorialOnly;
 
-  // Step 1: Filter by hard eligibility constraints
-  const hardEligibleProducts = products.filter((product) =>
-    passesHardEligibilityConstraints(
-      product,
-      mergedFilters,
-      effectiveMaxPrice,
-      effectiveMinPrice,
-      editorialMap[product.id]
-    )
+  // Steps 1–3: Filter by hard eligibility constraints, score, and apply query-signal matching
+  const filteredScoredResults = runFinderFilterAndScorePipeline(
+    products,
+    mergedFilters,
+    parsedQuery,
+    editorialMap
   );
-
-  // Step 2: Score all hard-eligible products
-  const scoredResults = hardEligibleProducts.map((product) =>
-    scoreProductDeterministically(
-      product,
-      mergedFilters,
-      parsedQuery,
-      effectiveMaxPrice,
-      effectiveMinPrice,
-      editorialMap[product.id]
-    )
-  );
-
-  // Step 3: When a natural-language query has specific topic/intent tokens,
-  // exclude products that have zero matching query signals (distinguishing strong matches from non-matches).
-  // Furthermore, if the query specifies BOTH a topic/interest/category/keyword AND a recipient/occasion,
-  // prioritize items that match at least one topic/keyword/interest/category/style signal if any exist.
-  let filteredScoredResults = scoredResults;
-
-  if (hasQueryText) {
-    const querySignalTypes = new Set([
-      'recipient',
-      'interest',
-      'occasion',
-      'category',
-      'style',
-      'keyword',
-    ]);
-
-    const matchingAnyQuerySignal = scoredResults.filter((r) =>
-      r.matchedSignals.some((s) => querySignalTypes.has(s.type))
-    );
-
-    if (hasTopicConstraintInQuery) {
-      const topicSignalTypes = new Set([
-        'interest',
-        'category',
-        'style',
-        'keyword',
-      ]);
-      const matchingTopicSignal = matchingAnyQuerySignal.filter((r) =>
-        r.matchedSignals.some((s) => topicSignalTypes.has(s.type))
-      );
-
-      // If the user typed an unrecognized keyword that is not in any synonym map and matched 0 products,
-      // return 0 results rather than returning every product just because "mom" was also in the query.
-      const hasUnmatchedRawTopicWords =
-        parsedQuery.topicTokens.length > 0 &&
-        parsedQuery.inferredInterests.length === 0 &&
-        parsedQuery.inferredCategories.length === 0 &&
-        parsedQuery.inferredPersonalityTraits.length === 0 &&
-        matchingTopicSignal.length === 0;
-
-      if (hasUnmatchedRawTopicWords) {
-        filteredScoredResults = [];
-      } else if (matchingTopicSignal.length > 0) {
-        filteredScoredResults = matchingTopicSignal;
-      } else {
-        filteredScoredResults = matchingAnyQuerySignal;
-      }
-    } else if (hasIntentConstraintInQuery) {
-      filteredScoredResults = matchingAnyQuerySignal;
-    } else {
-      filteredScoredResults = [];
-    }
-  }
 
   // Step 4: Deterministic Sorting
   const sortedResults = [...filteredScoredResults].sort((a, b) => {
@@ -1523,12 +1573,11 @@ export function evaluateGiftFinder(
     return a.product.id.localeCompare(b.product.id);
   });
 
-  // Step 5: Compute Facet Option Counts (grounded in actual catalog attributes)
+  // Step 5: Compute Contextual Facet Option Counts (grounded in active search & filter context)
   const facets = computeFacetCounts(
     products,
     mergedFilters,
-    effectiveMaxPrice,
-    effectiveMinPrice,
+    parsedQuery,
     editorialMap
   );
 
@@ -1558,8 +1607,7 @@ export function evaluateGiftFinder(
 function computeFacetCounts(
   products: Product[],
   filters: GiftFinderFilters,
-  effectiveMaxPrice: number | null,
-  effectiveMinPrice: number | null,
+  parsedQuery: ParsedGiftQuery,
   editorialMap: Record<string, EditorialProductContext>
 ): FinderFacetCounts {
   const recipientKeys: RecipientType[] = [
@@ -1603,17 +1651,11 @@ function computeFacetCounts(
   ).sort();
 
   const recipients = recipientKeys.map((rec) => {
-    const count = products.filter(
-      (p) =>
-        (p.recipients ?? []).includes(rec) &&
-        passesHardEligibilityConstraints(
-          p,
-          filters,
-          effectiveMaxPrice,
-          effectiveMinPrice,
-          editorialMap[p.id],
-          'recipient'
-        )
+    const count = runFinderFilterAndScorePipeline(
+      products,
+      { ...filters, recipient: rec },
+      parsedQuery,
+      editorialMap
     ).length;
     return {
       value: rec,
@@ -1623,17 +1665,11 @@ function computeFacetCounts(
   });
 
   const occasions = occasionKeys.map((occ) => {
-    const count = products.filter(
-      (p) =>
-        (p.occasions ?? []).includes(occ) &&
-        passesHardEligibilityConstraints(
-          p,
-          filters,
-          effectiveMaxPrice,
-          effectiveMinPrice,
-          editorialMap[p.id],
-          'occasion'
-        )
+    const count = runFinderFilterAndScorePipeline(
+      products,
+      { ...filters, occasion: occ },
+      parsedQuery,
+      editorialMap
     ).length;
     return {
       value: occ,
@@ -1643,17 +1679,11 @@ function computeFacetCounts(
   });
 
   const personalityTraits = personalityKeys.map((trait) => {
-    const count = products.filter(
-      (p) =>
-        (p.personalityTraits ?? []).includes(trait) &&
-        passesHardEligibilityConstraints(
-          p,
-          filters,
-          effectiveMaxPrice,
-          effectiveMinPrice,
-          editorialMap[p.id],
-          'personalityTrait'
-        )
+    const count = runFinderFilterAndScorePipeline(
+      products,
+      { ...filters, personalityTrait: trait },
+      parsedQuery,
+      editorialMap
     ).length;
     return {
       value: trait,
@@ -1663,17 +1693,11 @@ function computeFacetCounts(
   });
 
   const categories = allCategories.map((cat) => {
-    const count = products.filter(
-      (p) =>
-        p.productType === cat &&
-        passesHardEligibilityConstraints(
-          p,
-          filters,
-          effectiveMaxPrice,
-          effectiveMinPrice,
-          editorialMap[p.id],
-          'category'
-        )
+    const count = runFinderFilterAndScorePipeline(
+      products,
+      { ...filters, category: cat },
+      parsedQuery,
+      editorialMap
     ).length;
     return {
       value: cat,
@@ -1683,17 +1707,11 @@ function computeFacetCounts(
   });
 
   const interests = allInterests.map((interest) => {
-    const count = products.filter(
-      (p) =>
-        (p.interests ?? []).includes(interest) &&
-        passesHardEligibilityConstraints(
-          p,
-          filters,
-          effectiveMaxPrice,
-          effectiveMinPrice,
-          editorialMap[p.id],
-          'interest'
-        )
+    const count = runFinderFilterAndScorePipeline(
+      products,
+      { ...filters, interest },
+      parsedQuery,
+      editorialMap
     ).length;
     return {
       value: interest,
@@ -1703,29 +1721,17 @@ function computeFacetCounts(
   });
 
   const budgetTiers = budgetTierKeys.map((tier) => {
-    const count = products.filter((p) => {
-      if (!hasValidNumericPrice(p)) return false;
-      const matchesTier =
-        p.budgetTier === tier ||
-        p.guidePriceBucket === tier ||
-        (tier === 'under-25' && p.price <= 25) ||
-        (tier === '25-to-75' && p.price >= 25 && p.price <= 75) ||
-        (tier === 'over-75' && p.price > 75) ||
-        (tier === 'under-50' && p.price <= 50) ||
-        (tier === '50-to-100' && p.price >= 50 && p.price <= 100) ||
-        (tier === '100-plus' && p.price >= 100);
-      return (
-        matchesTier &&
-        passesHardEligibilityConstraints(
-          p,
-          filters,
-          null,
-          null,
-          editorialMap[p.id],
-          'budgetTier'
-        )
-      );
-    }).length;
+    const count = runFinderFilterAndScorePipeline(
+      products,
+      {
+        ...filters,
+        budgetTier: tier,
+        maxPrice: null,
+        minPrice: null,
+      },
+      parsedQuery,
+      editorialMap
+    ).length;
     return {
       value: tier,
       label: BUDGET_TIER_LABELS[tier],
@@ -1733,14 +1739,11 @@ function computeFacetCounts(
     };
   });
 
-  const editorialPickCount = products.filter((p) =>
-    passesHardEligibilityConstraints(
-      p,
-      { ...filters, editorialOnly: true },
-      effectiveMaxPrice,
-      effectiveMinPrice,
-      editorialMap[p.id]
-    )
+  const editorialPickCount = runFinderFilterAndScorePipeline(
+    products,
+    { ...filters, editorialOnly: true },
+    parsedQuery,
+    editorialMap
   ).length;
 
   return {
