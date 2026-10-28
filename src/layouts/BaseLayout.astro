@@ -14,7 +14,7 @@ export interface Props {
   ogType?: 'website' | 'article';
   ogImage?: string;
   jsonLd?: Record<string, unknown>;
-  activeSection?: 'home' | 'guides' | 'articles' | 'products';
+  activeSection?: 'home' | 'guides' | 'articles' | 'products' | 'finder';
   pageBgClass?: string;
 }
 
@@ -112,13 +112,17 @@ const featuredArticle = articles[0];
             Gift Guides
           </a>
           <a
-            href="/#gift-finder"
-            class="hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+            href="/gift-finder/"
+            class={`hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 ${
+              activeSection === 'finder'
+                ? 'text-[#1B3D5F] font-semibold underline'
+                : ''
+            }`}
           >
             Gift Finder
           </a>
           <a
-            href="/#under-50-edit"
+            href="/gift-finder/?maxPrice=50"
             class="hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
           >
             Under $50
@@ -139,7 +143,7 @@ const featuredArticle = articles[0];
         <!-- Zone 3: 1 Primary CTA -->
         <div class="flex items-center shrink-0">
           <a
-            href="/#gift-finder"
+            href="/gift-finder/"
             class="px-4 py-2.5 text-xs font-semibold text-[#FAF7F2] bg-[#1B3D5F] rounded-full hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
           >
             Find a Gift
@@ -162,7 +166,7 @@ const featuredArticle = articles[0];
       >
         Little Things Guide
       </a>
-      <a href="/#gift-finder" class="whitespace-nowrap shrink-0 hover:underline">
+      <a href="/gift-finder/" class="whitespace-nowrap shrink-0 hover:underline">
         Gift Finder
       </a>
       <a

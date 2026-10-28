@@ -29,6 +29,42 @@ import {
   buildGiftGuideJsonLd,
   buildProductJsonLd,
 } from './seoAndValidation';
+import {
+  DEFAULT_FINDER_FILTERS,
+  evaluateGiftFinder,
+  parseFinderUrlSearchParams,
+  parseNaturalLanguageGiftQuery,
+  quizAnswersToFinderFilters,
+  serializeFinderUrlSearchParams,
+} from './giftFinderEngine';
+import {
+  THINKING_DURATION_SPECS,
+  buildThinkingStatusDescriptor,
+  computeRemainingThinkingDelay,
+  createThinkingCoordinator,
+  getTargetThinkingDurationMs,
+} from './giftFinderThinking';
+import {
+  DEFAULT_LIST_ID,
+  GIFT_LISTS_STORAGE_KEY,
+  RECIPIENT_NOTES_STORAGE_KEY,
+  SAVED_GIFTS_STORAGE_KEY,
+  clearAllSavedGifts,
+  createGiftList,
+  deleteGiftList,
+  moveProductBetweenLists,
+  readGiftLists,
+  readRecipientNotes,
+  readSavedProductIds,
+  removeProductFromList,
+  resolveSavedListItems,
+  saveProductToList,
+  toggleSavedItemPurchased,
+  toggleSavedProductId,
+  writeRecipientNote,
+} from './savedGiftsStore';
+import { GiftFinderExperience } from '../components/GiftFinderExperience';
+import { GiftThinkingAnimation } from '../components/GiftThinkingAnimation';
 
 test('1. buildArticleCitationMap assigns unique markerIds and maps multiple occurrences to the same reference', () => {
   const article = ARTICLES[0];
@@ -1052,4 +1088,727 @@ test('15. Astro contentRepository resolves routes for gift guides, articles, and
   assert.equal(productJsonLd['@graph'][1].offers.price, 48);
   assert.equal(productJsonLd['@graph'][1].offers.priceCurrency, 'USD');
 });
+
+test('16. Natural-language query parser recognizes recipient synonyms, interests, occasions, gift styles, and explicit budget constraints', () => {
+  const q1 = parseNaturalLanguageGiftQuery('tea gifts for mom under $50');
+  assert.ok(q1.inferredRecipients.includes('parent'));
+  assert.ok(q1.inferredInterests.includes('Coffee & Tea'));
+  assert.equal(q1.parsedMaxPrice, 50);
+  assert.equal(q1.hasExplicitBudgetConstraint, true);
+
+  const q2 = parseNaturalLanguageGiftQuery(
+    'housewarming gift for someone who likes plants'
+  );
+  assert.ok(q2.inferredOccasions.includes('housewarming'));
+  assert.ok(q2.inferredInterests.includes('Gardening'));
+  assert.ok(q2.inferredCategories.includes('Plants & Gardening'));
+  assert.ok(q2.inferredPersonalityTraits.includes('outdoors-nature'));
+  assert.equal(q2.parsedMaxPrice, null);
+
+  const q3 = parseNaturalLanguageGiftQuery('practical gift for dad');
+  assert.ok(q3.inferredRecipients.includes('parent'));
+  assert.ok(q3.inferredPersonalityTraits.includes('everyday-ritual'));
+
+  const qRange = parseNaturalLanguageGiftQuery(
+    'anniversary present for wife between $25 and $75'
+  );
+  assert.ok(qRange.inferredRecipients.includes('partner'));
+  assert.ok(qRange.inferredOccasions.includes('anniversary'));
+  assert.equal(qRange.parsedMinPrice, 25);
+  assert.equal(qRange.parsedMaxPrice, 75);
+
+  const qBelow = parseNaturalLanguageGiftQuery('hostess gift below $75');
+  assert.ok(qBelow.inferredRecipients.includes('host'));
+  assert.equal(qBelow.parsedMaxPrice, 75);
+
+  const qMax = parseNaturalLanguageGiftQuery('coworker thank you max $40');
+  assert.ok(qMax.inferredRecipients.includes('coworker'));
+  assert.ok(qMax.inferredOccasions.includes('thank-you'));
+  assert.equal(qMax.parsedMaxPrice, 40);
+});
+
+test('17. Deterministic ranking engine prioritizes multi-signal matches and enforces hard budget caps', () => {
+  const allProducts = contentRepository.getAllProducts();
+  const guides = contentRepository.getAllGiftGuides();
+  const articles = contentRepository.getAllArticles();
+
+  // A. "tea gifts for mom under $50":
+  // Must exclude the $58 Matcha Bowl because $58 > $50, and rank tea-suitable parent gifts <= $50 first
+  const evalMomTeaUnder50 = evaluateGiftFinder(
+    allProducts,
+    { query: 'tea gifts for mom under $50' },
+    { guides, articles }
+  );
+  assert.equal(evalMomTeaUnder50.effectiveMaxPrice, 50);
+  assert.ok(evalMomTeaUnder50.results.length >= 1);
+  for (const res of evalMomTeaUnder50.results) {
+    assert.ok(
+      res.product.price <= 50,
+      `Product ${res.product.id} ($${res.product.price}) exceeded $50 cap`
+    );
+  }
+  assert.ok(
+    !evalMomTeaUnder50.results.some(
+      (r) => r.product.id === 'prod_kyoto_matcha_bowl_03'
+    ),
+    '$58 Matcha Bowl must be excluded from under-$50 search'
+  );
+  assert.equal(
+    evalMomTeaUnder50.results[0].product.id,
+    'prod_chili_honey_flight_01'
+  );
+
+  // B. "tea gifts for mom under $75":
+  // Now the $58 Matcha Bowl is within budget and matches Coffee & Tea + parent + tea keyword -> ranks #1
+  const evalMomTeaUnder75 = evaluateGiftFinder(
+    allProducts,
+    { query: 'tea gifts for mom under $75' },
+    { guides, articles }
+  );
+  assert.equal(
+    evalMomTeaUnder75.results[0].product.id,
+    'prod_kyoto_matcha_bowl_03'
+  );
+
+  // C. "housewarming gift for someone who likes plants":
+  // Self-Watering Terracotta Windowsill Herb Trio ($45) matches housewarming + Plants & Gardening + Gardening + plant keyword -> ranks #1
+  const evalHousewarmingPlants = evaluateGiftFinder(
+    allProducts,
+    { query: 'housewarming gift for someone who likes plants' },
+    { guides, articles }
+  );
+  assert.ok(evalHousewarmingPlants.results.length >= 1);
+  assert.equal(
+    evalHousewarmingPlants.results[0].product.id,
+    'prod_terracotta_herb_kit_06'
+  );
+
+  // D. "practical gift for dad":
+  // Prioritizes parent + everyday-ritual / practical items
+  const evalPracticalDad = evaluateGiftFinder(
+    allProducts,
+    { query: 'practical gift for dad' },
+    { guides, articles }
+  );
+  assert.ok(evalPracticalDad.results.length >= 1);
+  const topDadProduct = evalPracticalDad.results[0].product;
+  assert.ok(topDadProduct.recipients.includes('parent'));
+  assert.ok(topDadProduct.personalityTraits.includes('everyday-ritual'));
+  // French Butter Crock explicitly mentions "practical minimalists" in bestForSummary
+  assert.equal(topDadProduct.id, 'prod_french_butter_crock_12');
+});
+
+test('18. Hard budget constraints exclude products with missing, null, NaN, or zero prices and sort handles missing prices safely', () => {
+  const baseProducts = contentRepository.getAllProducts();
+  const productWithMissingPrice = {
+    ...structuredClone(baseProducts[0]),
+    id: 'prod_unpriced_test_99',
+    slug: 'unpriced-mystery-vessel',
+    title: 'Unpriced Ceramic Tea Vessel',
+    price: undefined as unknown as number,
+  };
+  const productWithZeroPrice = {
+    ...structuredClone(baseProducts[0]),
+    id: 'prod_zero_price_98',
+    slug: 'zero-priced-vessel',
+    title: 'Zero Priced Tea Vessel',
+    price: 0,
+  };
+
+  const mixedCatalog = [
+    ...baseProducts,
+    productWithMissingPrice,
+    productWithZeroPrice,
+  ];
+
+  // When a budget cap is active (via query or filter), unpriced and zero-priced products MUST be excluded
+  const under50Eval = evaluateGiftFinder(mixedCatalog, {
+    query: 'tea under $50',
+  });
+  assert.ok(
+    !under50Eval.results.some(
+      (r) =>
+        r.product.id === 'prod_unpriced_test_99' ||
+        r.product.id === 'prod_zero_price_98'
+    ),
+    'Missing or zero price products must never be included in verified under-budget results'
+  );
+
+  const filterMaxEval = evaluateGiftFinder(mixedCatalog, {
+    maxPrice: 100,
+  });
+  assert.ok(
+    !filterMaxEval.results.some(
+      (r) =>
+        r.product.id === 'prod_unpriced_test_99' ||
+        r.product.id === 'prod_zero_price_98'
+    )
+  );
+
+  // When no budget cap is active and sorting by price-asc, missing-price products sort to the very end (not treated as $0 first)
+  const sortAscNoCap = evaluateGiftFinder(mixedCatalog, {
+    sort: 'price-asc',
+  });
+  assert.equal(
+    sortAscNoCap.results[0].product.price,
+    18,
+    'Lowest verified price ($18) must appear first in price-asc sort, not missing/0 price'
+  );
+  const lastIds = sortAscNoCap.results.slice(-2).map((r) => r.product.id);
+  assert.ok(lastIds.includes('prod_unpriced_test_99'));
+  assert.ok(lastIds.includes('prod_zero_price_98'));
+});
+
+test('19. Combined faceted filters, guided quiz mapping, and truthful match explanations work without fabricating signals', () => {
+  const allProducts = contentRepository.getAllProducts();
+
+  // Guided quiz answers -> shared filter evaluation
+  const quizFilters = quizAnswersToFinderFilters({
+    recipient: 'host',
+    interest: 'Dinner Parties',
+    occasion: 'housewarming',
+    maxPrice: 40,
+    personalityTrait: 'foodie-host',
+  });
+
+  const quizResult = evaluateGiftFinder(allProducts, quizFilters);
+  assert.ok(quizResult.results.length >= 2);
+
+  for (const item of quizResult.results) {
+    assert.ok(item.product.recipients.includes('host'));
+    assert.ok(item.product.interests.includes('Dinner Parties'));
+    assert.ok(item.product.occasions.includes('housewarming'));
+    assert.ok(item.product.personalityTraits.includes('foodie-host'));
+    assert.ok(item.product.price <= 40);
+
+    // Match explanation must reflect actual matched signals and never claim an unmatched attribute
+    assert.match(item.matchExplanation, /dinner host/i);
+    assert.match(item.matchExplanation, /Dinner Parties/i);
+    assert.match(item.matchExplanation, /under \$40/i);
+    assert.doesNotMatch(item.matchExplanation, /astronomy/i);
+  }
+});
+
+test('20. Zero-result queries return empty results and actionable refinement suggestions', () => {
+  const allProducts = contentRepository.getAllProducts();
+
+  // Impossible keyword query
+  const zeroKeywordEval = evaluateGiftFinder(allProducts, {
+    query: 'quantum surfboard for martians',
+  });
+  assert.equal(zeroKeywordEval.results.length, 0);
+  assert.ok(zeroKeywordEval.suggestions.length > 0);
+
+  // Over-constrained budget query ("matcha bowl under $25" where matcha bowl is $58)
+  const narrowBudgetEval = evaluateGiftFinder(allProducts, {
+    query: 'matcha bowl under $25',
+  });
+  assert.equal(narrowBudgetEval.results.length, 0);
+  const relaxBudgetSuggestion = narrowBudgetEval.suggestions.find(
+    (s) => s.id === 'remove-budget-cap'
+  );
+  assert.ok(
+    relaxBudgetSuggestion,
+    'Should suggest removing the $25 budget cap to unlock the $58 matcha bowl'
+  );
+});
+
+test('21. URL query parameter parsing and serialization preserve valid finder state, ignore malformed values, and exclude private saved lists', () => {
+  const allProducts = contentRepository.getAllProducts();
+
+  const serialized = serializeFinderUrlSearchParams({
+    ...DEFAULT_FINDER_FILTERS,
+    query: 'tea gifts for mom',
+    recipient: 'parent',
+    occasion: 'birthday',
+    personalityTrait: 'everyday-ritual',
+    maxPrice: 50,
+    sort: 'price-asc',
+  });
+
+  assert.equal(
+    serialized,
+    '?q=tea+gifts+for+mom&recipient=parent&occasion=birthday&style=everyday-ritual&maxPrice=50&sort=price-asc'
+  );
+
+  const reparsed = parseFinderUrlSearchParams(serialized, allProducts);
+  assert.equal(reparsed.query, 'tea gifts for mom');
+  assert.equal(reparsed.recipient, 'parent');
+  assert.equal(reparsed.occasion, 'birthday');
+  assert.equal(reparsed.personalityTrait, 'everyday-ritual');
+  assert.equal(reparsed.maxPrice, 50);
+  assert.equal(reparsed.sort, 'price-asc');
+
+  // Malformed parameters are safely sanitized to defaults
+  const malformed = parseFinderUrlSearchParams(
+    '?recipient=alien&occasion=never&maxPrice=-999&minPrice=abc&sort=random&category=NonExistentCategory&privateNote=secret',
+    allProducts
+  );
+  assert.equal(malformed.recipient, 'all');
+  assert.equal(malformed.occasion, 'all');
+  assert.equal(malformed.maxPrice, null);
+  assert.equal(malformed.minPrice, null);
+  assert.equal(malformed.sort, 'relevance');
+  assert.equal(malformed.category, 'all');
+});
+
+test('22. Saved Gifts multi-list store migrates legacy v2 keys, supports multiple named lists, notes, purchased status, item moves, and missing catalog products', () => {
+  const originalWindow = (globalThis as any).window;
+  const mockStorage: Record<string, string> = {};
+
+  try {
+    (globalThis as any).window = {
+      localStorage: {
+        getItem: (key: string) => mockStorage[key] ?? null,
+        setItem: (key: string, val: string) => {
+          mockStorage[key] = val;
+        },
+        removeItem: (key: string) => {
+          delete mockStorage[key];
+        },
+      },
+      dispatchEvent: () => true,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    };
+
+    // 1. Seed legacy v2 keys in localStorage
+    mockStorage[SAVED_GIFTS_STORAGE_KEY] = JSON.stringify([
+      'prod_french_butter_crock_12',
+      'prod_beeswax_taper_pair_10',
+    ]);
+    mockStorage[RECIPIENT_NOTES_STORAGE_KEY] = JSON.stringify({
+      prod_french_butter_crock_12: 'For Aunt Sarah — Sourdough baker',
+    });
+
+    // 2. Reading gift lists automatically migrates legacy v2 items & notes into default list
+    const initialLists = readGiftLists();
+    assert.equal(initialLists.length, 1);
+    assert.equal(initialLists[0].id, DEFAULT_LIST_ID);
+    assert.equal(initialLists[0].items.length, 2);
+    assert.equal(
+      initialLists[0].items[0].note,
+      'For Aunt Sarah — Sourdough baker'
+    );
+
+    // 3. Create a new named recipient list
+    const momList = createGiftList({
+      name: 'Mom’s Birthday',
+      recipientLabel: 'Parent',
+      occasionLabel: 'Birthday',
+    });
+    assert.equal(momList.name, 'Mom’s Birthday');
+    assert.equal(momList.recipientLabel, 'Parent');
+    assert.equal(momList.occasionLabel, 'Birthday');
+    assert.equal(readGiftLists().length, 2);
+
+    // 4. Save a product directly to the new list with a note
+    saveProductToList(
+      'prod_kyoto_matcha_bowl_03',
+      momList.id,
+      'Pair with ceremonial Uji tin'
+    );
+    assert.ok(readSavedProductIds().includes('prod_kyoto_matcha_bowl_03'));
+    assert.equal(
+      readRecipientNotes()['prod_kyoto_matcha_bowl_03'],
+      'Pair with ceremonial Uji tin'
+    );
+
+    // 5. Mark item as purchased and verify state
+    toggleSavedItemPurchased('prod_kyoto_matcha_bowl_03', momList.id);
+    const updatedMomList = readGiftLists().find((l) => l.id === momList.id)!;
+    assert.equal(updatedMomList.items[0].purchased, true);
+
+    // 6. Move an item from Default List to Mom's Birthday List (preserving note!)
+    moveProductBetweenLists(
+      'prod_french_butter_crock_12',
+      DEFAULT_LIST_ID,
+      momList.id
+    );
+    const afterMoveLists = readGiftLists();
+    const defaultAfterMove = afterMoveLists.find(
+      (l) => l.id === DEFAULT_LIST_ID
+    )!;
+    const momAfterMove = afterMoveLists.find((l) => l.id === momList.id)!;
+    assert.ok(
+      !defaultAfterMove.items.some(
+        (i) => i.productId === 'prod_french_butter_crock_12'
+      )
+    );
+    const movedCrock = momAfterMove.items.find(
+      (i) => i.productId === 'prod_french_butter_crock_12'
+    );
+    assert.ok(movedCrock);
+    assert.equal(movedCrock.note, 'For Aunt Sarah — Sourdough baker');
+
+    // 7. Update note via writeRecipientNote and verify v2 sync
+    writeRecipientNote(
+      'prod_french_butter_crock_12',
+      'Updated note for Mom & Aunt Sarah',
+      momList.id
+    );
+    assert.equal(
+      JSON.parse(mockStorage[RECIPIENT_NOTES_STORAGE_KEY])[
+        'prod_french_butter_crock_12'
+      ],
+      'Updated note for Mom & Aunt Sarah'
+    );
+
+    // 8. Graceful handling of a saved product ID that is missing from the catalog
+    saveProductToList('prod_deleted_from_catalog_999', momList.id);
+    const resolved = resolveSavedListItems(
+      readGiftLists().find((l) => l.id === momList.id)!,
+      contentRepository.getProductsMap()
+    );
+    assert.equal(resolved.validProductsCount, 2);
+    assert.equal(resolved.missingProductsCount, 1);
+    assert.equal(resolved.purchasedCount, 1);
+    // $58 (matcha bowl) + $24 (butter crock) = $82
+    assert.equal(resolved.totalVerifiedPrice, 82);
+
+    // 9. Remove item, toggle save, delete list, and clear all
+    removeProductFromList('prod_deleted_from_catalog_999', momList.id);
+    toggleSavedProductId('prod_beeswax_taper_pair_10');
+    assert.ok(!readSavedProductIds().includes('prod_beeswax_taper_pair_10'));
+
+    deleteGiftList(momList.id);
+    assert.equal(readGiftLists().length, 1);
+
+    clearAllSavedGifts();
+    assert.equal(readSavedProductIds().length, 0);
+  } finally {
+    (globalThis as any).window = originalWindow;
+  }
+});
+
+test('23. GiftFinderExperience renders static markup with search bar, example prompts, facet filters, and canonical product links', () => {
+  const html = renderToStaticMarkup(
+    <GiftFinderExperience
+      products={contentRepository.getAllProducts()}
+      guides={contentRepository.getAllGiftGuides()}
+      articles={contentRepository.getAllArticles()}
+      initialSearchString="?q=tea+gifts+for+mom+under+%2450"
+    />
+  );
+
+  assert.match(html, /Search &amp; Filter/);
+  assert.match(html, /Take 5-Step Guided Quiz/);
+  assert.match(html, /Saved Lists/);
+  assert.match(html, /Hard Budget Cap: ≤ \$50 USD/);
+  assert.match(
+    html,
+    /Small-Batch Chili Crisp &amp; Infused Wildflower Honey Flight/
+  );
+  assert.doesNotMatch(
+    html,
+    /Hand-Thrown Speckled Stoneware Matcha Bowl &amp; Bamboo Whisk Set/
+  );
+});
+
+test('24. Gift Finder Thinking Durations: enforces action-specific minimum duration ranges and subtracts actual computation time', () => {
+  // Verify configured minimum/maximum/default bounds match specification:
+  // search: 1,200–1,800 ms; quiz: 1,800–2,500 ms; filter: 300–500 ms; sort: 250–400 ms
+  assert.equal(THINKING_DURATION_SPECS.search.minMs, 1200);
+  assert.equal(THINKING_DURATION_SPECS.search.maxMs, 1800);
+  assert.ok(
+    getTargetThinkingDurationMs('search') >= 1200 &&
+      getTargetThinkingDurationMs('search') <= 1800
+  );
+
+  assert.equal(THINKING_DURATION_SPECS.quiz.minMs, 1800);
+  assert.equal(THINKING_DURATION_SPECS.quiz.maxMs, 2500);
+  assert.ok(
+    getTargetThinkingDurationMs('quiz') >= 1800 &&
+      getTargetThinkingDurationMs('quiz') <= 2500
+  );
+
+  assert.equal(THINKING_DURATION_SPECS.filter.minMs, 300);
+  assert.equal(THINKING_DURATION_SPECS.filter.maxMs, 500);
+  assert.ok(
+    getTargetThinkingDurationMs('filter') >= 300 &&
+      getTargetThinkingDurationMs('filter') <= 500
+  );
+
+  assert.equal(THINKING_DURATION_SPECS.sort.minMs, 250);
+  assert.equal(THINKING_DURATION_SPECS.sort.maxMs, 400);
+  assert.ok(
+    getTargetThinkingDurationMs('sort') >= 250 &&
+      getTargetThinkingDurationMs('sort') <= 400
+  );
+
+  // Elapsed computation time is subtracted from the minimum display duration
+  const searchTarget = getTargetThinkingDurationMs('search'); // 1400ms
+  assert.equal(computeRemainingThinkingDelay('search', 150), searchTarget - 150);
+  assert.equal(computeRemainingThinkingDelay('search', 2500), 0);
+
+  const quizTarget = getTargetThinkingDurationMs('quiz'); // 2100ms
+  assert.equal(computeRemainingThinkingDelay('quiz', 200), quizTarget - 200);
+});
+
+test('25. Thinking Coordinator Lifecycle: executes 2-phase status progression for search and quiz and reveals results only after minimum duration', () => {
+  let fakeNow = 1000;
+  const scheduledTimers: Array<{
+    id: number;
+    ms: number;
+    fireAt: number;
+    cb: () => void;
+    cleared: boolean;
+  }> = [];
+  let nextTimerId = 1;
+
+  const coordinator = createThinkingCoordinator({
+    now: () => fakeNow,
+    setTimer: (cb, ms) => {
+      const id = nextTimerId++;
+      scheduledTimers.push({
+        id,
+        ms,
+        fireAt: fakeNow + ms,
+        cb,
+        cleared: false,
+      });
+      return id;
+    },
+    clearTimer: (handle) => {
+      const found = scheduledTimers.find((t) => t.id === handle);
+      if (found) found.cleared = true;
+    },
+  });
+
+  const events: string[] = [];
+  let revealedResult: string | null = null;
+
+  // Simulate a 5-step Guided Quiz completion where evaluation takes 50ms
+  coordinator.startOperation({
+    actionType: 'quiz',
+    filters: {
+      ...DEFAULT_FINDER_FILTERS,
+      recipient: 'parent',
+      interest: 'Coffee & Tea',
+      occasion: 'birthday',
+      maxPrice: 50,
+      personalityTrait: 'everyday-ritual',
+    },
+    quizAnswers: {
+      recipient: 'parent',
+      interest: 'Coffee & Tea',
+      occasion: 'birthday',
+      maxPrice: 50,
+      personalityTrait: 'everyday-ritual',
+    },
+    computeResult: () => {
+      fakeNow += 50; // 50ms spent evaluating
+      return 'QUIZ_RECOMMENDATIONS_PAYLOAD';
+    },
+    onStart: (state) => {
+      events.push(`start:phase${state.phase}:${state.statusMessage}`);
+    },
+    onPhaseChange: (state) => {
+      events.push(`phase:phase${state.phase}:${state.statusMessage}`);
+    },
+    onComplete: (result, state) => {
+      revealedResult = result;
+      events.push(`complete:phase${state.phase}:${result}`);
+    },
+  });
+
+  // Immediately after starting: result is NOT yet revealed, phase 1 status is active
+  assert.equal(revealedResult, null);
+  assert.equal(events.length, 1);
+  assert.match(events[0], /Matching gift ideas for parents & in-laws/);
+
+  // Remaining delay should be 2100 - 50 = 2050ms
+  const activeTimers = scheduledTimers.filter((t) => !t.cleared);
+  assert.equal(activeTimers.length, 2); // phase 2 timer + completion timer
+  const phaseTimer = activeTimers[0];
+  const completeTimer = activeTimers[1];
+  assert.equal(completeTimer.ms, 2050);
+
+  // Advance clock to phase 2 switch (~984ms)
+  fakeNow = phaseTimer.fireAt;
+  phaseTimer.cb();
+  assert.equal(revealedResult, null);
+  assert.equal(events.length, 2);
+  assert.match(
+    events[1],
+    /phase:phase2:Cross-checking interests, occasion tone, and strict price limits/
+  );
+
+  // Advance clock to completion (2050ms after compute finished = 2100ms total)
+  fakeNow = completeTimer.fireAt;
+  completeTimer.cb();
+  assert.equal(revealedResult, 'QUIZ_RECOMMENDATIONS_PAYLOAD');
+  assert.equal( coordinator.getActiveState(), null);
+});
+
+test('26. Stale-Operation & Rapid-Click Protection: newer filter or search action cancels prior timers and prevents stale results from overwriting latest state', () => {
+  let fakeNow = 5000;
+  const scheduledTimers: Array<{
+    id: number;
+    ms: number;
+    cb: () => void;
+    cleared: boolean;
+  }> = [];
+  let nextTimerId = 1;
+
+  const coordinator = createThinkingCoordinator({
+    now: () => fakeNow,
+    setTimer: (cb, ms) => {
+      const id = nextTimerId++;
+      scheduledTimers.push({ id, ms, cb, cleared: false });
+      return id;
+    },
+    clearTimer: (handle) => {
+      const found = scheduledTimers.find((t) => t.id === handle);
+      if (found) found.cleared = true;
+    },
+  });
+
+  const completedPayloads: string[] = [];
+
+  // 1. User submits an initial search ("tea gifts for mom") -> 1400ms thinking duration
+  coordinator.startOperation({
+    actionType: 'search',
+    filters: { ...DEFAULT_FINDER_FILTERS, query: 'tea gifts for mom' },
+    computeResult: () => 'STALE_SEARCH_RESULT_TEA',
+    onComplete: (res) => {
+      completedPayloads.push(res);
+    },
+  });
+
+  const firstOpTimers = [...scheduledTimers];
+  assert.equal(firstOpTimers.every((t) => !t.cleared), true);
+
+  // 2. 200ms later, user rapidly clicks a Category filter ("Plants & Gardening") -> 380ms filter duration
+  fakeNow += 200;
+  coordinator.startOperation({
+    actionType: 'filter',
+    filters: {
+      ...DEFAULT_FINDER_FILTERS,
+      query: 'tea gifts for mom',
+      category: 'Plants & Gardening',
+    },
+    actionLabel: 'Category: Plants & Gardening',
+    computeResult: () => 'INTERMEDIATE_FILTER_RESULT_PLANTS',
+    onComplete: (res) => {
+      completedPayloads.push(res);
+    },
+  });
+
+  // All timers from operation #1 must be marked cleared immediately
+  assert.equal(firstOpTimers.every((t) => t.cleared), true);
+
+  // Even if an old timer callback were somehow invoked, operationId guard blocks it
+  firstOpTimers.forEach((t) => t.cb());
+  assert.equal(completedPayloads.length, 0);
+
+  // 3. 100ms later, user changes sort order to "Price: Low to High" -> 300ms sort duration
+  fakeNow += 100;
+  coordinator.startOperation({
+    actionType: 'sort',
+    filters: {
+      ...DEFAULT_FINDER_FILTERS,
+      query: 'tea gifts for mom',
+      category: 'Plants & Gardening',
+      sort: 'price-asc',
+    },
+    actionLabel: 'Price: Low to High',
+    computeResult: () => 'LATEST_SORTED_RESULT_PRICE_ASC',
+    onComplete: (res) => {
+      completedPayloads.push(res);
+    },
+  });
+
+  // Only the latest sort timer should remain active
+  const activeTimers = scheduledTimers.filter((t) => !t.cleared);
+  assert.equal(activeTimers.length, 1);
+  assert.equal(activeTimers[0].ms, 300);
+
+  // Fire the latest timer -> reveals ONLY the latest result
+  activeTimers[0].cleared = true;
+  activeTimers[0].cb();
+  assert.deepEqual(completedPayloads, ['LATEST_SORTED_RESULT_PRICE_ASC']);
+
+  // Verify dispose() cleans up any subsequent in-flight operation on unmount
+  coordinator.startOperation({
+    actionType: 'search',
+    filters: { ...DEFAULT_FINDER_FILTERS, query: 'unmount test' },
+    computeResult: () => 'SHOULD_NEVER_FIRE_AFTER_UNMOUNT',
+    onComplete: (res) => {
+      completedPayloads.push(res);
+    },
+  });
+  assert.equal(
+    scheduledTimers.filter((t) => !t.cleared).length,
+    2,
+    'In-flight search operation schedules phase + completion timers'
+  );
+  coordinator.dispose();
+  assert.equal(
+    scheduledTimers.filter((t) => !t.cleared).length,
+    0,
+    'All timers must be cleared when coordinator is disposed on unmount'
+  );
+});
+
+test('27. GiftThinkingAnimation renders accessible status region, submitted query/quiz tags, and honors prefers-reduced-motion', () => {
+  const searchDescriptor = buildThinkingStatusDescriptor({
+    actionType: 'search',
+    filters: {
+      ...DEFAULT_FINDER_FILTERS,
+      query: 'housewarming gift for someone who likes plants',
+      maxPrice: 50,
+    },
+  });
+
+  const searchHtml = renderToStaticMarkup(
+    <GiftThinkingAnimation
+      actionType="search"
+      phase={1}
+      statusMessage={searchDescriptor.primaryMessage}
+      descriptor={searchDescriptor}
+      prefersReducedMotion={false}
+    />
+  );
+
+  assert.match(searchHtml, /role="status"/);
+  assert.match(searchHtml, /aria-live="polite"/);
+  assert.match(
+    searchHtml,
+    /Finding gifts that fit “housewarming gift for someone who likes plants”/
+  );
+  assert.match(searchHtml, /Under \$50/);
+  assert.match(searchHtml, /data-reduced-motion="false"/);
+
+  const quizDescriptor = buildThinkingStatusDescriptor({
+    actionType: 'quiz',
+    filters: DEFAULT_FINDER_FILTERS,
+    quizAnswers: {
+      recipient: 'friend',
+      interest: 'Ceramics',
+      occasion: 'housewarming',
+      maxPrice: 75,
+      personalityTrait: 'cozy-homebody',
+    },
+  });
+
+  const reducedMotionQuizHtml = renderToStaticMarkup(
+    <GiftThinkingAnimation
+      actionType="quiz"
+      phase={2}
+      statusMessage={quizDescriptor.secondaryMessage}
+      descriptor={quizDescriptor}
+      prefersReducedMotion={true}
+    />
+  );
+
+  assert.match(reducedMotionQuizHtml, /data-reduced-motion="true"/);
+  assert.match(reducedMotionQuizHtml, /Curating Your Tailored Gift Shortlist/);
+  assert.match(reducedMotionQuizHtml, /Close Friend/);
+  assert.match(reducedMotionQuizHtml, /Ceramics/);
+  assert.match(reducedMotionQuizHtml, /Housewarming/);
+  assert.match(reducedMotionQuizHtml, /≤ \$75 USD/);
+});
+
+
 

@@ -1,0 +1,157 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import { GiftFinderInteractiveIsland } from '../../components/islands/AstroIslands';
+
+const products = contentRepository.getAllProducts();
+const guides = contentRepository.getAllGiftGuides();
+const articles = contentRepository.getAllArticles();
+
+const pageTitle =
+  'Interactive Gift Finder & Guided Concierge | Science of Gifts';
+const pageDescription =
+  'Search thoughtful, editor-tested gifts in plain language, filter by recipient, occasion, interest, and strict budget caps, or take our 5-step guided gift quiz.';
+const canonicalPath = '/gift-finder/';
+
+const finderJsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://scienceofgifts.com/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Gift Finder',
+          item: 'https://scienceofgifts.com/gift-finder/',
+        },
+      ],
+    },
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://scienceofgifts.com/gift-finder/',
+      name: pageTitle,
+      description: pageDescription,
+      url: 'https://scienceofgifts.com/gift-finder/',
+      mainEntity: {
+        '@type': 'ItemList',
+        name: 'Science of Gifts Canonical Product Collection',
+        numberOfItems: products.length,
+        itemListElement: products.map((product, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          url: `https://scienceofgifts.com/products/${product.slug}/`,
+          name: product.title,
+        })),
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  canonicalPath={canonicalPath}
+  ogType="website"
+  ogImage={guides[0]?.heroImageUrl}
+  jsonLd={finderJsonLd}
+  activeSection="finder"
+>
+  <div class="py-8 md:py-12">
+    <div class="max-w-7xl mx-auto px-6 space-y-10">
+      <!-- Static Editorial Header & Breadcrumb -->
+      <header class="space-y-4">
+        <nav
+          aria-label="Breadcrumb"
+          class="flex items-center gap-2 text-xs font-medium text-[#28537D]"
+        >
+          <a href="/" class="hover:text-[#1B3D5F] hover:underline">Home</a>
+          <span aria-hidden="true">/</span>
+          <span class="text-[#1B3D5F] font-semibold">Gift Finder</span>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
+          <div class="lg:col-span-8 space-y-2.5">
+            <div class="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+              Science of Gifts · Discovery & Recommendation Engine
+            </div>
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1B3D5F] leading-tight text-balance">
+              Find a Thoughtful Gift They’ll Actually Use
+            </h1>
+            <p class="text-base md:text-lg text-[#28537D] leading-relaxed max-w-2xl">
+              Describe who you are shopping for in your own words, combine
+              verified price caps with recipient and hobby filters, or take our
+              five-question guided quiz.
+            </p>
+          </div>
+
+          <div class="lg:col-span-4 p-4 rounded-2xl bg-[#F3ECE1] text-xs text-[#28537D] space-y-1">
+            <div class="font-semibold text-[#1B3D5F]">
+              How Our Recommendations Work
+            </div>
+            <p class="leading-relaxed">
+              Every recommendation comes directly from our editor-tested
+              canonical catalog ({products.length} verified gifts). Strict
+              budget filters automatically exclude over-budget items.
+            </p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Hydrated Interactive Gift Finder, Guided Quiz & Saved Lists Island -->
+      <GiftFinderInteractiveIsland
+        client:load
+        products={products}
+        guides={guides}
+        articles={articles}
+      />
+
+      <!-- Static Editorial Cross-Links to Curated Gift Guides & Psychology Essays -->
+      <section class="pt-10 border-t border-[#1B3D5F]/10 space-y-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div class="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+              Prefer Editorial Reading?
+            </div>
+            <h2 class="text-2xl font-serif font-semibold text-[#1B3D5F]">
+              Explore Curated Gift Guides & Giving Psychology
+            </h2>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {
+            guides.map((guide) => (
+              <a
+                href={`/gift-guides/${guide.slug}/`}
+                class="p-6 rounded-3xl bg-[#F3ECE1] hover:bg-[#E8F8F0] transition-colors flex flex-col justify-between space-y-3"
+              >
+                <div class="space-y-1.5">
+                  <div class="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
+                    Gift Guide · {guide.category}
+                  </div>
+                  <h3 class="text-xl font-serif font-semibold text-[#1B3D5F]">
+                    {guide.title}
+                  </h3>
+                  <p class="text-xs text-[#28537D] leading-relaxed line-clamp-2">
+                    {guide.subtitle}
+                  </p>
+                </div>
+                <div class="text-xs font-semibold text-[#1B3D5F]">
+                  Read full guide →
+                </div>
+              </a>
+            ))
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</BaseLayout>

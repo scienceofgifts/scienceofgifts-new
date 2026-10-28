@@ -436,6 +436,14 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                   <span>Start Over ({products.length} Gifts)</span>
                 </button>
               )}
+
+              <a
+                href="/gift-finder/"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#1B3D5F] text-white text-xs font-semibold hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
+              >
+                <span>Open Full Gift Finder & Quiz</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
@@ -697,3 +705,6 @@ export const ProductDetailActionsIsland: React.FC<{
     </div>
   );
 };
+
+export { GiftFinderExperience as GiftFinderInteractiveIsland } from '../GiftFinderExperience';
+

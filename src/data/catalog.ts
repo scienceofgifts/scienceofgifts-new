@@ -238,10 +238,10 @@ export const PRODUCTS: Record<string, Product> = {
     whyToGiveIt:
       'It solves the "what do I bring to dinner?" dilemma with something they can open immediately over pizza, cheese boards, or roasted vegetables—and nothing goes to clutter.',
     detailsAndCare:
-      'Includes 3 × 6oz glass jars in a reusable letterpress gift box with tasting notes and pairing cards. Sample product for preview.',
-    bestForSummary: 'Dinner hosts, home cooks, and people who claim they have no room for more stuff.',
+      'Includes 3 × 6oz glass jars in a reusable letterpress gift box with tasting notes for afternoon tea, cheese boards, and pairing cards. Sample product for preview.',
+    bestForSummary: 'Dinner hosts, home cooks, tea drinkers, and people who claim they have no room for more stuff.',
     recipients: ['host', 'friend', 'coworker', 'parent'],
-    interests: ['Cooking & Hosting', 'Artisan Food', 'Dinner Parties'],
+    interests: ['Cooking & Hosting', 'Artisan Food', 'Dinner Parties', 'Coffee & Tea'],
     ageRanges: ['young-adult', 'adult', 'parents-grandparents'],
     occasions: ['housewarming', 'thank-you', 'holidays', 'just-because'],
     personalityTraits: ['foodie-host', 'everyday-ritual'],
@@ -313,10 +313,10 @@ export const PRODUCTS: Record<string, Product> = {
       'Turns an afternoon caffeine habit into a peaceful five-minute ritual. The hand-glazed coastal blue rim makes every pour feel special.',
     detailsAndCare:
       'Lead-free speckled stoneware bowl (450ml), hand-carved bamboo chasen, scoop, and 30g matcha tin. Sample product for preview.',
-    bestForSummary: 'Tea lovers, design-minded friends, and work-from-home creatives.',
-    recipients: ['friend', 'partner', 'coworker', 'host'],
+    bestForSummary: 'Tea lovers, parents, design-minded friends, and work-from-home creatives.',
+    recipients: ['friend', 'partner', 'coworker', 'host', 'parent'],
     interests: ['Coffee & Tea', 'Ceramics', 'Mindful Routines'],
-    ageRanges: ['young-adult', 'adult'],
+    ageRanges: ['young-adult', 'adult', 'parents-grandparents'],
     occasions: ['birthday', 'housewarming', 'thank-you', 'holidays'],
     personalityTraits: ['everyday-ritual', 'curious-creative', 'cozy-homebody'],
     images: [
