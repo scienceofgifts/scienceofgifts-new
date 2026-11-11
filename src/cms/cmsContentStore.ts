@@ -118,6 +118,9 @@ export class LocalCMSContentStore {
       guide.editorsPick.productId,
       ...guide.quickPicks.map((q) => q.productId),
       ...guide.sections.flatMap((s) => s.recommendations.map((r) => r.productId)),
+      ...(guide.recipientPathways?.flatMap((p) => p.recommendedProductIds ?? []) ?? []),
+      ...(guide.comparison?.rows.map((r) => r.productId) ?? []),
+      ...(guide.faqs?.map((f) => f.relatedProductId).filter((id): id is string => Boolean(id)) ?? []),
     ]);
     for (const pid of referencedProductIds) {
       if (!this.products[pid]) {

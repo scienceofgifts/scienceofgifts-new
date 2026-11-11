@@ -428,6 +428,41 @@ export function validateCatalogIntegrity(catalog?: CatalogDataOverride): {
         }
       }
     }
+
+    for (const pathway of guide.recipientPathways ?? []) {
+      for (const pid of pathway.recommendedProductIds ?? []) {
+        if (!productsMap[pid]) {
+          issues.push({
+            severity: 'error',
+            code: 'BROKEN_PRODUCT_REF',
+            entityId: guide.id,
+            message: `RecipientPathway ${pathway.id} references non-existent canonical product ID: ${pid}`,
+          });
+        }
+      }
+    }
+
+    for (const row of guide.comparison?.rows ?? []) {
+      if (!productsMap[row.productId]) {
+        issues.push({
+          severity: 'error',
+          code: 'BROKEN_PRODUCT_REF',
+          entityId: guide.id,
+          message: `Comparison row references non-existent canonical product ID: ${row.productId}`,
+        });
+      }
+    }
+
+    for (const faq of guide.faqs ?? []) {
+      if (faq.relatedProductId && !productsMap[faq.relatedProductId]) {
+        issues.push({
+          severity: 'error',
+          code: 'BROKEN_PRODUCT_REF',
+          entityId: guide.id,
+          message: `FAQ ${faq.id} references non-existent canonical product ID: ${faq.relatedProductId}`,
+        });
+      }
+    }
   }
 
   for (const article of articlesList) {

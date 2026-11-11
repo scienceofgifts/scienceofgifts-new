@@ -641,14 +641,18 @@ export const GIFT_GUIDES: GiftGuide[] = [
     title: 'Thoughtful Gifts for People Who Appreciate the Little Things',
     subtitle:
       'For the friend who notices the weight of a teacup, the parent who savors quiet mornings, and anyone who prefers everyday warmth over grand gestures.',
+    editorialIssueNumber: 'Flagship Edition · Guide No. 01',
+    curationSummary:
+      'Selected from the canonical catalog of 13 everyday ritual objects, evaluated across recipient personality, daily utility, storage footprint, and three clear budget tiers ($18 to $115 USD).',
     introParagraphs: [
-      'We all know someone whose favorite part of the day is a five-minute ritual: the first pour of morning coffee before the house wakes up, lighting a beeswax taper on a rainy Tuesday, or jotting down a single funny memory before bed. Shopping for them can feel intimidating—not because they have expensive tastes, but because generic "gift sets" miss the mark.',
-      'This guide is curated specifically for those observant, detail-loving people. Instead of flashy novelty gadgets, we gathered eleven tactile, genuinely useful pieces across three straightforward budgets—from an $18 pair of apiary beeswax tapers to heirloom merino wool throws—each chosen to make ordinary moments feel a little more special.',
+      'I think almost everyone has at least one person on their list whose favorite part of the day is a five-minute ritual: the first pour of morning coffee before the house wakes up, lighting a beeswax taper on a rainy Tuesday, or jotting down a single funny memory before bed. Shopping for them can feel intimidating, not because they have expensive tastes, but because generic department-store gift sets immediately feel impersonal.',
+      'When I put this guide together, I looked past flashy novelty gadgets and focused on eleven tactile, genuinely useful objects across three straightforward budgets, starting with an $18 pair of apiary beeswax tapers and reaching up to heirloom merino wool throws. Every recommendation below explains who it suits best, why it earns a permanent spot in their daily routine, and what practical details to keep in mind before you buy.',
     ],
     whoThisGuideIsFor: [
-      'Friends and partners who value quiet daily rituals over big, flashy surprises',
-      'Parents and in-laws who insist they "already have everything they need"',
+      'Friends and partners who value quiet daily rituals over big, theatrical surprises',
+      'Parents and in-laws who insist they already have everything they need',
       'Hosts, teachers, and coworkers who appreciate thoughtful, clutter-free gestures',
+      'Anyone shopping for a meaningful $18 to $115 gift that feels personal on an ordinary weekday',
     ],
     affiliateDisclosure:
       'Editorial & Development Note: This is a sample editorial gift guide demonstrating the Science of Gifts experience. Products and makers shown here are illustrative sample records with placeholder purchase links. When live merchant links are enabled in production, Science of Gifts may earn an affiliate commission on qualifying purchases at no extra cost to you.',
@@ -656,7 +660,7 @@ export const GIFT_GUIDES: GiftGuide[] = [
       seoTitle:
         'Thoughtful Gifts for People Who Appreciate the Little Things (2026 Guide) | Science of Gifts',
       metaDescription:
-        'Discover warm, memorable gifts for people who notice small everyday details—organized from under-$25 pleasures to special keepsakes over $75.',
+        'Discover warm, memorable gifts for people who notice small everyday details, organized from under-$25 pleasures to special keepsakes over $75.',
       canonicalPath: '/gift-guides/thoughtful-gifts-for-people-who-appreciate-the-little-things/',
       ogType: 'article',
       schemaType: 'ItemList',
@@ -664,23 +668,25 @@ export const GIFT_GUIDES: GiftGuide[] = [
     category: 'Everyday Rituals & Little Things',
     publishedAt: '2026-10-20',
     updatedAt: '2026-10-27',
-    readTimeMinutes: 7,
+    readTimeMinutes: 9,
     authorId: 'auth_clara_vance',
     heroImageUrl:
       'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80',
     heroImageAlt:
       'Thoughtfully wrapped linen gift parcels with natural ribbon, botanical sprigs, and a warm ceramic cup on a sunlit wooden table',
     heroImageCaption:
-      'The most memorable gifts rarely shout for attention—they simply make an ordinary Tuesday morning feel cared for.',
+      'The most memorable gifts rarely shout for attention. Instead, they make an ordinary Tuesday morning feel cared for.',
     accentTone: 'mint',
     editorsPick: {
       productId: 'prod_fluted_bedside_carafe_09',
       kicker: 'Editor’s Standout Pick',
       headline: 'A Jewel-Toned Bedside Ritual They Would Never Think to Buy for Themselves',
       editorialRationale:
-        'A glass of water on the nightstand is universal, yet most of us make do with a mismatched kitchen mug that collects dust overnight. Hand-blown in rippled coastal blue and seafoam mint borosilicate glass, this two-piece carafe and nested tumbler catches the morning light like sea glass and turns the simplest daily habit into a quiet pleasure.',
+        'A glass of water on the nightstand is universal, yet most people make do with a mismatched kitchen mug that collects dust overnight. Hand-blown in rippled coastal blue and seafoam mint borosilicate glass, this two-piece carafe and nested tumbler catches the morning light like sea glass and turns the simplest daily habit into a quiet pleasure.',
       intendedRecipientAndSituation:
         'Ideal for a partner, a design-loving close friend, a weekend host’s guest room, or a housewarming gift under $50.',
+      buyingConsiderations:
+        'Holds 700ml (roughly two full glasses) and is top-rack dishwasher safe. Because it is lightweight borosilicate glass rather than heavy crystal, it feels delicate in the hand, so it may not be the best pick for households with energetic bedside cats.',
       targetSectionId: 'sec-25-to-75',
     },
     quickPicks: [
@@ -688,174 +694,418 @@ export const GIFT_GUIDES: GiftGuide[] = [
         id: 'qp-best-overall',
         label: 'Best Overall',
         productId: 'prod_fluted_bedside_carafe_09',
-        reason: 'Turns bedside or desk hydration into a sunlit, two-tone glass sculpture.',
+        reason: 'Turns bedside or desk hydration into a sunlit, two-tone glass sculpture that keeps water dust-free overnight.',
         targetSectionId: 'sec-25-to-75',
       },
       {
         id: 'qp-best-under-25',
         label: 'Best Under $25',
         productId: 'prod_french_butter_crock_12',
-        reason: 'Keeps butter soft and spreadable on the counter using a simple water seal.',
+        reason: 'Keeps a stick of butter soft and spreadable on the kitchen counter using a simple cold-water seal.',
         targetSectionId: 'sec-under-25',
       },
       {
         id: 'qp-best-close-friend',
         label: 'Best for a Close Friend',
         productId: 'prod_five_year_memory_book_08',
-        reason: 'A low-pressure three-line daily time capsule bound in cornflower Belgian linen.',
+        reason: 'A low-pressure three-line daily time capsule bound in cornflower Belgian linen that takes 30 seconds before sleep.',
         targetSectionId: 'sec-25-to-75',
       },
       {
         id: 'qp-best-has-everything',
         label: 'Best for Someone Who Has Everything',
         productId: 'prod_chili_honey_flight_01',
-        reason: 'Three artisan pantry jars that deliver immediate culinary joy with zero shelf clutter.',
+        reason: 'Three small-batch condiment and wildflower honey jars that deliver immediate culinary joy with zero shelf clutter.',
         targetSectionId: 'sec-25-to-75',
       },
       {
         id: 'qp-best-personalized',
         label: 'Best Personalized Gift',
         productId: 'prod_custom_star_map_04',
-        reason: 'Maps the exact night sky from a meaningful date and place in deep blue and oak.',
+        reason: 'Maps the exact night sky from a meaningful date and location on cotton rag paper in a solid white oak frame.',
         targetSectionId: 'sec-25-to-75',
+      },
+      {
+        id: 'qp-best-splurge',
+        label: 'Best Cozy Splurge',
+        productId: 'prod_cloud_waffle_robe_02',
+        reason: 'Garment-washed Turkish cotton honeycomb weave that upgrades every slow morning without feeling heavy or bulky.',
+        targetSectionId: 'sec-over-75',
+      },
+    ],
+    recipientPathways: [
+      {
+        id: 'pathway-morning-ritualist',
+        label: 'For the Morning Ritualist',
+        description:
+          'People who savor the quiet first half hour of the day: warm sourdough toast, whisked green tea, or sunlight on the breakfast table.',
+        personalityFilter: 'everyday-ritual',
+        recommendedProductIds: [
+          'prod_french_butter_crock_12',
+          'prod_kyoto_matcha_bowl_03',
+          'prod_cloud_waffle_robe_02',
+        ],
+        editorialTip:
+          'I look for tactile objects they will touch before 8:30 a.m. Upgrading a daily habit requires zero lifestyle change from your recipient.',
+      },
+      {
+        id: 'pathway-minimalist-parent',
+        label: 'For the "I Don’t Need Anything" Parent',
+        description:
+          'Parents and in-laws who genuinely want less household clutter, but deeply appreciate warmth, flavor, and shared family history.',
+        recipientFilter: 'parent',
+        recommendedProductIds: [
+          'prod_chili_honey_flight_01',
+          'prod_letterpress_recipe_cards_11',
+          'prod_wool_picnic_throw_13',
+        ],
+        editorialTip:
+          'Choose either a high-craft consumable they can finish in a month, or a deeply personal keepsake with your own handwriting already inside.',
+      },
+      {
+        id: 'pathway-sentimental-friend',
+        label: 'For a Close Friend or Partner',
+        description:
+          'Personal gifts that celebrate shared memories, milestone dates, or quiet evening routines without feeling overly formal.',
+        recipientFilter: 'partner',
+        recommendedProductIds: [
+          'prod_fluted_bedside_carafe_09',
+          'prod_five_year_memory_book_08',
+          'prod_custom_star_map_04',
+        ],
+        editorialTip:
+          'Behavioral research shows givers often hesitate to pick sentimental gifts out of self-consciousness, yet recipients rank them as their most treasured keepsakes.',
+      },
+      {
+        id: 'pathway-gracious-host',
+        label: 'For the Gracious Host or Neighbor',
+        description:
+          'Self-contained tabletop and kitchen gestures under $50 that ask zero extra work during a dinner party or weekend stay.',
+        recipientFilter: 'host',
+        maxPrice: 50,
+        recommendedProductIds: [
+          'prod_beeswax_taper_pair_10',
+          'prod_french_butter_crock_12',
+          'prod_chili_honey_flight_01',
+        ],
+        editorialTip:
+          'Skip uncut flowers that demand a clean vase at the door. Bring something that comes with its own vessel or waits patiently for Sunday breakfast.',
+      },
+    ],
+    curatorNotes: [
+      {
+        id: 'note-everyday-upgrade',
+        kicker: 'Curator’s Field Note · No. 01',
+        title: 'Why a $24 Upgrade to a Daily Habit Beats a $100 Novelty',
+        body: 'When I talk with readers who feel stuck on a gift list, the most common trap is shopping for the ten-second unwrapping moment. Givers naturally want a laugh or a theatrical surprise across the living room. Yet consumer psychology studies (Galak et al., 2016; Yang & Urminsky, 2018) show that recipients evaluate gifts over months of ordinary ownership. A modest object that removes a tiny daily annoyance, like cold, unspreadable butter or a dusty bedside water glass, earns quiet gratitude every single week.',
+        takeaway: 'Ask yourself: where will this gift live six weeks from now at 8:00 a.m. on a Tuesday?',
+        authorAttribution: 'Clara Vance, Founding Editor',
+      },
+      {
+        id: 'note-sentimental-courage',
+        kicker: 'Curator’s Field Note · No. 02',
+        title: 'How to Give a Sentimental Gift Without Feeling Overly Earnest',
+        body: 'Many people pass over personal keepsakes because they worry about getting the tone wrong. The easiest way to make a sentimental gift feel effortless is to anchor it in a specific, concrete detail rather than a grand declaration. Write two of your own go-to weeknight recipes onto the top cards of a recipe box, or choose a five-year journal where each entry is only two lines long.',
+        takeaway: 'Specificity feels warm and observant; vagueness is what feels heavy-handed.',
+        authorAttribution: 'Clara Vance, Founding Editor',
       },
     ],
     sections: [
       {
         id: 'sec-under-25',
         shortNavTitle: 'Under $25',
+        editorialKicker: 'Chapter I · Modest & Memorable ($18 to $24 USD)',
         title: 'Small but Thoughtful Gifts Under $25',
-        priceRangeLabel: '$18 – $24 USD',
+        priceRangeLabel: '$18 to $24 USD',
         summary:
-          'Proof that a memorable gesture never requires an intimidating budget. Each of these small upgrades brings warmth to the kitchen table or evening routine.',
+          'Proof that a memorable gesture never requires an intimidating budget. Each of these three pieces brings tactile craft to the kitchen counter or dinner table for under twenty-five dollars.',
         accentSurface: 'cream',
         recommendations: [
           {
             productId: 'prod_french_butter_crock_12',
             awardLabel: 'Best Under $25',
+            presentationStyle: 'featured',
+            layoutHighlight: 'feature-horizontal',
+            editorialHeadline: 'The Countertop Vessel That Saves Morning Sourdough',
             customEditorialNote:
               'There is a quiet joy in spreading soft, room-temperature butter onto morning toast without tearing the bread. This speckled stoneware crock uses a traditional water seal to keep butter fresh on the counter for weeks.',
+            whyItWorks:
+              'Unlike a standard covered butter dish that still lets air circulate in warm kitchens, the inverted ceramic bell submerges into a splash of cold water in the base, forming a natural airtight seal while looking like a piece of studio pottery.',
             idealFor: 'Sourdough bakers, Sunday breakfast lovers, and hosts.',
-            goodToKnow: 'Refresh the cold water in the base every 3–4 days for best results.',
-            layoutHighlight: 'feature-horizontal',
+            goodToKnow: 'Refresh the cold water in the base every 3 to 4 days for best results.',
+            buyingConsiderations:
+              'Holds one standard 4 oz stick of butter. If your recipient buys wide European-style 8 oz blocks, they will need to cut the block in half when packing the bell.',
+            betterAlternativeNote:
+              'If they rarely bake or eat toast, choose the Small-Batch Chili Crisp & Honey Flight ($38) for an instant pantry upgrade.',
           },
           {
             productId: 'prod_beeswax_taper_pair_10',
             awardLabel: 'Best Warm Atmosphere',
+            presentationStyle: 'standard',
+            editorialHeadline: 'Pure Apiary Candlelight With Its Own Stoneware Base',
             customEditorialNote:
-              'Unlike paraffin candles drenched in synthetic fragrance, pure apiary beeswax burns cleanly with a natural, faint honey-and-wildflower scent—and comes paired with a minimal ceramic pebble holder.',
+              'Unlike paraffin candles drenched in synthetic fragrance, pure apiary beeswax burns cleanly with a natural, faint honey-and-wildflower scent, and comes paired with a minimal ceramic pebble holder.',
             idealFor: 'Teachers, neighbors, coworkers, or pairing with a bottle of wine.',
             goodToKnow: 'Trim the cotton wick to 1/4 inch before lighting for an even, dripless flame.',
+            buyingConsiderations:
+              'Each 10-inch taper burns for roughly 9 hours. Because the pebble holder is included in the box, the recipient does not need to own taper candlesticks.',
           },
           {
             productId: 'prod_letterpress_recipe_cards_11',
             awardLabel: 'Most Personal Under $25',
+            presentationStyle: 'standard',
+            editorialHeadline: 'Heirloom Cotton Rag Cards Ready for Your Handwriting',
             customEditorialNote:
               'Printed on heavy 300gsm cotton rag paper that stands up to kitchen splatters. Slip two of your own handwritten family recipes into the stack before wrapping it to make the gift unmistakably yours.',
             idealFor: 'Parents, siblings, newlyweds, and friends who love to cook.',
             goodToKnow: 'Works beautifully with ballpoint, rollerball, or archival fountain inks.',
+            buyingConsiderations:
+              'Sized at a standard 4" × 6" index format (24 cards per box). Takes five minutes of your own handwriting before gifting to reach its full emotional potential.',
           },
         ],
+        curatorNote: {
+          id: 'sec-note-under-25',
+          kicker: 'Curator’s Note · Small Budgets',
+          title: 'The Secret to Gifting Under $25: Buy the Best Version of a Small Thing',
+          body: 'When your budget is twenty dollars, resist the urge to buy a large item made of compromised materials. Instead, pick a humble category, like candles, recipe cards, or a butter keeper, where twenty dollars buys top-tier natural materials like 100% beeswax or 300gsm cotton paper.',
+          takeaway: 'A best-in-class $22 small object always feels more generous than a bargain-bin $22 gadget.',
+        },
       },
       {
         id: 'sec-25-to-75',
         shortNavTitle: '$25 to $75',
+        editorialKicker: 'Chapter II · The Sweet Spot ($28 to $68 USD)',
         title: 'Memorable Gifts From $25 to $75',
-        priceRangeLabel: '$28 – $68 USD',
+        priceRangeLabel: '$28 to $68 USD',
         summary:
-          'The sweet spot of gift-giving: tactile ceramics, small-batch flavors, and personal keepsakes that feel generous without crossing into over-the-top extravagance.',
+          'The sweet spot of gift-giving: hand-blown glassware, wheel-thrown ceramics, small-batch flavors, and personal keepsakes that feel generous without crossing into over-the-top extravagance.',
         accentSurface: 'sand',
         recommendations: [
           {
             productId: 'prod_fluted_bedside_carafe_09',
             awardLabel: 'Best Overall · Editor’s Pick',
-            customEditorialNote:
-              'Featured at the top of our guide for a reason: the optical fluting feels wonderful in the hand, the mint tumbler keeps dust out overnight, and the two-tone glass brightens any bedside or study table.',
-            idealFor: 'Partners, close friends, housewarmings, and guest bedrooms.',
-            goodToKnow: 'Holds 700ml—enough for two full glasses of water overnight.',
+            presentationStyle: 'featured',
             layoutHighlight: 'feature-horizontal',
-          },
-          {
-            productId: 'prod_five_year_memory_book_08',
-            awardLabel: 'Best for a Close Friend',
+            editorialHeadline: 'Rippled Two-Tone Glassware for Quiet Nightstand Rituals',
             customEditorialNote:
-              'Instead of a daunting blank page, each calendar date is divided into five short slots—one for each year. Writing a single sentence takes 20 seconds and builds an extraordinary personal archive.',
-            idealFor: 'Best friends, new parents, graduates, and milestone birthdays.',
-            goodToKnow: 'Smyth-sewn linen binding lies completely flat on a nightstand.',
-          },
-          {
-            productId: 'prod_chili_honey_flight_01',
-            awardLabel: 'Best for Someone Who Has Everything',
-            customEditorialNote:
-              'When someone insists their closets are full, give them something delicious they can finish in a month. This three-jar flight pairs smoky chili crisp with wildflower and citrus-infused honeys.',
-            idealFor: 'Minimalist parents, foodie friends, and dinner party hosts.',
-            goodToKnow: 'Comes in a sturdy letterpress tasting box with pairing ideas.',
+              'I featured this piece at the top of the guide for a reason: the optical fluting feels wonderful in the hand, the mint tumbler keeps dust out overnight, and the two-tone glass brightens any bedside or study table.',
+            whyItWorks:
+              'It solves a universal everyday habit with zero learning curve. Whether placed on a bedside table, a home-office desk, or a guest room dresser, the nested tumbler acts as a clean lid while doubling as the drinking glass.',
+            idealFor: 'Partners, close friends, housewarmings, and guest bedrooms.',
+            goodToKnow: 'Holds 700ml, enough for two full glasses of water overnight.',
+            buyingConsiderations:
+              'Crafted from thermal borosilicate glass (700ml carafe + 220ml tumbler) and safe for the top rack of the dishwasher.',
           },
           {
             productId: 'prod_kyoto_matcha_bowl_03',
             awardLabel: 'Best Morning Ritual Set',
+            presentationStyle: 'editorial-feature',
+            editorialHeadline: 'A Complete Wheel-Thrown Chawan & Ceremonial Tea Studio',
             customEditorialNote:
               'A wheel-thrown stoneware chawan with a drip-free pouring spout, paired with a 100-prong bamboo whisk and ceremonial Uji matcha so they can whisk a frothy cup the morning they open it.',
+            whyItWorks:
+              'Many tea gifts include only a bowl, leaving the recipient to track down a bamboo chasen and culinary-grade powder on their own. Including the 30g tin of shade-grown matcha makes the ritual complete on day one.',
             idealFor: 'Tea drinkers, remote workers, and afternoon ritual lovers.',
             goodToKnow: 'Bowl is dishwasher safe; rinse the bamboo whisk with warm water and air-dry.',
+            buyingConsiderations:
+              'Matcha contains natural caffeine and L-theanine. If your recipient avoids caffeine entirely, consider the Bedside Water Carafe ($48) instead.',
+            betterAlternativeNote:
+              'For someone who prefers savory kitchen flavors over tea rituals, see the Chili Crisp & Wildflower Honey Flight ($38) below.',
+          },
+          {
+            productId: 'prod_five_year_memory_book_08',
+            awardLabel: 'Best for a Close Friend',
+            presentationStyle: 'standard',
+            editorialHeadline: 'A Low-Pressure Three-Line Daily Time Capsule',
+            customEditorialNote:
+              'Instead of a daunting blank page, each calendar date is divided into five short slots, one for each year. Writing a single sentence takes 20 seconds and builds an extraordinary personal archive.',
+            idealFor: 'Best friends, new parents, graduates, and milestone birthdays.',
+            goodToKnow: 'Smyth-sewn linen binding lies completely flat on a nightstand.',
+            buyingConsiderations:
+              'Undated year slots mean they can start on any calendar day (even mid-November) without wasting a single page.',
+          },
+          {
+            productId: 'prod_chili_honey_flight_01',
+            awardLabel: 'Best for Someone Who Has Everything',
+            presentationStyle: 'standard',
+            editorialHeadline: 'Three Culinary Jars With Zero Permanent Clutter',
+            customEditorialNote:
+              'When someone insists their closets are full, give them something delicious they can finish in a month. This three-jar flight pairs smoky chili crisp with wildflower and citrus-infused honeys.',
+            idealFor: 'Minimalist parents, foodie friends, and dinner party hosts.',
+            goodToKnow: 'Comes in a sturdy letterpress tasting box with pairing ideas.',
+            buyingConsiderations:
+              'Includes three 6 oz glass jars. Shelf-stable for over a year unopened, requiring zero refrigerator space when handed over.',
           },
           {
             productId: 'prod_custom_star_map_04',
             awardLabel: 'Best Personalized Gift',
+            presentationStyle: 'compact',
+            editorialHeadline: 'Archival Night Sky Coordinates Framed in Solid White Oak',
             customEditorialNote:
-              'Captures the exact alignment of constellations overhead on a meaningful night—whether an anniversary, a child’s birth, or the evening a friendship began—framed in solid white oak.',
+              'Captures the exact alignment of constellations overhead on a meaningful night, whether an anniversary, a child’s birth, or the evening a friendship began, framed in solid white oak.',
             idealFor: 'Partners, anniversaries, weddings, and milestone family moments.',
             goodToKnow: 'Includes a customizable two-line dedication beneath the star chart.',
+            buyingConsiderations:
+              'Measures 11" × 14" in a milled white oak frame. Requires knowing the date and city of the memory you want to commemorate.',
           },
         ],
+        curatorNote: {
+          id: 'sec-note-25-to-75',
+          kicker: 'Curator’s Note · Consumables vs. Keepsakes',
+          title: 'How to Decide Between an Edible Treat and a Lasting Object',
+          body: 'In the $25 to $75 range, I always ask one question first: how does this person feel about their counter space? If they love curating cozy corners, a hand-blown glass carafe or linen journal will delight them for years. If they prize clear surfaces and minimalism, the three-jar honey and chili flight gives them the same warmth without a permanent footprint.',
+          takeaway: 'Respecting someone’s relationship with space is one of the quietest forms of thoughtfulness.',
+        },
       },
       {
         id: 'sec-over-75',
         shortNavTitle: 'Over $75',
+        editorialKicker: 'Chapter III · Lasting Heirloom Comforts ($84 to $115 USD)',
         title: 'Special Gifts Over $75',
-        priceRangeLabel: '$84 – $115 USD',
+        priceRangeLabel: '$84 to $115 USD',
         summary:
-          'When the occasion calls for a lasting splurge—cozy textiles and heirloom tabletop pieces crafted to be used and loved for years.',
+          'When the occasion calls for a lasting splurge: cozy textiles and heirloom tabletop pieces crafted to be used and loved for years.',
         accentSurface: 'mint',
         recommendations: [
           {
             productId: 'prod_cloud_waffle_robe_02',
             awardLabel: 'Best Cozy Upgrade',
+            presentationStyle: 'featured',
+            layoutHighlight: 'feature-horizontal',
+            editorialHeadline: 'Garment-Washed Turkish Cotton That Replaces the Threadbare Robe',
             customEditorialNote:
               'People will happily wear the same threadbare bathrobe for a decade before replacing it themselves. This garment-washed Turkish cotton waffle weave feels airy, dries quickly, and gets softer with every wash.',
+            whyItWorks:
+              'Heavy terrycloth robes often feel stifling after a warm shower and take hours to dry on a bathroom hook. The breathable honeycomb weave gives cozy coverage year-round and packs flat enough for weekend travel.',
             idealFor: 'Partners, moms, dads, and winter birthdays.',
             goodToKnow: 'Relaxed unisex fit with deep pockets; size down if in between.',
-            layoutHighlight: 'feature-horizontal',
+            buyingConsiderations:
+              '100% long-staple Turkish cotton; machine wash cold and tumble dry low. Avoid fabric softeners so the waffle pockets stay absorbent.',
           },
           {
             productId: 'prod_olivewood_board_game_05',
             awardLabel: 'Best for Shared Evenings',
+            presentationStyle: 'standard',
+            editorialHeadline: 'Weighted Alabaster Pips & Rolled Linen for Screen-Free Evenings',
             customEditorialNote:
               'Replaces tattered cardboard game boxes with a heavy Belgian linen board, weighted alabaster and navy stones, and brass dice cups that roll up neatly like a scroll.',
             idealFor: 'Couples, families, and friends who love cabin weekends or game nights.',
             goodToKnow: 'Plays both Backgammon and Checkers; includes stitched leather carry strap.',
+            buyingConsiderations:
+              'Compact rolled cylinder fits in a tote bag or bookshelf without bulky box clutter.',
           },
           {
             productId: 'prod_wool_picnic_throw_13',
             awardLabel: 'Best Heirloom Home Gift',
+            presentationStyle: 'standard',
+            editorialHeadline: 'Generous Merino Lambswool Woven for Reading Chairs & Porch Evenings',
             customEditorialNote:
               'Woven from soft, non-scratch merino lambswool in a timeless coastal herringbone pattern that warms up a reading nook or wraps around two pairs of shoulders outdoors.',
             idealFor: 'Housewarmings, anniversaries, parents, and grandparents.',
             goodToKnow: 'Generous 55" × 72" dimensions with whipstitched edges.',
+            buyingConsiderations:
+              'Requires zero sizing guesswork. Gentle wool wash or dry clean only to preserve the brushed merino fibers.',
           },
         ],
       },
     ],
+    comparison: {
+      title: 'Comparing the Standout Gifts in This Guide',
+      subtitle:
+        'Instead of arbitrary scores, use this side-by-side curatorial ledger to compare recipient fit, daily utility, personalization, and practical considerations.',
+      rows: [
+        {
+          productId: 'prod_fluted_bedside_carafe_09',
+          bestSuitedRecipient: 'Partners, close friends, design lovers, and weekend hosts',
+          giftStyle: 'Daily Ritual Upgrade (Glassware)',
+          practicalUsefulness: 'High daily use on a nightstand, study desk, or guest dresser',
+          personalizationOption: 'Pair with a handwritten note about quiet mornings',
+          mainAppeal: 'Rippled coastal blue and mint borosilicate glass with nested lid tumbler',
+          keyConsideration: '700ml capacity; lightweight hand-blown glass',
+          bestOccasion: 'Birthday, Housewarming, Thank You',
+        },
+        {
+          productId: 'prod_french_butter_crock_12',
+          bestSuitedRecipient: 'Sourdough bakers, breakfast lovers, and practical minimalists',
+          giftStyle: 'Kitchen Countertop Upgrade',
+          practicalUsefulness: 'Keeps 1 stick (4 oz) of butter soft and spreadable every morning',
+          personalizationOption: 'Give alongside a fresh loaf from a favorite local bakery',
+          mainAppeal: 'Natural cold-water seal in speckled oat and coastal blue stoneware',
+          keyConsideration: 'Change the water in the base every 3 to 4 days',
+          bestOccasion: 'Housewarming, Thank You, Under-$25 Gesture',
+        },
+        {
+          productId: 'prod_five_year_memory_book_08',
+          bestSuitedRecipient: 'Close friends, new parents, graduates, and milestone birthdays',
+          giftStyle: 'Personal Keepsake & Daily Ritual',
+          practicalUsefulness: 'Takes 30 seconds before sleep; stacks 5 years on each page',
+          personalizationOption: 'Write an inscription on the calendar date of a shared memory',
+          mainAppeal: 'Smyth-sewn cornflower Belgian linen with fountain-pen friendly paper',
+          keyConsideration: 'Can be started on any day of the year without wasted pages',
+          bestOccasion: 'Birthday, Holidays, New Chapter',
+        },
+        {
+          productId: 'prod_chili_honey_flight_01',
+          bestSuitedRecipient: 'Parents who "have everything," dinner hosts, and home cooks',
+          giftStyle: 'Artisan Consumable Tasting Flight',
+          practicalUsefulness: 'Zero permanent shelf clutter; ready to open over pizza or cheese boards',
+          personalizationOption: 'Includes tasting notes and pairing cards in a letterpress box',
+          mainAppeal: 'Three 6 oz jars balancing smoky heat, wildflower sweetness, and crunch',
+          keyConsideration: 'Shelf-stable; requires zero refrigerator space at handoff',
+          bestOccasion: 'Thank You, Housewarming, Holidays',
+        },
+        {
+          productId: 'prod_kyoto_matcha_bowl_03',
+          bestSuitedRecipient: 'Tea lovers, work-from-home creatives, and mindful routine builders',
+          giftStyle: 'Complete Morning Tea Studio',
+          practicalUsefulness: 'Includes 450ml spouted bowl, 100-prong bamboo whisk, scoop, and 30g tin',
+          personalizationOption: 'Ready to whisk on day one without buying extra accessories',
+          mainAppeal: 'Hand-glazed coastal blue rim and drip-free pouring spout',
+          keyConsideration: 'Bowl is dishwasher safe; bamboo whisk must be hand-rinsed',
+          bestOccasion: 'Birthday, Housewarming, Holidays',
+        },
+        {
+          productId: 'prod_custom_star_map_04',
+          bestSuitedRecipient: 'Partners, spouses, parents, and milestone celebrants',
+          giftStyle: 'Custom Framed Archival Print',
+          practicalUsefulness: 'Ready-to-hang 11" × 14" solid white oak frame',
+          personalizationOption: 'Custom date, location coordinates, and two-line dedication',
+          mainAppeal: 'Deep midnight blue 310gsm cotton rag print of a meaningful night sky',
+          keyConsideration: 'Requires knowing the specific date and city of the occasion',
+          bestOccasion: 'Anniversary, Birthday, Holidays',
+        },
+        {
+          productId: 'prod_cloud_waffle_robe_02',
+          bestSuitedRecipient: 'Partners, tired parents, and Sunday morning homebodies',
+          giftStyle: 'Everyday Luxury Textile',
+          practicalUsefulness: 'Breathable, quick-drying honeycomb weave used every morning',
+          personalizationOption: 'Arrives in a ribbon-tied reusable linen bag',
+          mainAppeal: '100% long-staple Turkish cotton pre-washed for immediate softness',
+          keyConsideration: 'Relaxed unisex sizing; size down if between sizes',
+          bestOccasion: 'Birthday, Anniversary, Holidays',
+        },
+        {
+          productId: 'prod_wool_picnic_throw_13',
+          bestSuitedRecipient: 'Couples, parents, grandparents, and new homeowners',
+          giftStyle: 'Heirloom Home & Outdoor Blanket',
+          practicalUsefulness: 'Generous 55" × 72" throw for reading chairs or chilly porch evenings',
+          personalizationOption: 'Zero sizing guesswork required',
+          mainAppeal: 'Soft, non-scratch 100% merino lambswool with whipstitched edge',
+          keyConsideration: 'Dry clean or gentle cold wool wash only',
+          bestOccasion: 'Housewarming, Anniversary, Holidays',
+        },
+      ],
+    },
     buyingAdviceIntro:
       'People who appreciate "the little things" rarely judge a gift by its price tag. Instead, they notice texture, usefulness, and whether the choice reflects how they actually spend their days.',
     buyingAdvice: [
       {
         id: 'tip-upgrade-habit',
         heading: '1. Upgrade a Humble Daily Habit by 20%',
-        body: 'Ask yourself what they touch between 7:00 a.m. and 9:00 a.m. or in the last hour before sleep. Elevating an everyday object—a butter dish, a bedside water glass, or a bathrobe—delivers a spark of gratitude every single day.',
+        body: 'Ask yourself what they touch between 7:00 a.m. and 9:00 a.m. or in the last hour before sleep. Elevating an everyday object, such as a butter dish, a bedside water glass, or a bathrobe, delivers a spark of gratitude every single day.',
         expandablePrompt: 'Why consumer psychology backs the "everyday upgrade" rule',
         expandableDetails:
-          'In research on the "Smile-Seeking Hypothesis" (Yang & Urminsky, 2018; Galak et al., 2016), psychologists found that gift-givers over-focus on the 10-second surprise of unwrapping. Recipients, however, evaluate a gift over months of post-exchange use—meaning quiet, tactile upgrades consistently win out over high-concept novelties.',
+          'In research on the "Smile-Seeking Hypothesis" (Yang & Urminsky, 2018; Galak et al., 2016), psychologists found that gift-givers over-focus on the 10-second surprise of unwrapping. Recipients, however, evaluate a gift over months of post-exchange use, meaning quiet, tactile upgrades consistently win out over high-concept novelties.',
       },
       {
         id: 'tip-consumables-for-minimalists',
@@ -868,10 +1118,40 @@ export const GIFT_GUIDES: GiftGuide[] = [
       {
         id: 'tip-sentimental-confidence',
         heading: '3. Don’t Talk Yourself Out of a Sentimental Touch',
-        body: 'Many shoppers hesitate to give a personalized or nostalgic gift—like a five-year memory book or custom star print—worrying it might feel too earnest. In practice, those are the exact gifts people keep on their shelves for decades.',
+        body: 'Many shoppers hesitate to give a personalized or nostalgic gift, like a five-year memory book or custom star print, worrying it might feel too earnest. In practice, those are the exact gifts people keep on their shelves for decades.',
         expandablePrompt: 'Quick checklist before choosing a personalized gift',
         expandableDetails:
           'Keep personalization subtle and timeless: instead of printing a giant slogan or novelty photo, opt for a meaningful date, coordinates of a favorite place, or a short handwritten inscription inside the front cover.',
+      },
+    ],
+    faqs: [
+      {
+        id: 'faq-under-25-appropriateness',
+        question: 'Is an under-$25 gift appropriate for a milestone birthday or holiday?',
+        answer:
+          'Yes, provided the item is the finest version of a small category rather than a compromised version of a large one. In behavioral studies on gift price and appreciation (Flynn & Adams, 2009), recipients cared far more about whether the object fit their daily life than what it cost at checkout. Pairing the $22 Heirloom Letterpress Recipe Cards with two recipes written in your own hand, or bringing the $24 French Butter Crock with a fresh bakery loaf, consistently feels more personal than a generic $100 department-store fallback.',
+        relatedProductId: 'prod_french_butter_crock_12',
+      },
+      {
+        id: 'faq-has-everything-recipient',
+        question: 'What should I choose from this guide for someone who insists they want nothing?',
+        answer:
+          'When someone says they do not need anything, they are usually telling you they do not want more permanent household clutter. Choose either a high-craft consumable that disappears cleanly, such as the $38 Small-Batch Chili Crisp & Wildflower Honey Flight or the $18 Hand-Dipped Beeswax Taper Pair, or a direct one-for-one upgrade that replaces a worn-out item they already use, like the $98 Cloud-Waffle Bath Robe.',
+        relatedProductId: 'prod_chili_honey_flight_01',
+      },
+      {
+        id: 'faq-dont-know-exact-taste',
+        question: 'How do I pick the right gift if I do not know their exact interior decor style?',
+        answer:
+          'Look for objects in quiet, natural materials (unbleached beeswax, speckled oat stoneware, clear fluted glass, or oatmeal merino wool) that live inside a cabinet or blend effortlessly with any room. The Hand-Blown Bedside Water Carafe ($48) and the Belgian Linen Five-Year Journal ($28) work across minimalist, traditional, and eclectic homes alike.',
+        relatedProductId: 'prod_fluted_bedside_carafe_09',
+      },
+      {
+        id: 'faq-personalized-lead-time',
+        question: 'When does a personalized gift make sense versus a ready-to-use ritual object?',
+        answer:
+          'Choose a personalized keepsake like the Custom Night Sky Constellation Print ($68) when you share a specific milestone date (an anniversary, wedding, or birth) with a partner, parent, or close friend. For coworkers, hosts, teachers, or newer friends, a ready-to-use ritual object like the Stoneware Matcha Bowl Set ($58) or Beeswax Tapers ($18) feels warm and observant without crossing into overly intimate territory.',
+        relatedProductId: 'prod_custom_star_map_04',
       },
     ],
     relatedGuideIds: ['guide_hosts_and_gatherings_2026'],
@@ -884,12 +1164,15 @@ export const GIFT_GUIDES: GiftGuide[] = [
     title: 'The Art of the Gathering: Host Gifts & Tabletop Favorites That Spark Connection',
     subtitle:
       'Skip the last-minute grocery store bouquet. These rituals, games, and vessels honor your host’s time and linger long after dessert.',
+    editorialIssueNumber: 'Entertaining Edition · Guide No. 02',
+    curationSummary:
+      'Curated around the "Tomorrow Morning Principle": self-contained gifts between $18 and $84 USD that require zero prep or vase-hunting while your host is greeting guests.',
     introParagraphs: [
       'A truly gracious host gift follows one simple rule: it never creates a chore while the host is greeting guests at the door. Instead of uncut flower stems that demand an empty vase and kitchen shears, these tabletop pieces and morning-after treats wait quietly to delight your host the next day.',
     ],
     whoThisGuideIsFor: [
-      'Dinner party guests looking for an effortless $20–$85 thank-you',
-      'Weekend houseguests thanking friends or family for a stay',
+      'Dinner party guests looking for an effortless $18 to $84 thank-you',
+      'Weekend houseguests thanking friends or family for a multi-night stay',
     ],
     affiliateDisclosure:
       'Editorial & Development Note: Sample guide content with placeholder merchant links for preview.',
@@ -916,8 +1199,9 @@ export const GIFT_GUIDES: GiftGuide[] = [
       kicker: 'Editor’s Host Pick',
       headline: 'An Instant Tasting Flight That Needs Zero Fridge Space or Prep',
       editorialRationale:
-        'Arrives in a letterpress tasting box ready to hand over at the door—your host can either crack it open alongside the cheese board or save it for Sunday eggs.',
+        'Arrives in a letterpress tasting box ready to hand over at the door, so your host can either crack it open alongside the cheese board or save it for Sunday eggs.',
       intendedRecipientAndSituation: 'Dinner party hosts, holiday gatherings, and foodie friends.',
+      buyingConsiderations: 'Three 6 oz glass jars; shelf-stable for 14 months unopened.',
       targetSectionId: 'sec-host-tabletop',
     },
     quickPicks: [
@@ -950,56 +1234,164 @@ export const GIFT_GUIDES: GiftGuide[] = [
         targetSectionId: 'sec-host-tabletop',
       },
     ],
+    recipientPathways: [
+      {
+        id: 'pathway-casual-dinner-host',
+        label: 'For a Weeknight or Casual Dinner Host',
+        description: 'Warm, low-pressure thank-you gestures under $40 that never make your host feel over-obligated.',
+        recipientFilter: 'host',
+        maxPrice: 40,
+        recommendedProductIds: ['prod_beeswax_taper_pair_10', 'prod_chili_honey_flight_01'],
+        editorialTip: 'Keep casual dinner gifts under $40 so your gesture feels effortless and proportional to the evening.',
+      },
+      {
+        id: 'pathway-weekend-cabin-host',
+        label: 'For a Weekend or Holiday House Stay',
+        description: 'Substantial tabletop and morning-after gifts for friends or family hosting you overnight.',
+        recipientFilter: 'host',
+        recommendedProductIds: ['prod_kyoto_matcha_bowl_03', 'prod_olivewood_board_game_05'],
+        editorialTip: 'When staying for two or more nights, choose something that contributes to shared downtime or Sunday morning recovery.',
+      },
+    ],
+    curatorNotes: [
+      {
+        id: 'note-host-bandwidth',
+        kicker: 'Curator’s Field Note · Hosting Etiquette',
+        title: 'Why Uncut Flowers Are Secretly Stressful at 7:00 p.m.',
+        body: 'The first ten minutes of a dinner party are the busiest part of your host’s evening. Handing over wrapped flower stems forces them to pause, clear counter space, hunt for a clean vase, and trim stems while appetizers are in the oven. Self-contained gifts let your host simply smile, set the parcel on the sideboard, and stay in the conversation.',
+        takeaway: 'If your gift requires water, refrigeration, or a knife right now, save it for another occasion.',
+        authorAttribution: 'Julian Merritt, Home & Entertaining Editor',
+      },
+    ],
     sections: [
       {
         id: 'sec-host-tabletop',
         shortNavTitle: 'Tabletop & Morning-After',
+        editorialKicker: 'Chapter I · Zero-Chore Host Favorites ($18 to $84 USD)',
         title: 'Tabletop Favorites & Morning-After Treats',
-        priceRangeLabel: '$18 – $84 USD',
+        priceRangeLabel: '$18 to $84 USD',
         summary: 'Self-contained gifts that honor your host’s bandwidth and elevate their home.',
         accentSurface: 'cream',
         recommendations: [
           {
             productId: 'prod_chili_honey_flight_01',
             awardLabel: 'Best Edible Host Gift',
+            presentationStyle: 'featured',
+            layoutHighlight: 'feature-horizontal',
+            editorialHeadline: 'Three Culinary Jars Ready for Tonight’s Cheese Board or Sunday Morning Eggs',
             customEditorialNote:
-              'Every jar balances heat, sweetness, and crunch—and the letterpress box looks beautiful without needing extra wrapping paper.',
+              'Every jar balances heat, sweetness, and crunch, and the letterpress box looks beautiful without needing extra wrapping paper.',
+            whyItWorks:
+              'Unlike wine or chilled desserts, these three jars are completely shelf-stable and versatile across sweet and savory dishes.',
             idealFor: 'Dinner hosts and home cooks.',
             goodToKnow: 'Shelf-stable for 14 months unopened.',
-            layoutHighlight: 'feature-horizontal',
+            buyingConsiderations: 'Includes three 6 oz glass jars in a heavyweight letterpress box.',
           },
           {
             productId: 'prod_beeswax_taper_pair_10',
             awardLabel: 'Best Under $25',
+            presentationStyle: 'standard',
+            editorialHeadline: 'Unscented Apiary Tapers Paired With Their Own Stoneware Base',
             customEditorialNote:
               'Includes its own speckled stoneware holder so your host never has to hunt for a candlestick.',
             idealFor: 'Casual dinners and neighbor thank-yous.',
             goodToKnow: '100% pure unscented beeswax.',
+            buyingConsiderations: 'Unscented beeswax will never clash with the aromas coming from your host’s kitchen.',
           },
           {
             productId: 'prod_kyoto_matcha_bowl_03',
             awardLabel: 'Best Ritual Set',
+            presentationStyle: 'standard',
+            editorialHeadline: 'A Quiet Sunday Morning Tea Ritual After a Busy Night of Hosting',
             customEditorialNote:
               'Complete with a ceremonial tin of Uji matcha and a hand-carved bamboo whisk so nothing extra is needed.',
             idealFor: 'Weekend hosts and tea lovers.',
             goodToKnow: 'Stoneware bowl is dishwasher safe.',
+            buyingConsiderations: 'Includes spouted chawan, 100-prong bamboo whisk, scoop, and 30g ceremonial matcha tin.',
           },
           {
             productId: 'prod_olivewood_board_game_05',
             awardLabel: 'Best for Cabin & Weekend Stays',
+            presentationStyle: 'editorial-feature',
+            editorialHeadline: 'An Heirloom Roll-Up Linen Backgammon Set for After-Dinner Laughter',
             customEditorialNote:
               'Replaces flimsy cardboard boxes with rolled Belgian linen and weighted alabaster stones.',
+            whyItWorks:
+              'Shared activity gifts create immediate table conversation after dessert and become a permanent fixture of future cabin or weekend visits.',
             idealFor: 'Couples, vacation home hosts, and family holidays.',
             goodToKnow: 'Includes full rules for both Backgammon and Checkers.',
+            buyingConsiderations: 'Rolls into a compact cylinder secured with a vegetable-tanned leather strap.',
           },
         ],
       },
     ],
+    comparison: {
+      title: 'Comparing Host & Gathering Favorites',
+      subtitle: 'Match your thank-you gift to the formality of the invitation and your host’s morning-after routine.',
+      rows: [
+        {
+          productId: 'prod_chili_honey_flight_01',
+          bestSuitedRecipient: 'Dinner party hosts, home cooks, and food lovers',
+          giftStyle: 'Artisan Tasting Flight',
+          practicalUsefulness: 'Ready to serve with cheese or save for weekend breakfast',
+          personalizationOption: 'Letterpress box includes tasting notes',
+          mainAppeal: 'Three 6 oz jars of chili crisp and infused wildflower honeys',
+          keyConsideration: 'Shelf-stable; zero fridge space needed',
+          bestOccasion: 'Dinner Party, Holiday Gathering',
+        },
+        {
+          productId: 'prod_beeswax_taper_pair_10',
+          bestSuitedRecipient: 'Neighbors, casual dinner hosts, and apartment dwellers',
+          giftStyle: 'Tabletop Atmosphere',
+          practicalUsefulness: 'Includes ceramic pebble holder for immediate table use',
+          personalizationOption: 'Tie a linen ribbon around the box with a thank-you tag',
+          mainAppeal: '100% pure apiary beeswax that won’t clash with food aromas',
+          keyConsideration: '9-hour burn time per taper',
+          bestOccasion: 'Thank You, Casual Dinner',
+        },
+        {
+          productId: 'prod_kyoto_matcha_bowl_03',
+          bestSuitedRecipient: 'Weekend hosts, tea drinkers, and close friends',
+          giftStyle: 'Sunday Morning Ritual Set',
+          practicalUsefulness: 'Complete 4-piece set including 30g Uji matcha tin',
+          personalizationOption: 'Add a note thanking them for a restful weekend',
+          mainAppeal: 'Hand-glazed stoneware pouring bowl + bamboo whisk',
+          keyConsideration: 'Contains natural green tea caffeine',
+          bestOccasion: 'Weekend Stay, Housewarming',
+        },
+        {
+          productId: 'prod_olivewood_board_game_05',
+          bestSuitedRecipient: 'Couples, families, and cabin or vacation hosts',
+          giftStyle: 'Shared Tabletop Game',
+          practicalUsefulness: 'Plays both Backgammon and Checkers; rolls up neatly',
+          personalizationOption: 'Offer to play the opening round after dessert',
+          mainAppeal: 'Belgian linen board with weighted alabaster and navy pips',
+          keyConsideration: 'Compact rolled storage footprint',
+          bestOccasion: 'Weekend Stay, Holidays, Housewarming',
+        },
+      ],
+    },
     buyingAdvice: [
       {
         id: 'tip-tomorrow-morning',
         heading: 'The “Tomorrow Morning” Rule of Hosting Etiquette',
         body: 'Never hand a host something that demands immediate fridge space, an empty vase, or oven time while they are greeting guests. The best host gifts are self-contained and meant to be enjoyed the next morning.',
+      },
+    ],
+    faqs: [
+      {
+        id: 'faq-host-wine-alternative',
+        question: 'What is a good alternative if the host does not drink wine?',
+        answer:
+          'The Small-Batch Chili Crisp & Wildflower Honey Flight ($38) hits the exact same celebratory price point and social note as a nice bottle of wine, while working for every household and lasting for weeks in the pantry.',
+        relatedProductId: 'prod_chili_honey_flight_01',
+      },
+      {
+        id: 'faq-host-weekend-stay',
+        question: 'How much should I spend when staying at a friend’s home or cabin for a weekend?',
+        answer:
+          'For a multi-night stay, a $55 to $85 gift that contributes to the home or shared downtime, such as the Inlaid Walnut & Linen Roll-Up Backgammon Set ($84) or the Stoneware Matcha Bowl Set ($58), feels generous and thoughtful.',
+        relatedProductId: 'prod_olivewood_board_game_05',
       },
     ],
     relatedGuideIds: ['guide_little_things_2026'],

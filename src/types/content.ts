@@ -93,13 +93,69 @@ export interface Product {
   citationIds: string[];
 }
 
+export type GuidePresentationStyle =
+  | 'featured'
+  | 'standard'
+  | 'compact'
+  | 'editorial-feature';
+
+export interface GuideCuratorNote {
+  id: string;
+  kicker?: string;
+  title: string;
+  body: string;
+  takeaway?: string;
+  authorAttribution?: string;
+}
+
+export interface GuideRecipientPathway {
+  id: string;
+  label: string;
+  description: string;
+  recipientFilter?: RecipientType;
+  personalityFilter?: PersonalityTrait;
+  occasionFilter?: OccasionType;
+  maxPrice?: number;
+  recommendedProductIds?: string[];
+  editorialTip?: string;
+}
+
+export interface GuideComparisonRow {
+  productId: string;
+  bestSuitedRecipient: string;
+  giftStyle: string;
+  practicalUsefulness: string;
+  personalizationOption: string;
+  mainAppeal: string;
+  keyConsideration: string;
+  bestOccasion: string;
+}
+
+export interface GuideComparisonConfig {
+  title?: string;
+  subtitle?: string;
+  rows: GuideComparisonRow[];
+}
+
+export interface GuideFAQItem {
+  id: string;
+  question: string;
+  answer: string;
+  relatedProductId?: string;
+}
+
 export interface GuideRecommendation {
   productId: string;
   awardLabel?: string;
   customEditorialNote: string;
   idealFor: string;
   goodToKnow: string;
-  layoutHighlight?: 'feature-horizontal' | 'standard';
+  layoutHighlight?: 'feature-horizontal' | 'standard' | 'compact' | 'special-editorial';
+  presentationStyle?: GuidePresentationStyle;
+  editorialHeadline?: string;
+  whyItWorks?: string;
+  buyingConsiderations?: string;
+  betterAlternativeNote?: string;
 }
 
 export interface GuideSection {
@@ -108,8 +164,10 @@ export interface GuideSection {
   title: string;
   priceRangeLabel: string;
   summary: string;
+  editorialKicker?: string;
   accentSurface?: 'cream' | 'sand' | 'mint' | 'blue';
   recommendations: GuideRecommendation[];
+  curatorNote?: GuideCuratorNote;
 }
 
 export interface GuideEditorsPick {
@@ -119,6 +177,7 @@ export interface GuideEditorsPick {
   editorialRationale: string;
   intendedRecipientAndSituation: string;
   targetSectionId: string;
+  buyingConsiderations?: string;
 }
 
 export interface GuideQuickPick {
@@ -142,6 +201,8 @@ export interface GiftGuide {
   slug: string;
   title: string;
   subtitle: string;
+  editorialIssueNumber?: string;
+  curationSummary?: string;
   introParagraphs?: string[];
   whoThisGuideIsFor?: string[];
   affiliateDisclosure: string;
@@ -157,6 +218,10 @@ export interface GiftGuide {
   accentTone: 'mint' | 'soft-blue' | 'butter' | 'coral';
   editorsPick: GuideEditorsPick;
   quickPicks: GuideQuickPick[];
+  recipientPathways?: GuideRecipientPathway[];
+  curatorNotes?: GuideCuratorNote[];
+  comparison?: GuideComparisonConfig;
+  faqs?: GuideFAQItem[];
   buyingAdviceIntro?: string;
   buyingAdvice: GuideBuyingTip[];
   sections: GuideSection[];

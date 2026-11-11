@@ -2113,3 +2113,61 @@ test('31. Every Gift Finder sidebar filter section starts collapsed by default, 
   assert.match(expandedHtml, /Active range:/);
   assert.match(expandedHtml, /Custom max replaces range/);
 });
+
+test('32. Flagship Editorial Gift Guide Redesign renders all 11 modular editorial sections, 4 recommendation presentation styles, and degrades gracefully when optional fields are omitted', () => {
+  const flagshipGuide = contentRepository.getGiftGuideBySlug(
+    'thoughtful-gifts-for-people-who-appreciate-the-little-things'
+  );
+  assert.ok(flagshipGuide, 'Flagship guide must exist in contentRepository');
+
+  const html = renderToStaticMarkup(
+    <GiftGuideReaderView
+      guide={flagshipGuide}
+      savedProductIds={['prod_fluted_bedside_carafe_09']}
+      onToggleSaveProduct={() => {}}
+      onSelectProduct={() => {}}
+    />
+  );
+
+  // 1. Verify all major editorial section anchors and landmarks exist
+  assert.match(html, /Flagship Edition · Guide No\. 01/);
+  assert.match(html, /Curated by Clara Vance/);
+  assert.match(html, /Who This Guide Is Written For/);
+  assert.match(html, /id="quick-picks"/);
+  assert.match(html, /id="find-the-right-gift"/);
+  assert.match(html, /id="editors-pick"/);
+  assert.match(html, /id="sec-under-25"/);
+  assert.match(html, /id="sec-25-to-75"/);
+  assert.match(html, /id="sec-over-75"/);
+  assert.match(html, /id="gift-comparison"/);
+  assert.match(html, /id="buying-advice"/);
+  assert.match(html, /id="guide-faq"/);
+  assert.match(html, /id="related-discoveries"/);
+
+  // 2. Verify all 4 GiftRecommendation presentation styles render in the flagship guide
+  assert.match(html, /data-presentation-style="featured"/);
+  assert.match(html, /data-presentation-style="editorial-feature"/);
+  assert.match(html, /data-presentation-style="standard"/);
+  assert.match(html, /data-presentation-style="compact"/);
+
+  // 3. Verify Curator's Notes, Recipient Pathways, Qualitative Comparison, and FAQ render cleanly
+  assert.match(html, /Curator’s Field Note · No\. 01/);
+  assert.match(html, /Why a \$24 Upgrade to a Daily Habit Beats a \$100 Novelty/);
+  assert.match(html, /For the Morning Ritualist/);
+  assert.match(html, /Comparing the Standout Gifts in This Guide/);
+  assert.match(
+    html,
+    /Is an under-\$25 gift appropriate for a milestone birthday or holiday\?/
+  );
+  assert.match(
+    html,
+    /aria-expanded="true"[^>]*aria-controls="faq-answer-faq-under-25-appropriateness"/
+  );
+
+  // 4. Verify no em dashes or double hyphens appear in the rendered flagship guide HTML
+  assert.ok(
+    !html.includes('—'),
+    'Flagship Gift Guide copy and UI must not contain em dashes (—)'
+  );
+});
+

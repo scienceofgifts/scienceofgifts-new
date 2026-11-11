@@ -1,203 +1,398 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  ArrowLeft,
-  ArrowRight,
-  ArrowDownRight,
-  Heart,
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  BookOpen,
-  Info,
-} from 'lucide-react';
-import { Article, GiftGuide, GuideSection, Product } from '../types/content';
-import { ARTICLES, AUTHORS, GIFT_GUIDES, PRODUCTS } from '../data/catalog';
+  Article,
+  GiftGuide,
+  GuideRecipientPathway,
+  GuideRecommendation,
+  GuideSection,
+  Product,
+  ResearchCitation,
+} from '../types/content';
+import {
+  ARTICLES,
+  AUTHORS,
+  CITATIONS,
+  GIFT_GUIDES,
+  PRODUCTS,
+} from '../data/catalog';
 import { CatalogDataOverride } from '../utils/seoAndValidation';
-import { PhotoImage } from './ObjectIllustrations';
-import { ProductCard } from './ProductCard';
+import { RotateCcw } from 'lucide-react';
+import { EditorialGuideHero } from './guide/EditorialGuideHero';
+import { GuideSectionNavigation } from './guide/GuideSectionNavigation';
+import { QuickPicks } from './guide/QuickPicks';
+import { RecipientDiscovery } from './guide/RecipientDiscovery';
+import { FeaturedGiftRecommendation } from './guide/FeaturedGiftRecommendation';
+import { GiftRecommendation } from './guide/GiftRecommendation';
+import { CuratorNote } from './guide/CuratorNote';
+import { GiftComparison } from './guide/GiftComparison';
+import { GiftBuyingGuide } from './guide/GiftBuyingGuide';
+import { GuideFAQ } from './guide/GuideFAQ';
+import { RelatedEditorialContent } from './guide/RelatedEditorialContent';
 
-interface GiftGuideReaderViewProps {
-  guide: GiftGuide;
-  savedProductIds: string[];
-  onToggleSave: (productId: string) => void;
-  onSelectProduct: (product: Product) => void;
-  onSelectGuide?: (slug: string) => void;
-  onSelectArticle?: (slug: string) => void;
-  onBackHome?: () => void;
-  catalog?: CatalogDataOverride;
-}
+// Export re-usable subcomponents for external consumers or tests
+export {
+  EditorialGuideHero,
+  GuideSectionNavigation,
+  QuickPicks,
+  RecipientDiscovery,
+  FeaturedGiftRecommendation,
+  GiftRecommendation,
+  CuratorNote,
+  GiftComparison,
+  GiftBuyingGuide,
+  GuideFAQ,
+  RelatedEditorialContent,
+};
 
-interface GuideBudgetSectionProps {
+export interface GuideBudgetSectionProps {
   section: GuideSection;
+  chapterIndex?: number;
+  startRankIndex?: number;
+  productsMap: Record<string, Product>;
   savedProductIds: string[];
-  onToggleSave: (productId: string) => void;
-  onSelectProduct: (product: Product) => void;
-  productsMap?: Record<string, Product>;
+  highlightedProductIds?: Set<string> | null;
+  onSelectProduct?: (product: Product) => void;
+  onToggleSaveProduct: (productId: string) => void;
 }
 
+/**
+ * Reusable Editorial Chapter / Budget Section component.
+ * Combines full-width featured/editorial-feature recommendations with
+ * balanced two-column grids for standard recommendations, plus optional Curator's Notes.
+ */
 export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
   section,
+  chapterIndex = 0,
+  startRankIndex = 0,
+  productsMap,
   savedProductIds,
-  onToggleSave,
+  highlightedProductIds,
   onSelectProduct,
-  productsMap = PRODUCTS,
+  onToggleSaveProduct,
 }) => {
   const surfaceBg =
-    section.accentSurface === 'sand'
-      ? 'bg-[#F3ECE1]/65 rounded-3xl p-6 md:p-9'
-      : section.accentSurface === 'mint'
-      ? 'bg-[#E8F8F0]/65 rounded-3xl p-6 md:p-9'
-      : section.accentSurface === 'blue'
-      ? 'bg-[#EBF3FE]/65 rounded-3xl p-6 md:p-9'
-      : '';
+    section.accentSurface === 'mint'
+      ? 'bg-[#E8F8F0]/45 border-[#BDE8D2]'
+      : section.accentSurface === 'sand'
+      ? 'bg-[#F4EFE6] border-[#D5CFC4]'
+      : 'bg-[#FAF7F2] border-[#D5CFC4]';
 
-  const leadRec = section.recommendations.find(
-    (r) => r.layoutHighlight === 'feature-horizontal'
-  );
-  const gridRecs = section.recommendations.filter((r) => r !== leadRec);
+  // Filter valid recommendations (and optionally filter by active recipient pathway)
+  const validRecommendations = section.recommendations
+    .map((rec, idx) => ({
+      rec,
+      product: productsMap[rec.productId],
+      globalRank: startRankIndex + idx,
+    }))
+    .filter(
+      (
+        item
+      ): item is {
+        rec: GuideRecommendation;
+        product: Product;
+        globalRank: number;
+      } => {
+        if (!item.product) return false;
+        if (
+          highlightedProductIds &&
+          highlightedProductIds.size > 0 &&
+          !highlightedProductIds.has(item.product.id)
+        ) {
+          return false;
+        }
+        return true;
+      }
+    );
+
+  if (validRecommendations.length === 0) {
+    return null;
+  }
+
+  // Group consecutive 'standard' items so they can sit in a balanced 2-column editorial grid,
+  // while 'featured', 'editorial-feature', and 'compact' span the full chapter width.
+  type RenderGroup =
+    | {
+        kind: 'single';
+        item: {
+          rec: GuideRecommendation;
+          product: Product;
+          globalRank: number;
+        };
+      }
+    | {
+        kind: 'standard-grid';
+        items: Array<{
+          rec: GuideRecommendation;
+          product: Product;
+          globalRank: number;
+        }>;
+      };
+
+  const renderGroups: RenderGroup[] = [];
+  for (const entry of validRecommendations) {
+    const effectiveStyle =
+      entry.rec.presentationStyle ??
+      (entry.rec.layoutHighlight === 'feature-horizontal'
+        ? 'featured'
+        : 'standard');
+
+    if (effectiveStyle === 'standard') {
+      const prev = renderGroups[renderGroups.length - 1];
+      if (prev && prev.kind === 'standard-grid') {
+        prev.items.push(entry);
+      } else {
+        renderGroups.push({ kind: 'standard-grid', items: [entry] });
+      }
+    } else {
+      renderGroups.push({ kind: 'single', item: entry });
+    }
+  }
 
   return (
     <section
       id={section.id}
       aria-labelledby={`heading-${section.id}`}
-      className={`space-y-8 scroll-mt-24 ${surfaceBg}`}
+      className={`scroll-mt-24 rounded-3xl border p-6 sm:p-8 lg:p-10 ${surfaceBg}`}
     >
-      {/* Section Header */}
-      <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-[#DFDBD3] pb-4">
-        <div className="space-y-1.5 max-w-2xl">
-          <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
-            Budget Tier · {section.priceRangeLabel}
-          </div>
-          <h2
-            id={`heading-${section.id}`}
-            className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
-          >
-            {section.title}
-          </h2>
-          <p className="text-sm text-[#292B2D] leading-relaxed">{section.summary}</p>
+      {/* Chapter Header */}
+      <div className="border-b border-[#D5CFC4] pb-6">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#28537D]">
+            {section.editorialKicker ||
+              `Chapter 0${chapterIndex + 1} · ${section.priceRangeLabel}`}
+          </p>
+          <span className="font-mono text-xs font-semibold text-[#62666A] tabular-nums">
+            {validRecommendations.length}{' '}
+            {validRecommendations.length === 1
+              ? 'Curated Pick'
+              : 'Curated Picks'}{' '}
+            · {section.priceRangeLabel}
+          </span>
         </div>
+
+        <h2
+          id={`heading-${section.id}`}
+          className="mt-2 font-serif text-2xl font-bold leading-tight text-[#222426] sm:text-3xl lg:text-[2.1rem]"
+        >
+          {section.title}
+        </h2>
+
+        <p className="mt-2.5 max-w-3xl text-sm leading-[1.7] text-[#292B2D] sm:text-base">
+          {section.summary}
+        </p>
       </div>
 
-      {/* Lead Horizontal Feature Card (Varied Composition) */}
-      {leadRec && productsMap[leadRec.productId] && (
-        <ProductCard
-          domId={`rec-${leadRec.productId}`}
-          product={productsMap[leadRec.productId]}
-          variant="guide-feature"
-          isSaved={savedProductIds.includes(leadRec.productId)}
-          onToggleSave={onToggleSave}
-          onSelectProduct={onSelectProduct}
-          awardNote={leadRec.awardLabel}
-          customEditorialNote={leadRec.customEditorialNote}
-          idealForNote={leadRec.idealFor}
-          goodToKnowNote={leadRec.goodToKnow}
-        />
-      )}
-
-      {/* Open 2-Column Portrait Recommendations */}
-      {gridRecs.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-10">
-          {gridRecs.map((rec) => {
-            const product = productsMap[rec.productId];
-            if (!product) return null;
+      {/* Recommendations with Mixed Editorial Rhythm */}
+      <div className="mt-8 space-y-7">
+        {renderGroups.map((group, gIdx) => {
+          if (group.kind === 'single') {
+            const { rec, product, globalRank } = group.item;
             return (
-              <ProductCard
-                key={rec.productId}
-                domId={`rec-${rec.productId}`}
+              <GiftRecommendation
+                key={product.id}
+                recommendation={rec}
                 product={product}
-                variant={section.accentSurface ? 'surface' : 'open'}
+                rankIndex={globalRank}
                 isSaved={savedProductIds.includes(product.id)}
-                onToggleSave={onToggleSave}
+                onToggleSaveProduct={onToggleSaveProduct}
                 onSelectProduct={onSelectProduct}
-                awardNote={rec.awardLabel}
-                customEditorialNote={rec.customEditorialNote}
-                idealForNote={rec.idealFor}
-                goodToKnowNote={rec.goodToKnow}
               />
             );
-          })}
+          }
+
+          return (
+            <div
+              key={`grid-${gIdx}`}
+              className={`grid grid-cols-1 gap-6 ${
+                group.items.length > 1 ? 'md:grid-cols-2' : ''
+              }`}
+            >
+              {group.items.map(({ rec, product, globalRank }) => (
+                <GiftRecommendation
+                  key={product.id}
+                  recommendation={rec}
+                  product={product}
+                  rankIndex={globalRank}
+                  isSaved={savedProductIds.includes(product.id)}
+                  onToggleSaveProduct={onToggleSaveProduct}
+                  onSelectProduct={onSelectProduct}
+                />
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Section-level Curator's Note (if present) */}
+      {section.curatorNote && (
+        <div className="mt-8">
+          <CuratorNote note={section.curatorNote} />
         </div>
       )}
     </section>
   );
 };
 
+export interface GiftGuideReaderViewProps {
+  guide: GiftGuide;
+  savedProductIds: string[];
+  onToggleSaveProduct?: (productId: string) => void;
+  onToggleSave?: (productId: string) => void;
+  onSelectProduct?: (product: Product) => void;
+  onOpenArticle?: (slug: string) => void;
+  onSelectArticle?: (slug: string) => void;
+  onOpenGuide?: (slug: string) => void;
+  onSelectGuide?: (slug: string) => void;
+  onNavigateHome?: () => void;
+  onBackHome?: () => void;
+  catalog?: CatalogDataOverride;
+}
+
 export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
   guide,
   savedProductIds,
+  onToggleSaveProduct,
   onToggleSave,
   onSelectProduct,
-  onSelectGuide,
+  onOpenArticle,
   onSelectArticle,
-  onBackHome,
+  onOpenGuide,
+  onSelectGuide,
   catalog,
 }) => {
-  const [activeSectionId, setActiveSectionId] = useState<string>('editors-pick');
-  const [expandedTips, setExpandedTips] = useState<Record<string, boolean>>({
-    'tip-upgrade-habit': true,
-  });
-
+  const handleToggleSave = onToggleSaveProduct ?? onToggleSave ?? (() => {});
+  const handleOpenArticle = onOpenArticle ?? onSelectArticle;
+  const handleOpenGuide = onOpenGuide ?? onSelectGuide;
   const productsMap = catalog?.products ?? PRODUCTS;
   const authorsMap = catalog?.authors ?? AUTHORS;
+  const citationsMap = catalog?.citations ?? CITATIONS;
   const guidesList = catalog?.guides ?? GIFT_GUIDES;
   const articlesList = catalog?.articles ?? ARTICLES;
 
   const author = authorsMap[guide.authorId];
   const editorsPickProduct = productsMap[guide.editorsPick.productId];
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [guide.id]);
+  const [activeSectionId, setActiveSectionId] =
+    useState<string>('quick-picks');
+  const [activePathway, setActivePathway] =
+    useState<GuideRecipientPathway | null>(null);
 
-  // Track active section in Table of Contents on scroll
+  // Calculate total recommendations and price range summary from canonical products
+  const { totalRecommendationsCount, priceRangeSummary, allGuideProductIds } =
+    useMemo(() => {
+      const ids = new Set<string>();
+      const prices: number[] = [];
+
+      const epProd = productsMap[guide.editorsPick.productId];
+      if (epProd) {
+        ids.add(epProd.id);
+        prices.push(epProd.price);
+      }
+
+      for (const sec of guide.sections) {
+        for (const rec of sec.recommendations) {
+          const p = productsMap[rec.productId];
+          if (p) {
+            ids.add(p.id);
+            prices.push(p.price);
+          }
+        }
+      }
+
+      if (prices.length === 0) {
+        return {
+          totalRecommendationsCount: 0,
+          priceRangeSummary: 'Curated Range',
+          allGuideProductIds: ids,
+        };
+      }
+
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+      const summary =
+        minPrice === maxPrice
+          ? `$${minPrice} USD`
+          : `$${minPrice} to $${maxPrice} USD`;
+
+      return {
+        totalRecommendationsCount: ids.size,
+        priceRangeSummary: summary,
+        allGuideProductIds: ids,
+      };
+    }, [guide.editorsPick.productId, guide.sections, productsMap]);
+
+  const savedInGuideCount = useMemo(() => {
+    let count = 0;
+    for (const pid of savedProductIds) {
+      if (allGuideProductIds.has(pid)) count += 1;
+    }
+    return count;
+  }, [allGuideProductIds, savedProductIds]);
+
+  // Track active section while scrolling
   useEffect(() => {
     const trackedIds = [
-      'editors-pick',
       'quick-picks',
+      'find-the-right-gift',
+      'editors-pick',
       ...guide.sections.map((s) => s.id),
+      'gift-comparison',
       'buying-advice',
+      'guide-faq',
       'related-discoveries',
     ];
 
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 180;
+      const offset = 180;
       for (let i = trackedIds.length - 1; i >= 0; i--) {
         const el = document.getElementById(trackedIds[i]);
-        if (el && el.offsetTop <= scrollPosition) {
-          setActiveSectionId(trackedIds[i]);
-          break;
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= offset) {
+            setActiveSectionId(trackedIds[i]);
+            break;
+          }
         }
       }
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [guide]);
+  }, [guide.sections]);
 
-  const jumpToAnchor = (anchorId: string) => {
-    const target = document.getElementById(anchorId);
-    if (target) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveSectionId(anchorId);
+  const scrollToElement = (id: string) => {
+    setActiveSectionId(id);
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
-  const toggleTip = (tipId: string) => {
-    setExpandedTips((prev) => ({ ...prev, [tipId]: !prev[tipId] }));
+  const scrollToRecommendation = (productId: string, sectionId?: string) => {
+    // If recipient pathway filter is hiding this product, clear the filter first
+    if (
+      activePathway &&
+      !(activePathway.recommendedProductIds ?? []).includes(productId)
+    ) {
+      setActivePathway(null);
+    }
+
+    setTimeout(() => {
+      const recEl = document.getElementById(`rec-${productId}`);
+      if (recEl) {
+        recEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      if (sectionId) {
+        scrollToElement(sectionId);
+      }
+    }, 20);
   };
 
-  // Unique canonical products referenced in this guide
-  const guideProductIds = Array.from(
-    new Set([
-      guide.editorsPick.productId,
-      ...guide.quickPicks.map((q) => q.productId),
-      ...guide.sections.flatMap((s) => s.recommendations.map((r) => r.productId)),
-    ])
-  );
-  const savedInThisGuideCount = guideProductIds.filter((id) =>
-    savedProductIds.includes(id)
-  ).length;
+  const highlightedProductIds = useMemo(() => {
+    if (!activePathway) return null;
+    return new Set(activePathway.recommendedProductIds);
+  }, [activePathway]);
 
   const relatedGuides = (guide.relatedGuideIds ?? [])
     .map((id) => guidesList.find((g) => g.id === id))
@@ -207,826 +402,172 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
     .map((id) => articlesList.find((a) => a.id === id))
     .filter((a): a is Article => Boolean(a));
 
+  const guideCitations = (guide.citationIds ?? [])
+    .map((id) => citationsMap[id])
+    .filter((c): c is ResearchCitation => Boolean(c));
+
+  const hasComparison =
+    (guide.comparison?.rows && guide.comparison.rows.length >= 2) ||
+    totalRecommendationsCount >= 2;
+  const hasFaqs = Boolean(guide.faqs && guide.faqs.length > 0);
+  const hasRelatedContent =
+    relatedGuides.length > 0 ||
+    relatedArticles.length > 0 ||
+    guideCitations.length > 0;
+
+  // Compute cumulative starting rank index for each section
+  const sectionStartRanks = useMemo(() => {
+    const starts: number[] = [];
+    let running = 0;
+    for (const sec of guide.sections) {
+      starts.push(running);
+      running += sec.recommendations.length;
+    }
+    return starts;
+  }, [guide.sections]);
+
   return (
-    <article className="min-h-screen bg-[#FAF7F2] text-[#292B2D]">
-      <div className="max-w-7xl mx-auto px-6 py-8 md:py-12">
-        {/* ===================================================================
-            A. GUIDE INTRODUCTION: Breadcrumb, H1, Intro, Hero, Disclosure
-           =================================================================== */}
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-8 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#DFDBD3]"
-        >
-          <ol className="flex items-center gap-2 text-xs text-[#62666A]">
-            <li>
-              <a
-                href="/"
-                onClick={(e) => {
-                  if (onBackHome) {
-                    e.preventDefault();
-                    onBackHome();
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D] whitespace-nowrap shrink-0"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Home</span>
-              </a>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li>
-              <a
-                href="/#editorial-guides"
-                onClick={(e) => {
-                  if (onBackHome) {
-                    e.preventDefault();
-                    onBackHome();
-                  }
-                }}
-                className="text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
-              >
-                Gift Guides
-              </a>
-            </li>
-            <li aria-hidden="true">/</li>
-            <li aria-current="page" className="text-[#62666A] font-medium truncate max-w-xs">
-              {guide.category}
-            </li>
-          </ol>
+    <div className="min-h-screen bg-[#FAF7F2] pb-20 text-[#292B2D]">
+      {/* A. Premium Editorial Hero */}
+      <EditorialGuideHero
+        guide={guide}
+        author={author}
+        totalRecommendationsCount={totalRecommendationsCount}
+        priceRangeSummary={priceRangeSummary}
+        onJumpToSection={scrollToElement}
+      />
 
-          <div className="flex items-center gap-2 text-xs text-[#62666A]">
-            <span>Last updated {guide.updatedAt}</span>
-            <span aria-hidden="true">·</span>
-            <span>{guide.readTimeMinutes} min read</span>
-          </div>
-        </nav>
+      {/* Main Editorial Layout: Left Sticky Rail + Right Curated Content */}
+      <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 sm:pt-12 lg:px-8">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-10">
+          {/* B. Editorial Navigation (Mobile Directory + Desktop Sticky Rail) */}
+          <GuideSectionNavigation
+            guide={guide}
+            activeSectionId={activeSectionId}
+            savedInGuideCount={savedInGuideCount}
+            hasComparison={hasComparison}
+            hasFaqs={hasFaqs}
+            hasRelatedContent={hasRelatedContent}
+            activeRecipientFilterLabel={activePathway?.label ?? null}
+            onClearRecipientFilter={() => setActivePathway(null)}
+            onJumpToSection={scrollToElement}
+          />
 
-        {/* Masthead & Hero Composition */}
-        <header className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center mb-10">
-          <div className="lg:col-span-7 space-y-5">
-            <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#28537D]">
-              <span>Curated Gift Guide</span>
-              <span aria-hidden="true">·</span>
-              <span>{guide.category}</span>
-            </div>
+          {/* Primary Editorial Column */}
+          <div className="space-y-12 lg:col-span-9">
+            {/* C. Quick Picks Executive Ledger */}
+            <QuickPicks
+              quickPicks={guide.quickPicks}
+              productsMap={productsMap}
+              savedProductIds={savedProductIds}
+              onToggleSaveProduct={handleToggleSave}
+              onJumpToRecommendation={scrollToRecommendation}
+            />
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
-              {guide.title}
-            </h1>
+            {/* D. Find the Right Gift (Recipient Matchmaker & Pathway Filter) */}
+            <RecipientDiscovery
+              guide={guide}
+              productsMap={productsMap}
+              activePathwayId={activePathway?.id ?? null}
+              onSelectPathwayFilter={(pathway) => setActivePathway(pathway)}
+              onJumpToRecommendation={scrollToRecommendation}
+            />
 
-            <p className="text-lg md:text-xl text-[#292B2D] leading-relaxed">
-              {guide.subtitle}
-            </p>
-
-            {/* Concise Editorial Intro Paragraphs */}
-            {guide.introParagraphs && guide.introParagraphs.length > 0 && (
-              <div className="space-y-3 text-sm md:text-base text-[#292B2D] leading-relaxed pt-1">
-                {guide.introParagraphs.map((para, idx) => (
-                  <p key={idx}>{para}</p>
-                ))}
-              </div>
-            )}
-
-            {/* Author & Editorial Attribution */}
-            {author && (
-              <div className="flex items-center gap-3.5 pt-2">
-                <PhotoImage
-                  src={author.avatarUrl}
-                  alt={author.name}
-                  className="w-11 h-11 rounded-full object-cover shrink-0"
-                />
-                <div className="text-xs text-[#62666A]">
-                  <div>
-                    <span className="font-semibold text-[#222426]">By {author.name}</span>
-                    <span aria-hidden="true"> · </span>
-                    <span>{author.role}</span>
-                  </div>
-                  <p className="text-[#62666A] line-clamp-1 mt-0.5">{author.bio}</p>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column: Editorial Hero Image + Who This Guide Is For */}
-          <div className="lg:col-span-5 space-y-4">
-            <figure>
-              <div className="aspect-4/3 w-full rounded-3xl overflow-hidden bg-[#F3ECE1]">
-                <PhotoImage
-                  src={guide.heroImageUrl}
-                  alt={guide.heroImageAlt}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {guide.heroImageCaption && (
-                <figcaption className="text-xs font-serif italic text-[#62666A] mt-2.5 px-1">
-                  {guide.heroImageCaption}
-                </figcaption>
-              )}
-            </figure>
-
-            {guide.whoThisGuideIsFor && guide.whoThisGuideIsFor.length > 0 && (
-              <div className="p-5 rounded-2xl bg-[#F3ECE1] space-y-2">
-                <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                  Who This Guide Is For
-                </div>
-                <ul className="space-y-1.5 text-xs text-[#292B2D]">
-                  {guide.whoThisGuideIsFor.map((item, idx) => (
-                    <li key={idx} className="flex items-start gap-2">
-                      <span aria-hidden="true" className="text-[#28537D] font-bold">
-                        ·
-                      </span>
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </header>
-
-        {/* Unobtrusive Affiliate & Sample Content Disclosure */}
-        <aside
-          aria-label="Editorial and affiliate disclosure"
-          className="mb-10 px-5 py-3.5 rounded-2xl bg-[#F3ECE1]/65 text-xs text-[#62666A] flex items-start gap-2.5"
-        >
-          <Info className="w-4 h-4 text-[#28537D] shrink-0 mt-0.5" />
-          <p className="leading-relaxed">{guide.affiliateDisclosure}</p>
-        </aside>
-
-        {/* Mobile / Tablet Inline Section Jump Bar (Non-sticky so it never obscures mobile viewport) */}
-        <nav
-          aria-label="Guide sections mobile navigation"
-          className="lg:hidden mb-10 p-4 rounded-2xl bg-[#EBF3FE]/70 space-y-2.5"
-        >
-          <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-            Jump to a Section
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => jumpToAnchor('editors-pick')}
-              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
-            >
-              Editor’s Pick
-            </button>
-            <button
-              type="button"
-              onClick={() => jumpToAnchor('quick-picks')}
-              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
-            >
-              Quick Picks ({guide.quickPicks.length})
-            </button>
-            {guide.sections.map((sec) => (
-              <button
-                key={sec.id}
-                type="button"
-                onClick={() => jumpToAnchor(sec.id)}
-                className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
-              >
-                {sec.shortNavTitle}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => jumpToAnchor('buying-advice')}
-              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
-            >
-              Buying Advice
-            </button>
-          </div>
-        </nav>
-
-        {/* ===================================================================
-            MAIN 2-COLUMN GUIDE BODY: Sticky Desktop TOC + Editorial Flow
-           =================================================================== */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
-          {/* Desktop Sticky Table of Contents Rail */}
-          <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-24 space-y-5">
-            <nav
-              aria-label="Table of contents"
-              className="p-6 rounded-3xl bg-[#F3ECE1] space-y-4"
-            >
-              <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
-                In This Guide
-              </div>
-
-              <ul className="space-y-2 text-xs">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => jumpToAnchor('editors-pick')}
-                    className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
-                      activeSectionId === 'editors-pick'
-                        ? 'bg-[#28537D] text-white font-semibold'
-                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
-                    }`}
-                  >
-                    Editor’s Standout Pick
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => jumpToAnchor('quick-picks')}
-                    className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
-                      activeSectionId === 'quick-picks'
-                        ? 'bg-[#28537D] text-white font-semibold'
-                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
-                    }`}
-                  >
-                    Quick Picks ({guide.quickPicks.length})
-                  </button>
-                </li>
-
-                <li className="pt-2 pb-1 px-2.5 text-[11px] uppercase tracking-wider text-[#28537D] font-semibold">
-                  By Budget
-                </li>
-
-                {guide.sections.map((sec) => (
-                  <li key={sec.id}>
-                    <button
-                      type="button"
-                      onClick={() => jumpToAnchor(sec.id)}
-                      className={`w-full text-left py-1.5 px-2.5 rounded-lg flex items-center justify-between transition-colors ${
-                        activeSectionId === sec.id
-                          ? 'bg-[#28537D] text-white font-semibold'
-                          : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
-                      }`}
-                    >
-                      <span>{sec.shortNavTitle}</span>
-                      <span className="text-[11px] opacity-75">{sec.priceRangeLabel}</span>
-                    </button>
-                  </li>
-                ))}
-
-                <li className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => jumpToAnchor('buying-advice')}
-                    className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
-                      activeSectionId === 'buying-advice'
-                        ? 'bg-[#28537D] text-white font-semibold'
-                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
-                    }`}
-                  >
-                    How to Choose Well
-                  </button>
-                </li>
-
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => jumpToAnchor('related-discoveries')}
-                    className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
-                      activeSectionId === 'related-discoveries'
-                        ? 'bg-[#28537D] text-white font-semibold'
-                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
-                    }`}
-                  >
-                    Related Guides & Stories
-                  </button>
-                </li>
-              </ul>
-            </nav>
-
-            {/* Saved in This Guide Counter */}
-            <div className="p-5 rounded-3xl bg-[#E8F8F0] space-y-2 text-xs">
-              <div className="flex items-center justify-between font-semibold text-[#222426]">
-                <span>Saved From This Guide</span>
-                <span className="tabular-nums">{savedInThisGuideCount}</span>
-              </div>
-              <p className="text-[#292B2D] leading-relaxed">
-                Tap the heart icon on any recommendation to bookmark it. Your saved state stays synced everywhere that product appears.
-              </p>
-            </div>
-          </aside>
-
-          {/* Right 9 Columns: Complete Editorial Shopping Flow */}
-          <div className="lg:col-span-9 space-y-16">
-            {/* ===============================================================
-                B. EDITOR'S PICK: Visually Distinctive Standout Spotlight
-               =============================================================== */}
+            {/* E. Featured Editorial Recommendation (Editor's Standout Pick) */}
             {editorsPickProduct && (
-              <section
-                id="editors-pick"
-                aria-labelledby="heading-editors-pick"
-                className="rounded-3xl bg-gradient-to-br from-[#E8F8F0] via-[#F2FBF7] to-[#EBF3FE] p-6 md:p-10 scroll-mt-24"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-                  <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#28537D]">
-                    <Sparkles className="w-4 h-4 text-[#28537D]" />
-                    <span id="heading-editors-pick">{guide.editorsPick.kicker}</span>
-                  </div>
-                  <span className="text-xs font-medium text-[#62666A]">
-                    {editorsPickProduct.productType} · {editorsPickProduct.vendor}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-                  {/* Prominent Product Image */}
-                  <div
-                    onClick={() => onSelectProduct(editorsPickProduct)}
-                    className="md:col-span-5 relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-white cursor-pointer group shadow-xs"
-                  >
-                    <PhotoImage
-                      src={editorsPickProduct.images[0]?.url}
-                      alt={editorsPickProduct.images[0]?.alt}
-                      fallbackColor={editorsPickProduct.images[0]?.fallbackColor}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleSave(editorsPickProduct.id);
-                      }}
-                      aria-pressed={savedProductIds.includes(editorsPickProduct.id)}
-                      aria-label={
-                        savedProductIds.includes(editorsPickProduct.id)
-                          ? `Remove ${editorsPickProduct.title} from Saved Gifts`
-                          : `Bookmark ${editorsPickProduct.title} to Saved Gifts`
-                      }
-                      className={`absolute top-3.5 right-3.5 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
-                        savedProductIds.includes(editorsPickProduct.id)
-                          ? 'bg-[#F2846B] text-white'
-                          : 'bg-white/95 text-[#222426] hover:bg-white'
-                      }`}
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${
-                          savedProductIds.includes(editorsPickProduct.id)
-                            ? 'fill-current'
-                            : ''
-                        }`}
-                      />
-                    </button>
-                  </div>
-
-                  {/* Standout Editorial Copy */}
-                  <div className="md:col-span-7 space-y-4">
-                    <div className="space-y-1.5">
-                      <p className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                        {guide.editorsPick.headline}
-                      </p>
-                      <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug">
-                          <button
-                            type="button"
-                            onClick={() => onSelectProduct(editorsPickProduct)}
-                            className="text-left hover:text-[#28537D] hover:underline"
-                          >
-                            {editorsPickProduct.title}
-                          </button>
-                        </h2>
-                        <span className="text-xl font-semibold text-[#222426] tabular-nums">
-                          ${editorsPickProduct.price}{' '}
-                          <span className="text-xs font-normal text-[#62666A]">
-                            {editorsPickProduct.currency}
-                          </span>
-                        </span>
-                      </div>
-                      <p className="text-sm font-medium text-[#62666A]">
-                        {editorsPickProduct.subtitle}
-                      </p>
-                    </div>
-
-                    <p className="text-sm md:text-base text-[#292B2D] leading-relaxed">
-                      {guide.editorsPick.editorialRationale}
-                    </p>
-
-                    <div className="p-4 rounded-2xl bg-white/80 text-xs text-[#292B2D] space-y-1">
-                      <div className="font-semibold text-[#222426] uppercase tracking-wider text-[11px]">
-                        Who & When to Give It
-                      </div>
-                      <p className="leading-relaxed">
-                        {guide.editorsPick.intendedRecipientAndSituation}
-                      </p>
-                    </div>
-
-                    <div className="pt-2 flex flex-wrap items-center gap-3">
-                      <a
-                        href={editorsPickProduct.purchaseUrl}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          onSelectProduct(editorsPickProduct);
-                        }}
-                        className="px-5 py-2.5 rounded-full bg-[#1B3D5F] text-[#FAF7F2] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
-                      >
-                        <span>
-                          ${editorsPickProduct.price} {editorsPickProduct.currency} ·{' '}
-                          {editorsPickProduct.isPlaceholderLink
-                            ? 'Sample Link & Full Details'
-                            : 'View Product'}
-                        </span>
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleSaveProductWithFeedback(editorsPickProduct.id)}
-                        aria-pressed={savedProductIds.includes(editorsPickProduct.id)}
-                        className="px-4 py-2.5 rounded-full bg-white text-[#222426] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-white/80 transition-colors whitespace-nowrap shrink-0"
-                      >
-                        <Heart
-                          className={`w-3.5 h-3.5 ${
-                            savedProductIds.includes(editorsPickProduct.id)
-                              ? 'fill-[#F2846B] text-[#F2846B]'
-                              : ''
-                          }`}
-                        />
-                        <span>
-                          {savedProductIds.includes(editorsPickProduct.id)
-                            ? 'Saved in Your List'
-                            : 'Bookmark Pick'}
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => jumpToAnchor(`rec-${editorsPickProduct.id}`)}
-                        className="text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline inline-flex items-center gap-1"
-                      >
-                        <span>See in $25–$75 section</span>
-                        <ArrowDownRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </section>
+              <FeaturedGiftRecommendation
+                editorsPick={guide.editorsPick}
+                product={editorsPickProduct}
+                isSaved={savedProductIds.includes(editorsPickProduct.id)}
+                onToggleSaveProduct={handleToggleSave}
+                onSelectProduct={onSelectProduct}
+                onJumpToRecommendation={scrollToRecommendation}
+              />
             )}
 
-            {/* ===============================================================
-                C. QUICK PICKS: Scannable Editorial Summary Grid
-               =============================================================== */}
-            <section
-              id="quick-picks"
-              aria-labelledby="heading-quick-picks"
-              className="rounded-3xl bg-[#F3ECE1] p-6 md:p-9 space-y-6 scroll-mt-24"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
+            {/* G1. First Standalone Curator's Field Note (Editorial Rhythm Interlude) */}
+            {guide.curatorNotes && guide.curatorNotes[0] && (
+              <CuratorNote note={guide.curatorNotes[0]} />
+            )}
+
+            {/* Active Pathway Filter Banner (if reader filtered the main guide) */}
+            {activePathway && (
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#A7E3C5] bg-[#E8F8F0] px-5 py-4 text-sm text-[#222426]">
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1">
-                    At a Glance
-                  </div>
-                  <h2
-                    id="heading-quick-picks"
-                    className="text-2xl font-serif font-semibold text-[#222426]"
-                  >
-                    Quick Picks by Recipient & Occasion
-                  </h2>
+                  <span className="font-bold text-[#1B3D5F]">
+                    Recipient Filter Active:
+                  </span>{' '}
+                  Showing chapters with gifts matched to{' '}
+                  <strong>{activePathway.label}</strong>.
                 </div>
-                <p className="text-xs text-[#62666A]">
-                  Editorial highlights — select any pick to jump to its full review below
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setActivePathway(null)}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#28537D] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#1E4164]"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Show All {totalRecommendationsCount} Recommendations
+                </button>
               </div>
+            )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {guide.quickPicks.map((qp, index) => {
-                  const product = productsMap[qp.productId];
-                  if (!product) return null;
-                  const isSaved = savedProductIds.includes(product.id);
-                  const isWide =
-                    index === 0 && guide.quickPicks.length % 2 === 1
-                      ? 'md:col-span-2'
-                      : '';
+            {/* F. Main Recommendations Organized by Chapter / Budget Tier */}
+            <div className="space-y-12">
+              {guide.sections.map((section, idx) => (
+                <React.Fragment key={section.id}>
+                  <GuideBudgetSection
+                    section={section}
+                    chapterIndex={idx}
+                    startRankIndex={sectionStartRanks[idx] ?? 0}
+                    productsMap={productsMap}
+                    savedProductIds={savedProductIds}
+                    highlightedProductIds={highlightedProductIds}
+                    onSelectProduct={onSelectProduct}
+                    onToggleSaveProduct={handleToggleSave}
+                  />
 
-                  return (
-                    <div
-                      key={qp.id}
-                      className={`p-4 md:p-5 rounded-2xl bg-[#FAF7F2] flex flex-col justify-between gap-4 ${isWide}`}
-                    >
-                      <div className="flex items-start gap-4">
-                        <div
-                          onClick={() => jumpToAnchor(`rec-${product.id}`)}
-                          className="w-20 h-20 rounded-xl overflow-hidden bg-[#F3ECE1] shrink-0 cursor-pointer"
-                        >
-                          <PhotoImage
-                            src={product.images[0]?.url}
-                            alt={product.images[0]?.alt}
-                            fallbackColor={product.images[0]?.fallbackColor}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        <div className="flex-1 min-w-0 space-y-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                              {qp.label}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => onToggleSave(product.id)}
-                              aria-pressed={isSaved}
-                              aria-label={
-                                isSaved
-                                  ? `Remove ${product.title} from Saved Gifts`
-                                  : `Bookmark ${product.title}`
-                              }
-                              className="p-1.5 rounded-full text-[#28537D] hover:bg-[#1B3D5F]/10 transition-colors"
-                            >
-                              <Heart
-                                className={`w-4 h-4 ${
-                                  isSaved ? 'fill-[#F2846B] text-[#F2846B]' : ''
-                                }`}
-                              />
-                            </button>
-                          </div>
-
-                          <h3 className="text-base font-serif font-semibold text-[#222426] leading-snug">
-                            <button
-                              type="button"
-                              onClick={() => jumpToAnchor(`rec-${product.id}`)}
-                              className="text-left hover:text-[#28537D] hover:underline"
-                            >
-                              {product.title}
-                            </button>
-                          </h3>
-
-                          <p className="text-xs text-[#292B2D] leading-relaxed">
-                            {qp.reason}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="pt-3 border-t border-[#DFDBD3] flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span className="font-semibold text-[#222426] tabular-nums">
-                          ${product.price} {product.currency} · <span className="font-normal text-[#62666A]">{product.vendor}</span>
-                        </span>
-
-                        <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() => jumpToAnchor(`rec-${product.id}`)}
-                            className="font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline inline-flex items-center gap-1"
-                          >
-                            <span>Jump to review</span>
-                            <ArrowDownRight className="w-3.5 h-3.5" />
-                          </button>
-                          <span aria-hidden="true" className="text-[#62666A]">
-                            ·
-                          </span>
-                          <a
-                            href={product.purchaseUrl}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              onSelectProduct(product);
-                            }}
-                            className="font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
-                          >
-                            Details →
-                          </a>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ===============================================================
-                D & E. MAIN PRODUCT RECOMMENDATIONS BY BUDGET SECTION
-               =============================================================== */}
-            <div className="space-y-16">
-              {guide.sections.map((section) => (
-                <GuideBudgetSection
-                  key={section.id}
-                  section={section}
-                  savedProductIds={savedProductIds}
-                  onToggleSave={onToggleSave}
-                  onSelectProduct={onSelectProduct}
-                  productsMap={productsMap}
-                />
+                  {/* G2. Second Standalone Curator's Field Note after Chapter 2 */}
+                  {idx === 1 &&
+                    guide.curatorNotes &&
+                    guide.curatorNotes[1] && (
+                      <CuratorNote note={guide.curatorNotes[1]} />
+                    )}
+                </React.Fragment>
               ))}
             </div>
 
-            {/* ===============================================================
-                F. CONTEXTUAL BUYING ADVICE (With Accessible Expandable Notes)
-               =============================================================== */}
-            <section
-              id="buying-advice"
-              aria-labelledby="heading-buying-advice"
-              className="rounded-3xl bg-[#EBF3FE] p-6 md:p-10 space-y-6 scroll-mt-24"
-            >
-              <div className="space-y-2 max-w-2xl">
-                <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[#28537D]">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Contextual Buying Advice</span>
-                </div>
-                <h2
-                  id="heading-buying-advice"
-                  className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
-                >
-                  How to Choose for People Who Notice the Little Things
-                </h2>
-                {guide.buyingAdviceIntro && (
-                  <p className="text-sm text-[#292B2D] leading-relaxed">
-                    {guide.buyingAdviceIntro}
-                  </p>
-                )}
-              </div>
+            {/* H. Qualitative Gift Comparison Ledger */}
+            <GiftComparison
+              guide={guide}
+              productsMap={productsMap}
+              onJumpToRecommendation={scrollToRecommendation}
+            />
 
-              <div className="space-y-4">
-                {guide.buyingAdvice.map((tip) => {
-                  const isExpanded = Boolean(expandedTips[tip.id]);
-                  const panelId = `advice-panel-${tip.id}`;
+            {/* I. How to Choose the Right Gift (Buying Guide) */}
+            <GiftBuyingGuide
+              guideTitle={guide.title}
+              buyingAdviceIntro={guide.buyingAdviceIntro}
+              buyingAdvice={guide.buyingAdvice}
+            />
 
-                  return (
-                    <div
-                      key={tip.id}
-                      className="p-5 md:p-6 rounded-2xl bg-[#FAF7F2] space-y-3"
-                    >
-                      <h3 className="text-lg font-serif font-semibold text-[#222426]">
-                        {tip.heading}
-                      </h3>
-                      <p className="text-sm text-[#292B2D] leading-relaxed">
-                        {tip.body}
-                      </p>
+            {/* J. Frequently Asked Questions */}
+            <GuideFAQ
+              faqs={guide.faqs}
+              productsMap={productsMap}
+              onJumpToRecommendation={(pid) => scrollToRecommendation(pid)}
+            />
 
-                      {tip.expandablePrompt && tip.expandableDetails && (
-                        <div className="pt-2">
-                          <button
-                            type="button"
-                            onClick={() => toggleTip(tip.id)}
-                            aria-expanded={isExpanded}
-                            aria-controls={panelId}
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#28537D]"
-                          >
-                            <span>{tip.expandablePrompt}</span>
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </button>
-
-                          {isExpanded && (
-                            <div
-                              id={panelId}
-                              role="region"
-                              aria-label={tip.expandablePrompt}
-                              className="mt-3 p-4 rounded-xl bg-[#EBF3FE]/60 text-xs text-[#292B2D] leading-relaxed"
-                            >
-                              {tip.expandableDetails}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            {/* ===============================================================
-                G. RELATED DISCOVERIES: Companion Gift Guides & Stories
-               =============================================================== */}
-            <section
-              id="related-discoveries"
-              aria-labelledby="heading-related-discoveries"
-              className="pt-8 border-t border-[#DFDBD3] space-y-8 scroll-mt-24"
-            >
-              <div>
-                <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1.5">
-                  Keep Exploring
-                </div>
-                <h2
-                  id="heading-related-discoveries"
-                  className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
-                >
-                  Related Gift Guides & Editorial Stories
-                </h2>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {relatedGuides.map((relGuide) => (
-                  <article
-                    key={relGuide.id}
-                    className="rounded-3xl bg-[#FFF4D6] p-5 flex flex-col justify-between space-y-4"
-                  >
-                    <div className="space-y-3">
-                      <a
-                        href={`/gift-guides/${relGuide.slug}/`}
-                        onClick={(e) => {
-                          if (onSelectGuide) {
-                            e.preventDefault();
-                            onSelectGuide(relGuide.slug);
-                          }
-                        }}
-                        className="block aspect-16/10 rounded-2xl overflow-hidden bg-white cursor-pointer group"
-                      >
-                        <PhotoImage
-                          src={relGuide.heroImageUrl}
-                          alt={relGuide.heroImageAlt}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </a>
-                      <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                        Companion Gift Guide · {relGuide.readTimeMinutes} min read
-                      </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug">
-                        <a
-                          href={`/gift-guides/${relGuide.slug}/`}
-                          onClick={(e) => {
-                            if (onSelectGuide) {
-                              e.preventDefault();
-                              onSelectGuide(relGuide.slug);
-                            }
-                          }}
-                          className="text-left hover:text-[#28537D] hover:underline"
-                        >
-                          {relGuide.title}
-                        </a>
-                      </h3>
-                      <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
-                        {relGuide.subtitle}
-                      </p>
-                    </div>
-
-                    <a
-                      href={`/gift-guides/${relGuide.slug}/`}
-                      onClick={(e) => {
-                        if (onSelectGuide) {
-                          e.preventDefault();
-                          onSelectGuide(relGuide.slug);
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
-                    >
-                      <span>Explore Guide</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
-                  </article>
-                ))}
-
-                {relatedArticles.map((art) => (
-                  <article
-                    key={art.id}
-                    className="rounded-3xl bg-[#F3ECE1] p-5 flex flex-col justify-between space-y-4"
-                  >
-                    <div className="space-y-3">
-                      <a
-                        href={`/articles/${art.slug}/`}
-                        onClick={(e) => {
-                          if (onSelectArticle) {
-                            e.preventDefault();
-                            onSelectArticle(art.slug);
-                          }
-                        }}
-                        className="block aspect-16/10 rounded-2xl overflow-hidden bg-white cursor-pointer group"
-                      >
-                        <PhotoImage
-                          src={art.heroImageUrl}
-                          alt={art.heroAlt}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      </a>
-                      <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                        <BookOpen className="w-3.5 h-3.5" />
-                        <span>{art.category}</span>
-                      </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug">
-                        <a
-                          href={`/articles/${art.slug}/`}
-                          onClick={(e) => {
-                            if (onSelectArticle) {
-                              e.preventDefault();
-                              onSelectArticle(art.slug);
-                            }
-                          }}
-                          className="text-left hover:text-[#28537D] hover:underline"
-                        >
-                          {art.title}
-                        </a>
-                      </h3>
-                      <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
-                        {art.subtitle}
-                      </p>
-                    </div>
-
-                    <a
-                      href={`/articles/${art.slug}/`}
-                      onClick={(e) => {
-                        if (onSelectArticle) {
-                          e.preventDefault();
-                          onSelectArticle(art.slug);
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
-                    >
-                      <span>Read Story</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </a>
-                  </article>
-                ))}
-              </div>
-            </section>
+            {/* K. Related Editorial Content & Behavioral Bibliography */}
+            <RelatedEditorialContent
+              relatedGuides={relatedGuides}
+              relatedArticles={relatedArticles}
+              citations={guideCitations}
+              onOpenGuide={handleOpenGuide}
+              onOpenArticle={handleOpenArticle}
+            />
           </div>
         </div>
       </div>
-    </article>
+    </div>
   );
-
-  function toggleSaveProductWithFeedback(productId: string) {
-    onToggleSave(productId);
-  }
 };
