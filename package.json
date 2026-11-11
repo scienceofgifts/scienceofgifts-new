@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "astro dev --port 3000 --host 0.0.0.0",
-    "build": "astro build",
-    "preview": "astro preview --port 3000 --host 0.0.0.0",
+    "dev": "node scripts/astro-cli.mjs dev --port 3000 --host 0.0.0.0",
+    "build": "node scripts/astro-cli.mjs build",
+    "preview": "node scripts/astro-cli.mjs preview --port 3000 --host 0.0.0.0",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit"
   },

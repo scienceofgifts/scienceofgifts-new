@@ -351,7 +351,7 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
         data-testid={`gift-thinking-${actionType}`}
         data-thinking-action={actionType}
         data-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
-        className="p-4 sm:px-5 sm:py-4 rounded-2xl bg-[#E8F8F0]/90 border border-[#1B3D5F]/12 flex flex-wrap items-center justify-between gap-4 shadow-2xs transition-opacity duration-200"
+        className="p-4 sm:px-5 sm:py-4 rounded-2xl bg-[#E8F8F0]/90 border border-[#DFDBD3] flex flex-wrap items-center justify-between gap-4 shadow-2xs transition-opacity duration-200"
       >
         <div className="flex items-center gap-3.5 min-w-0">
           <EditorialGiftEngineIllustration
@@ -363,7 +363,7 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
             <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
               {descriptor.headline}
             </div>
-            <p className="text-sm font-serif font-semibold text-[#1B3D5F] truncate">
+            <p className="text-sm font-serif font-semibold text-[#222426] truncate">
               {statusMessage}
             </p>
           </div>
@@ -374,10 +374,10 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
             {descriptor.contextChips.map((chip) => (
               <span
                 key={chip.id}
-                className="px-2.5 py-1 rounded-full bg-white/90 border border-[#1B3D5F]/10 text-[11px] font-medium text-[#1B3D5F]"
+                className="px-2.5 py-1 rounded-full bg-white/90 border border-[#DFDBD3] text-[11px] font-medium text-[#292B2D]"
               >
-                <span className="text-[#28537D]">{chip.label}:</span>{' '}
-                <strong className="font-semibold">{chip.value}</strong>
+                <span className="text-[#62666A]">{chip.label}:</span>{' '}
+                <strong className="font-semibold text-[#222426]">{chip.value}</strong>
               </span>
             ))}
           </div>
@@ -399,8 +399,8 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
       data-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
       className={`p-7 sm:p-10 rounded-3xl border text-center space-y-6 shadow-xs transition-all duration-300 ${
         isQuiz
-          ? 'bg-[#E8F8F0]/65 border-[#1B3D5F]/15'
-          : 'bg-[#F3ECE1]/85 border-[#1B3D5F]/10'
+          ? 'bg-[#E8F8F0]/65 border-[#DFDBD3]'
+          : 'bg-[#F3ECE1]/85 border-[#DFDBD3]'
       }`}
     >
       {/* Gift-Finding Engine Illustration */}
@@ -418,18 +418,18 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
             : 'Gift Finder · Matching Catalog'}
         </div>
 
-        <h3 className="text-2xl sm:text-3xl font-serif font-semibold text-[#1B3D5F] leading-tight">
+        <h3 className="text-2xl sm:text-3xl font-serif font-semibold text-[#222426] leading-tight">
           {descriptor.headline}
         </h3>
 
         <p
           data-testid="gift-thinking-status-message"
-          className="text-sm sm:text-base font-medium text-[#1B3D5F]"
+          className="text-sm sm:text-base font-medium text-[#292B2D]"
         >
           {statusMessage}
         </p>
 
-        <p className="text-xs sm:text-sm text-[#28537D] leading-relaxed">
+        <p className="text-xs sm:text-sm text-[#62666A] leading-relaxed">
           {descriptor.subheadline}
         </p>
       </div>
@@ -440,7 +440,7 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
           {descriptor.contextChips.map((chip, idx) => (
             <div
               key={chip.id}
-              className={`px-3.5 py-2 rounded-2xl bg-white border border-[#1B3D5F]/12 shadow-2xs inline-flex items-center gap-2 text-xs ${
+              className={`px-3.5 py-2 rounded-2xl bg-white border border-[#DFDBD3] shadow-2xs inline-flex items-center gap-2 text-xs ${
                 prefersReducedMotion
                   ? ''
                   : idx % 2 === 0
@@ -452,8 +452,8 @@ export const GiftThinkingAnimation: React.FC<GiftThinkingAnimationProps> = ({
                 aria-hidden="true"
                 className="w-2 h-2 rounded-full bg-[#F2846B] shrink-0"
               />
-              <span className="text-[#28537D] font-medium">{chip.label}:</span>
-              <strong className="font-semibold text-[#1B3D5F]">
+              <span className="text-[#62666A] font-medium">{chip.label}:</span>
+              <strong className="font-semibold text-[#222426]">
                 {chip.value}
               </strong>
             </div>

@@ -55,7 +55,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       <div className="bg-[#FAF7F2] rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Top Bar */}
         <div className="flex items-center justify-between px-6 py-4 bg-[#FAF7F2]/90 backdrop-blur-xs sticky top-0 z-10">
-          <div className="flex items-center gap-2 text-xs font-medium text-[#28537D]">
+          <div className="flex items-center gap-2 text-xs font-medium text-[#62666A]">
             <span>{product.productType}</span>
             <span aria-hidden="true">·</span>
             <span>{product.vendor}</span>
@@ -63,7 +63,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-full text-[#1B3D5F] hover:bg-[#1B3D5F]/10 transition-colors"
+            className="p-2 rounded-full text-[#222426] hover:bg-[#1B3D5F]/10 transition-colors"
             aria-label="Close gift details"
           >
             <X className="w-5 h-5" />
@@ -83,7 +83,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               />
             </div>
             {primaryImage.caption && (
-              <p className="text-xs font-serif italic text-[#28537D] px-1">
+              <p className="text-xs font-serif italic text-[#62666A] px-1">
                 {primaryImage.caption}
               </p>
             )}
@@ -100,11 +100,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               <h2
                 id="pdp-modal-title"
-                className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F] leading-snug mb-2"
+                className="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug mb-2"
               >
                 {product.title}
               </h2>
-              <p className="text-sm text-[#28537D] leading-relaxed">
+              <p className="text-sm text-[#292B2D] leading-relaxed">
                 {product.subtitle}
               </p>
             </div>
@@ -113,13 +113,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             <div className="p-5 rounded-2xl bg-[#F3ECE1] space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <div className="text-2xl font-semibold text-[#1B3D5F] tabular-nums">
+                  <div className="text-2xl font-semibold text-[#222426] tabular-nums">
                     ${product.price}{' '}
-                    <span className="text-xs font-normal text-[#28537D]">
+                    <span className="text-xs font-normal text-[#62666A]">
                       {product.currency}
                     </span>
                   </div>
-                  <div className="text-xs text-[#28537D] mt-0.5">
+                  <div className="text-xs text-[#62666A] mt-0.5">
                     {product.vendor}
                   </div>
                 </div>
@@ -132,7 +132,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     className={`px-4 py-2.5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 ${
                       isSaved
                         ? 'bg-[#F2846B] text-white'
-                        : 'bg-white text-[#1B3D5F] hover:bg-[#1B3D5F]/5'
+                        : 'bg-white text-[#222426] hover:bg-[#1B3D5F]/5'
                     }`}
                   >
                     <Heart
@@ -158,10 +158,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </div>
 
               {giftLists.length > 1 && (
-                <div className="pt-2 border-t border-[#1B3D5F]/10 flex items-center justify-between gap-2 text-xs">
+                <div className="pt-2 border-t border-[#DFDBD3] flex items-center justify-between gap-2 text-xs">
                   <label
                     htmlFor="modal-save-to-list"
-                    className="text-[#28537D] font-medium"
+                    className="text-[#62666A] font-medium"
                   >
                     Save to specific list:
                   </label>
@@ -170,7 +170,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                       id="modal-save-to-list"
                       value={selectedListId}
                       onChange={(e) => setSelectedListId(e.target.value)}
-                      className="px-2.5 py-1.5 rounded-xl bg-white text-[#1B3D5F] text-xs font-medium border border-[#1B3D5F]/15"
+                      className="px-2.5 py-1.5 rounded-xl bg-white text-[#292B2D] text-xs font-medium border border-[#DFDBD3]"
                     >
                       {giftLists.map((l) => (
                         <option key={l.id} value={l.id}>
@@ -190,8 +190,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               )}
 
               {product.isPlaceholderLink && (
-                <div className="pt-2 border-t border-[#1B3D5F]/10 flex items-start gap-2 text-[11px] text-[#28537D]">
-                  <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                <div className="pt-2 border-t border-[#DFDBD3] flex items-start gap-2 text-[11px] text-[#62666A]">
+                  <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#28537D]" />
                   <span>
                     Development Preview: This is a sample canonical product
                     record (ID: <code>{product.id}</code>). The purchase button
@@ -205,35 +205,35 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             {/* Why They'll Love It */}
             <div className="space-y-4 text-sm leading-relaxed">
               <div className="p-5 rounded-2xl bg-[#E8F8F0]">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] mb-1.5 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#222426] mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-[#28537D]" />
                   <span>Why It Makes a Great Gift</span>
                 </h3>
-                <p className="text-[#1B3D5F]">{product.whyToGiveIt}</p>
+                <p className="text-[#292B2D]">{product.whyToGiveIt}</p>
               </div>
 
               <div className="px-1 space-y-2">
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-[#222426]">
                   Details & Presentation
                 </h3>
-                <p className="text-[#28537D] text-xs leading-relaxed">
+                <p className="text-[#292B2D] text-xs leading-relaxed">
                   {product.detailsAndCare}
                 </p>
               </div>
 
-              <div className="px-1 pt-2 border-t border-[#1B3D5F]/10 text-xs text-[#28537D] space-y-2">
+              <div className="px-1 pt-2 border-t border-[#DFDBD3] text-xs text-[#62666A] space-y-2">
                 <div>
-                  <strong className="text-[#1B3D5F]">Best for:</strong>{' '}
+                  <strong className="text-[#222426]">Best for:</strong>{' '}
                   {product.bestForSummary}
                 </div>
                 <div>
-                  <strong className="text-[#1B3D5F]">Occasions:</strong>{' '}
+                  <strong className="text-[#222426]">Occasions:</strong>{' '}
                   {product.occasions.join(' · ')}
                 </div>
                 <div className="pt-1">
                   <a
                     href={`/products/${product.slug}/`}
-                    className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:text-[#28537D] hover:underline"
+                    className="inline-flex items-center gap-1.5 font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                   >
                     <span>
                       Open Canonical Product Page (/products/{product.slug}/)
@@ -335,23 +335,23 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
     >
       <div className="w-full max-w-lg bg-[#FAF7F2] h-full flex flex-col shadow-2xl">
         {/* Drawer Header */}
-        <div className="px-6 py-5 bg-[#F3ECE1] border-b border-[#1B3D5F]/10 space-y-3">
+        <div className="px-6 py-5 bg-[#F3ECE1] border-b border-[#DFDBD3] space-y-3">
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs font-medium text-[#28537D]">
+              <span className="text-xs font-medium text-[#62666A]">
                 Saved in Your Browser · {giftLists.length}{' '}
                 {giftLists.length === 1 ? 'List' : 'Lists'} ·{' '}
                 {totalUniqueSavedAcrossLists} Total{' '}
                 {totalUniqueSavedAcrossLists === 1 ? 'Gift' : 'Gifts'}
               </span>
-              <h2 className="text-xl font-serif font-semibold text-[#1B3D5F]">
+              <h2 className="text-xl font-serif font-semibold text-[#222426]">
                 Your Saved Gift Lists
               </h2>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full text-[#1B3D5F] hover:bg-[#1B3D5F]/10"
+              className="p-2 rounded-full text-[#222426] hover:bg-[#1B3D5F]/10"
               aria-label="Close Saved Gifts drawer"
             >
               <X className="w-5 h-5" />
@@ -372,8 +372,8 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                   }}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
                     isActive
-                      ? 'bg-[#1B3D5F] text-white'
-                      : 'bg-white text-[#1B3D5F] hover:bg-white/80'
+                      ? 'bg-[#28537D] text-white'
+                      : 'bg-white text-[#292B2D] hover:bg-white/80'
                   }`}
                 >
                   {list.name} ({list.items.length})
@@ -383,7 +383,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
             <button
               type="button"
               onClick={() => setIsCreatingList((v) => !v)}
-              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#E8F8F0] text-[#1B3D5F] hover:bg-[#C3F3DF] inline-flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
+              className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[#E8F8F0] text-[#28537D] hover:bg-[#C3F3DF] inline-flex items-center gap-1 whitespace-nowrap shrink-0 transition-colors"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>New List</span>
@@ -394,16 +394,16 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
           {isCreatingList && (
             <form
               onSubmit={handleCreateListSubmit}
-              className="p-4 rounded-2xl bg-white border border-[#1B3D5F]/15 space-y-3"
+              className="p-4 rounded-2xl bg-white border border-[#DFDBD3] space-y-3"
             >
-              <div className="text-xs font-semibold text-[#1B3D5F] flex items-center gap-1.5">
+              <div className="text-xs font-semibold text-[#222426] flex items-center gap-1.5">
                 <FolderPlus className="w-3.5 h-3.5 text-[#28537D]" />
                 <span>Create a Recipient or Occasion List</span>
               </div>
               <div>
                 <label
                   htmlFor="drawer-new-list-name"
-                  className="block text-[11px] font-medium text-[#28537D] mb-1"
+                  className="block text-[11px] font-medium text-[#62666A] mb-1"
                 >
                   List Name (required)
                 </label>
@@ -414,14 +414,14 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                   value={newListName}
                   onChange={(e) => setNewListName(e.target.value)}
                   placeholder="e.g., Mom’s Birthday, Holiday Hosts, Sam & Alex"
-                  className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#28537D]"
+                  className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] border border-[#DFDBD3] focus:outline-2 focus:outline-[#28537D]"
                 />
               </div>
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label
                     htmlFor="drawer-new-list-recipient"
-                    className="block text-[11px] font-medium text-[#28537D] mb-1"
+                    className="block text-[11px] font-medium text-[#62666A] mb-1"
                   >
                     Relationship (optional)
                   </label>
@@ -431,13 +431,13 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                     value={newListRecipient}
                     onChange={(e) => setNewListRecipient(e.target.value)}
                     placeholder="e.g., Parent, Partner, Host"
-                    className="w-full px-3 py-1.5 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] border border-[#1B3D5F]/15"
+                    className="w-full px-3 py-1.5 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] border border-[#DFDBD3]"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="drawer-new-list-occasion"
-                    className="block text-[11px] font-medium text-[#28537D] mb-1"
+                    className="block text-[11px] font-medium text-[#62666A] mb-1"
                   >
                     Occasion (optional)
                   </label>
@@ -447,7 +447,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                     value={newListOccasion}
                     onChange={(e) => setNewListOccasion(e.target.value)}
                     placeholder="e.g., Birthday, Holidays"
-                    className="w-full px-3 py-1.5 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] border border-[#1B3D5F]/15"
+                    className="w-full px-3 py-1.5 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] border border-[#DFDBD3]"
                   />
                 </div>
               </div>
@@ -455,7 +455,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCreatingList(false)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium text-[#28537D] hover:bg-[#F3ECE1]"
+                  className="px-3 py-1.5 rounded-full text-xs font-medium text-[#62666A] hover:bg-[#F3ECE1]"
                 >
                   Cancel
                 </button>
@@ -471,9 +471,9 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
         </div>
 
         {/* Active List Metadata Sub-bar */}
-        <div className="px-6 py-3 bg-[#FAF7F2] border-b border-[#1B3D5F]/8 flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="text-[#28537D]">
-            <strong className="text-[#1B3D5F]">{currentList.name}</strong>
+        <div className="px-6 py-3 bg-[#FAF7F2] border-b border-[#DFDBD3] flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="text-[#62666A]">
+            <strong className="text-[#222426]">{currentList.name}</strong>
             {currentList.recipientLabel && (
               <>
                 <span aria-hidden="true"> · </span>
@@ -499,7 +499,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                     listName: currentList.name,
                   })
                 }
-                className="text-xs font-medium text-[#28537D] hover:text-[#F2846B] underline"
+                className="text-xs font-medium text-[#62666A] hover:text-[#F2846B] underline"
               >
                 Delete list
               </button>
@@ -507,7 +507,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
             <a
               href="/gift-finder/"
               onClick={onClose}
-              className="text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D] underline"
+              className="text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
             >
               Open in Gift Finder →
             </a>
@@ -518,9 +518,9 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
         {confirmAction && (
           <div
             role="alert"
-            className="mx-6 mt-4 p-4 rounded-2xl bg-[#FFF4D6] border border-[#1B3D5F]/15 space-y-2.5 text-xs"
+            className="mx-6 mt-4 p-4 rounded-2xl bg-[#FFF4D6] border border-[#DFDBD3] space-y-2.5 text-xs"
           >
-            <div className="flex items-start gap-2 text-[#1B3D5F] font-medium">
+            <div className="flex items-start gap-2 text-[#292B2D] font-medium">
               <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-[#F2846B]" />
               <span>
                 {confirmAction.type === 'delete-list'
@@ -532,7 +532,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setConfirmAction(null)}
-                className="px-3 py-1.5 rounded-full bg-white text-[#1B3D5F] font-semibold"
+                className="px-3 py-1.5 rounded-full bg-white text-[#222426] font-semibold"
               >
                 Keep Items
               </button>
@@ -562,10 +562,10 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
           {resolvedItems.length === 0 ? (
             <div className="p-8 text-center rounded-2xl bg-[#F3ECE1]/60 space-y-3">
-              <p className="font-serif text-lg text-[#1B3D5F]">
+              <p className="font-serif text-lg text-[#222426]">
                 No gifts saved in “{currentList.name}” yet
               </p>
-              <p className="text-xs text-[#28537D] leading-relaxed">
+              <p className="text-xs text-[#292B2D] leading-relaxed">
                 Tap the heart icon on any recommendation or use the Gift Finder
                 to save ideas, compare prices, and jot down private notes.
               </p>
@@ -583,13 +583,13 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                 return (
                   <div
                     key={entry.productId}
-                    className="p-4 rounded-2xl bg-white border border-[#D9DFE2] flex items-center justify-between gap-3"
+                    className="p-4 rounded-2xl bg-white border border-[#DFDBD3] flex items-center justify-between gap-3"
                   >
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-[#1B3D5F]">
+                      <div className="text-xs font-semibold text-[#222426]">
                         Unavailable Gift Record ({entry.productId})
                       </div>
-                      <p className="text-xs text-[#28537D]">
+                      <p className="text-xs text-[#62666A]">
                         This item is no longer in the active catalog.
                         {entry.note ? ` Note: "${entry.note}"` : ''}
                       </p>
@@ -599,7 +599,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       onClick={() =>
                         removeItemFromList(entry.productId, currentList.id)
                       }
-                      className="px-3 py-1.5 rounded-full bg-[#F3ECE1] text-xs font-semibold text-[#1B3D5F] hover:bg-[#F2846B] hover:text-white transition-colors shrink-0"
+                      className="px-3 py-1.5 rounded-full bg-[#F3ECE1] text-xs font-semibold text-[#222426] hover:bg-[#F2846B] hover:text-white transition-colors shrink-0"
                     >
                       Remove
                     </button>
@@ -632,13 +632,13 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-xs text-[#28537D]">
+                      <div className="text-xs text-[#62666A]">
                         {product.vendor} ·{' '}
-                        <strong className="text-[#1B3D5F] tabular-nums">
+                        <strong className="text-[#222426] tabular-nums">
                           ${product.price} {product.currency}
                         </strong>
                         {entry.purchased && (
-                          <span className="ml-1.5 text-[#1B3D5F] font-semibold">
+                          <span className="ml-1.5 text-[#28537D] font-semibold">
                             · Purchased
                           </span>
                         )}
@@ -649,7 +649,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                           onClose();
                           onSelectProduct(product);
                         }}
-                        className={`text-sm font-serif font-semibold text-[#1B3D5F] hover:underline text-left line-clamp-1 ${
+                        className={`text-sm font-serif font-semibold text-[#222426] hover:text-[#28537D] hover:underline text-left line-clamp-1 ${
                           entry.purchased ? 'line-through opacity-75' : ''
                         }`}
                       >
@@ -670,7 +670,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       onClick={() =>
                         removeItemFromList(product.id, currentList.id)
                       }
-                      className="p-1.5 text-[#28537D] hover:text-[#F2846B] transition-colors"
+                      className="p-1.5 text-[#62666A] hover:text-[#F2846B] transition-colors"
                       aria-label={`Remove ${product.title} from ${currentList.name}`}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -681,7 +681,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                   <div>
                     <label
                       htmlFor={`note-${currentList.id}-${product.id}`}
-                      className="block text-[11px] font-medium text-[#28537D] mb-1"
+                      className="block text-[11px] font-medium text-[#62666A] mb-1"
                     >
                       Private recipient note (saved locally)
                     </label>
@@ -697,7 +697,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                         )
                       }
                       placeholder="e.g., Mom’s birthday, write family recipe on top card..."
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] placeholder:text-[#28537D]/50 focus:outline-2 focus:outline-[#28537D]"
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] placeholder:text-[#62666A]/60 focus:outline-2 focus:outline-[#28537D]"
                     />
                   </div>
 
@@ -711,8 +711,8 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       aria-pressed={entry.purchased}
                       className={`px-3 py-1 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-colors ${
                         entry.purchased
-                          ? 'bg-[#1B3D5F] text-white'
-                          : 'bg-[#F3ECE1] text-[#1B3D5F] hover:bg-[#E8F8F0]'
+                          ? 'bg-[#28537D] text-white'
+                          : 'bg-[#F3ECE1] text-[#292B2D] hover:bg-[#E8F8F0]'
                       }`}
                     >
                       <Check className="w-3.5 h-3.5" />
@@ -725,7 +725,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       <div className="flex items-center gap-1.5">
                         <label
                           htmlFor={`move-${currentList.id}-${product.id}`}
-                          className="text-[11px] text-[#28537D]"
+                          className="text-[11px] text-[#62666A]"
                         >
                           Move to:
                         </label>
@@ -739,7 +739,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                               e.target.value
                             )
                           }
-                          className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] text-[#1B3D5F] text-xs font-medium border border-[#1B3D5F]/15"
+                          className="px-2.5 py-1 rounded-lg bg-[#FAF7F2] text-[#292B2D] text-xs font-medium border border-[#DFDBD3]"
                         >
                           {giftLists.map((l) => (
                             <option key={l.id} value={l.id}>
@@ -757,14 +757,14 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
         </div>
 
         {/* Drawer Footer Summary */}
-        <div className="p-6 bg-[#F3ECE1] border-t border-[#1B3D5F]/10 flex flex-wrap items-center justify-between gap-4">
+        <div className="p-6 bg-[#F3ECE1] border-t border-[#DFDBD3] flex flex-wrap items-center justify-between gap-4">
           <div>
-            <div className="text-xs text-[#28537D]">
+            <div className="text-xs text-[#62666A]">
               {validProductsCount}{' '}
               {validProductsCount === 1 ? 'gift' : 'gifts'} in list
               {purchasedCount > 0 ? ` · ${purchasedCount} purchased` : ''}
             </div>
-            <div className="text-lg font-semibold text-[#1B3D5F] tabular-nums">
+            <div className="text-lg font-semibold text-[#222426] tabular-nums">
               ${totalVerifiedPrice} USD
             </div>
           </div>
@@ -773,7 +773,7 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => setConfirmAction({ type: 'clear-all' })}
-                className="px-3.5 py-2 rounded-full text-xs font-medium text-[#28537D] hover:text-[#F2846B]"
+                className="px-3.5 py-2 rounded-full text-xs font-medium text-[#62666A] hover:text-[#F2846B]"
               >
                 Clear All
               </button>

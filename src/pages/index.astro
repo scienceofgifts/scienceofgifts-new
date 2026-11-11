@@ -71,15 +71,15 @@ const websiteJsonLd = buildWebsiteJsonLd();
             </a>
 
             <div class="space-y-4 px-1">
-              <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                <span>Cover Guide</span>
+              <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#62666A]">
+                <span class="text-[#28537D]">Cover Guide</span>
                 <span aria-hidden="true">·</span>
                 <span>By {featuredGuideAuthor?.name}</span>
                 <span aria-hidden="true">·</span>
                 <span>{featuredGuide.readTimeMinutes} min read</span>
               </div>
 
-              <h1 class="text-3xl sm:text-4xl lg:text-[2.75rem] font-serif font-semibold text-[#1B3D5F] leading-[1.12] text-balance">
+              <h1 class="text-3xl sm:text-4xl lg:text-[2.75rem] font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
                 <a
                   href={`/gift-guides/${featuredGuide.slug}/`}
                   class="text-left hover:text-[#28537D] transition-colors"
@@ -88,7 +88,7 @@ const websiteJsonLd = buildWebsiteJsonLd();
                 </a>
               </h1>
 
-              <p class="text-base md:text-lg text-[#28537D] leading-relaxed max-w-2xl">
+              <p class="text-base md:text-lg text-[#292B2D] leading-relaxed max-w-2xl">
                 {featuredGuide.subtitle}
               </p>
 
@@ -102,7 +102,7 @@ const websiteJsonLd = buildWebsiteJsonLd();
                 </a>
                 <a
                   href="#gift-finder"
-                  class="px-6 py-3 rounded-full bg-[#EBF3FE] text-[#1B3D5F] text-xs font-semibold hover:bg-[#99BFF9]/40 transition-colors whitespace-nowrap shrink-0"
+                  class="px-6 py-3 rounded-full bg-[#EBF3FE] text-[#28537D] text-xs font-semibold hover:bg-[#99BFF9]/40 transition-colors whitespace-nowrap shrink-0"
                 >
                   Try the Interactive Gift Finder
                 </a>
@@ -125,33 +125,33 @@ const websiteJsonLd = buildWebsiteJsonLd();
             <!-- Bottom Card: Warm Butter-Tinted Etiquette Essay (Static HTML) -->
             <div class="p-6 md:p-7 rounded-3xl bg-[#FFF4D6] flex flex-col justify-between">
               <div class="space-y-2.5">
-                <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                  <span>Modern Etiquette</span>
+                <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#62666A]">
+                  <span class="text-[#28537D]">Modern Etiquette</span>
                   <span aria-hidden="true">·</span>
                   <span>{etiquetteReadMinutes} min read</span>
                 </div>
 
-                <h2 class="text-xl md:text-2xl font-serif font-semibold text-[#1B3D5F] leading-snug">
+                <h2 class="text-xl md:text-2xl font-serif font-semibold text-[#222426] leading-snug">
                   <a
                     href={`/articles/${etiquetteArticle.slug}/`}
-                    class="text-left hover:underline"
+                    class="text-left hover:text-[#28537D] hover:underline"
                   >
                     {etiquetteArticle.title}
                   </a>
                 </h2>
 
-                <p class="text-xs md:text-sm text-[#1B3D5F]/80 leading-relaxed">
+                <p class="text-xs md:text-sm text-[#292B2D] leading-relaxed">
                   {etiquetteArticle.subtitle}
                 </p>
               </div>
 
               <div class="pt-4 mt-3 flex items-center justify-between text-xs">
-                <span class="text-[#28537D]">
+                <span class="text-[#62666A]">
                   By {etiquetteAuthor?.name}
                 </span>
                 <a
                   href={`/articles/${etiquetteArticle.slug}/`}
-                  class="inline-flex items-center gap-1 font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                  class="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                 >
                   <span>Read the story</span>
                   <span aria-hidden="true">→</span>
@@ -182,7 +182,7 @@ const websiteJsonLd = buildWebsiteJsonLd();
             <div class="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1.5">
               Curated Gift Guides
             </div>
-            <h2 class="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F]">
+            <h2 class="text-2xl md:text-4xl font-serif font-semibold text-[#222426]">
               Handpicked Guides for Real People & Occasions
             </h2>
           </div>
@@ -216,24 +216,24 @@ const websiteJsonLd = buildWebsiteJsonLd();
                     </a>
 
                     <div class="space-y-2.5">
-                      <div class="flex items-center gap-2 text-xs font-semibold text-[#28537D]">
-                        <span>{guide.category}</span>
+                      <div class="flex items-center gap-2 text-xs font-semibold text-[#62666A]">
+                        <span class="text-[#28537D]">{guide.category}</span>
                         <span aria-hidden="true">·</span>
                         <span>By {author?.name}</span>
                         <span aria-hidden="true">·</span>
                         <span>{guide.readTimeMinutes} min read</span>
                       </div>
 
-                      <h3 class="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F] leading-snug">
+                      <h3 class="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug">
                         <a
                           href={`/gift-guides/${guide.slug}/`}
-                          class="text-left hover:underline"
+                          class="text-left hover:text-[#28537D] hover:underline"
                         >
                           {guide.title}
                         </a>
                       </h3>
 
-                      <p class="text-sm text-[#1B3D5F]/80 leading-relaxed">
+                      <p class="text-sm text-[#292B2D] leading-relaxed">
                         {guide.subtitle}
                       </p>
                     </div>
@@ -266,12 +266,12 @@ const websiteJsonLd = buildWebsiteJsonLd();
                                   <div class="text-[11px] font-semibold text-[#28537D]">
                                     {qp.label}
                                   </div>
-                                  <div class="text-xs font-serif font-semibold text-[#1B3D5F] truncate">
+                                  <div class="text-xs font-serif font-semibold text-[#222426] truncate">
                                     {prod.title}
                                   </div>
                                 </div>
                               </div>
-                              <span class="text-xs font-semibold text-[#1B3D5F] tabular-nums shrink-0">
+                              <span class="text-xs font-semibold text-[#222426] tabular-nums shrink-0">
                                 ${prod.price} {prod.currency}
                               </span>
                             </a>

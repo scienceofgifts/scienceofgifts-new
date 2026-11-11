@@ -88,16 +88,16 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
       aria-modal="true"
       aria-labelledby="arch-modal-title"
     >
-      <div className="bg-[#FAF8F3] border border-[#D9DFE2] rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
+      <div className="bg-[#FAF7F2] border border-[#DFDBD3] rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#D9DFE2] bg-[#F5F4F0]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#DFDBD3] bg-[#F5F4F0]">
           <div>
-            <span className="text-xs font-mono uppercase tracking-widest text-[#405B70]">
+            <span className="text-xs font-mono uppercase tracking-widest text-[#62666A]">
               CMS Evaluation, Content Model & SEO Blueprint
             </span>
             <h2
               id="arch-modal-title"
-              className="text-xl font-serif font-semibold text-[#1B3D5F]"
+              className="text-xl font-serif font-semibold text-[#222426]"
             >
               Science of Gifts — Sanity CMS Architecture & Product Workflow
             </h2>
@@ -105,7 +105,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-lg text-[#1B3D5F] hover:bg-[#1B3D5F]/10 transition-colors"
+            className="p-2 rounded-lg text-[#222426] hover:bg-[#1B3D5F]/10 transition-colors"
             aria-label="Close technical blueprint modal"
           >
             <X className="w-5 h-5" />
@@ -113,14 +113,14 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
         </div>
 
         {/* Interactive Tab Bar */}
-        <div className="flex flex-wrap items-center gap-2 px-6 py-3 bg-[#FAF8F3] border-b border-[#D9DFE2]">
+        <div className="flex flex-wrap items-center gap-2 px-6 py-3 bg-[#FAF7F2] border-b border-[#DFDBD3]">
           <button
             type="button"
             onClick={() => setActiveTab('sanity-eval')}
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'sanity-eval'
                 ? 'bg-[#1B3D5F] text-[#FFFFFF]'
-                : 'text-[#294B68] hover:bg-[#E5F5EE]'
+                : 'text-[#28537D] hover:bg-[#E5F5EE]'
             }`}
           >
             1. Sanity CMS Evaluation & Pricing
@@ -131,7 +131,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'schemas'
                 ? 'bg-[#1B3D5F] text-[#FFFFFF]'
-                : 'text-[#294B68] hover:bg-[#E5F5EE]'
+                : 'text-[#28537D] hover:bg-[#E5F5EE]'
             }`}
           >
             2. Content Model & GROQ ({SANITY_SCHEMA_TYPES.length} Schemas)
@@ -142,7 +142,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'ai-workflow'
                 ? 'bg-[#1B3D5F] text-[#FFFFFF]'
-                : 'text-[#294B68] hover:bg-[#E5F5EE]'
+                : 'text-[#28537D] hover:bg-[#E5F5EE]'
             }`}
           >
             3. AI Product Entry & Draft Validator
@@ -153,7 +153,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
             className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-colors whitespace-nowrap shrink-0 ${
               activeTab === 'seo-validator'
                 ? 'bg-[#1B3D5F] text-[#FFFFFF]'
-                : 'text-[#294B68] hover:bg-[#E5F5EE]'
+                : 'text-[#28537D] hover:bg-[#E5F5EE]'
             }`}
           >
             4. SEO & Link Integrity ({validation.passed ? 'PASS' : 'WARN'})
@@ -161,16 +161,16 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-6 overflow-y-auto space-y-6 text-sm leading-relaxed text-[#1B3D5F]">
+        <div className="p-6 overflow-y-auto space-y-6 text-sm leading-relaxed text-[#292B2D]">
           {activeTab === 'sanity-eval' && (
             <div className="space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-5 rounded-xl bg-white border border-[#D9DFE2] space-y-2">
-                  <div className="flex items-center gap-2 font-semibold text-[#1B3D5F]">
-                    <Database className="w-4 h-4 text-[#294B68]" />
+                <div className="p-5 rounded-xl bg-white border border-[#DFDBD3] space-y-2">
+                  <div className="flex items-center gap-2 font-semibold text-[#222426]">
+                    <Database className="w-4 h-4 text-[#28537D]" />
                     <span>Native Sanity v3 Capabilities (Included in Free Tier)</span>
                   </div>
-                  <ul className="text-xs text-[#294B68] space-y-1.5 list-disc list-inside">
+                  <ul className="text-xs text-[#292B2D] space-y-1.5 list-disc list-inside">
                     <li>
                       <strong>Custom Document & Object Schemas:</strong> Full TypeScript schema definitions (`defineType`, `defineField`), custom validation rules, and cross-document `reference` fields.
                     </li>
@@ -186,12 +186,12 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                   </ul>
                 </div>
 
-                <div className="p-5 rounded-xl bg-white border border-[#D9DFE2] space-y-2">
-                  <div className="flex items-center gap-2 font-semibold text-[#1B3D5F]">
-                    <Globe className="w-4 h-4 text-[#294B68]" />
+                <div className="p-5 rounded-xl bg-white border border-[#DFDBD3] space-y-2">
+                  <div className="flex items-center gap-2 font-semibold text-[#222426]">
+                    <Globe className="w-4 h-4 text-[#28537D]" />
                     <span>Features Requiring Custom Dev or Paid Plans</span>
                   </div>
-                  <ul className="text-xs text-[#294B68] space-y-1.5 list-disc list-inside">
+                  <ul className="text-xs text-[#292B2D] space-y-1.5 list-disc list-inside">
                     <li>
                       <strong>Sanity AI Assist & Agent Actions:</strong> Full Sanity AI Assist requires the <strong>Growth Plan ($15/seat/mo)</strong> and consumes metered AI credits. Furthermore, it does <em>not</em> scrape external ecommerce product URLs out of the box.
                     </li>
@@ -218,7 +218,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                     className={`px-3 py-1.5 rounded-lg text-xs font-mono font-semibold border transition-colors ${
                       selectedSchema.name === schema.name
                         ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                        : 'bg-white text-[#1B3D5F] border-[#D9DFE2] hover:bg-[#E5F5EE]'
+                        : 'bg-white text-[#222426] border-[#DFDBD3] hover:bg-[#E5F5EE]'
                     }`}
                   >
                     {schema.name} ({schema.fields.length} fields)
@@ -226,15 +226,15 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                 ))}
               </div>
 
-              <div className="p-5 rounded-xl bg-white border border-[#D9DFE2] space-y-3">
+              <div className="p-5 rounded-xl bg-white border border-[#DFDBD3] space-y-3">
                 <div>
-                  <div className="text-xs font-mono uppercase text-[#405B70]">
+                  <div className="text-xs font-mono uppercase text-[#62666A]">
                     Sanity Document Type: {selectedSchema.name}
                   </div>
-                  <h3 className="text-base font-serif font-semibold text-[#1B3D5F]">
+                  <h3 className="text-base font-serif font-semibold text-[#222426]">
                     {selectedSchema.title}
                   </h3>
-                  <p className="text-xs text-[#294B68] mt-0.5">
+                  <p className="text-xs text-[#292B2D] mt-0.5">
                     {selectedSchema.description}
                   </p>
                 </div>
@@ -242,26 +242,26 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse text-xs">
                     <thead>
-                      <tr className="border-b border-[#D9DFE2] text-[#405B70] uppercase">
+                      <tr className="border-b border-[#DFDBD3] text-[#62666A] uppercase">
                         <th className="py-2 px-3">Field</th>
                         <th className="py-2 px-3">Type</th>
                         <th className="py-2 px-3">Validation Rule</th>
                         <th className="py-2 px-3">Purpose</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-[#D9DFE2]">
+                    <tbody className="divide-y divide-[#DFDBD3]">
                       {selectedSchema.fields.map((field) => (
                         <tr key={field.name}>
-                          <td className="py-2 px-3 font-mono font-semibold text-[#1B3D5F]">
+                          <td className="py-2 px-3 font-mono font-semibold text-[#222426]">
                             {field.name}
                           </td>
-                          <td className="py-2 px-3 font-mono text-[#294B68]">
+                          <td className="py-2 px-3 font-mono text-[#28537D]">
                             {field.type}
                           </td>
-                          <td className="py-2 px-3 font-mono text-[11px] text-[#405B70]">
+                          <td className="py-2 px-3 font-mono text-[11px] text-[#62666A]">
                             {field.validationRule}
                           </td>
-                          <td className="py-2 px-3 text-[#294B68]">
+                          <td className="py-2 px-3 text-[#292B2D]">
                             {field.description || field.title}
                           </td>
                         </tr>
@@ -271,7 +271,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#1B3D5F] text-[#FAF8F3] font-mono text-[11px] overflow-x-auto max-h-48">
+              <div className="p-4 rounded-xl bg-[#1B3D5F] text-[#FAF7F2] font-mono text-[11px] overflow-x-auto max-h-48">
                 <div className="text-[#E5F5EE] mb-1">
                   GROQ Reference Projection (Guide-Specific Overrides + Canonical Product Dereferencing)
                 </div>
@@ -282,13 +282,13 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
 
           {activeTab === 'ai-workflow' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-[#E5F5EE] border border-[#D9DFE2] space-y-2">
+              <div className="p-4 rounded-xl bg-[#E5F5EE] border border-[#DFDBD3] space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-2 font-semibold text-[#1B3D5F] text-xs uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4 text-[#1B3D5F]" />
+                  <div className="flex items-center gap-2 font-semibold text-[#222426] text-xs uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4 text-[#28537D]" />
                     <span>Interactive AI Product Entry & Human-Review Sandbox</span>
                   </div>
-                  <label className="inline-flex items-center gap-2 text-xs text-[#294B68] cursor-pointer">
+                  <label className="inline-flex items-center gap-2 text-xs text-[#292B2D] cursor-pointer">
                     <input
                       type="checkbox"
                       checked={simulateMissingPrice}
@@ -304,12 +304,12 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                     value={sampleUrl}
                     onChange={(e) => setSampleUrl(e.target.value)}
                     aria-label="Product source URL"
-                    className="flex-1 px-3 py-2 rounded-lg bg-white border border-[#D9DFE2] text-xs text-[#1B3D5F]"
+                    className="flex-1 px-3 py-2 rounded-lg bg-white border border-[#DFDBD3] text-xs text-[#292B2D]"
                   />
                   <button
                     type="button"
                     onClick={handleRunExtraction}
-                    className="px-4 py-2 rounded-lg bg-[#1B3D5F] text-white text-xs font-semibold hover:bg-[#294B68] transition-colors shrink-0"
+                    className="px-4 py-2 rounded-lg bg-[#1B3D5F] text-white text-xs font-semibold hover:bg-[#28537D] transition-colors shrink-0"
                   >
                     Run Explicit AI Extraction Action
                   </button>
@@ -317,43 +317,43 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                <div className="p-4 rounded-xl bg-white border border-[#D9DFE2] space-y-2.5">
-                  <div className="font-semibold text-[#1B3D5F]">
+                <div className="p-4 rounded-xl bg-white border border-[#DFDBD3] space-y-2.5">
+                  <div className="font-semibold text-[#222426]">
                     Extracted & Suggested Draft Fields (`{draft.productId}`)
                   </div>
                   <div>
-                    <span className="font-semibold text-[#405B70]">Title: </span>
-                    <span className="text-[#1B3D5F]">{draft.title}</span>{' '}
-                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#E5F5EE] text-[#1B3D5F]">
+                    <span className="font-semibold text-[#62666A]">Title: </span>
+                    <span className="text-[#292B2D]">{draft.title}</span>{' '}
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#E5F5EE] text-[#222426]">
                       {draft.provenance.title}
                     </span>
                   </div>
                   <div>
-                    <span className="font-semibold text-[#405B70]">Vendor: </span>
-                    <span className="text-[#1B3D5F]">{draft.vendor}</span>
+                    <span className="font-semibold text-[#62666A]">Vendor: </span>
+                    <span className="text-[#292B2D]">{draft.vendor}</span>
                   </div>
                   <div>
-                    <span className="font-semibold text-[#405B70]">Price: </span>
-                    <span className="text-[#1B3D5F]">
+                    <span className="font-semibold text-[#62666A]">Price: </span>
+                    <span className="text-[#292B2D]">
                       {draft.price !== null
                         ? `$${draft.price} ${draft.currency}`
                         : 'UNVERIFIED (Requires Manual Entry)'}
                     </span>{' '}
-                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#E5F5EE] text-[#1B3D5F]">
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-[#E5F5EE] text-[#222426]">
                       {draft.provenance.price}
                     </span>
                   </div>
                   <div>
-                    <span className="font-semibold text-[#405B70]">
+                    <span className="font-semibold text-[#62666A]">
                       AI Suggested Taxonomy:{' '}
                     </span>
-                    <span className="text-[#294B68]">
+                    <span className="text-[#292B2D]">
                       Recipients: {draft.recipients.join(', ')} · Occasions:{' '}
                       {draft.occasions.join(', ')}
                     </span>
                   </div>
 
-                  <div className="pt-2 border-t border-[#D9DFE2] flex flex-wrap gap-2">
+                  <div className="pt-2 border-t border-[#DFDBD3] flex flex-wrap gap-2">
                     {!draft.priceVerified && (
                       <button
                         type="button"
@@ -367,7 +367,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                             guidePriceBucket: '25-to-75',
                           }))
                         }
-                        className="px-3 py-1.5 rounded-lg bg-[#E5F5EE] border border-[#405B70] text-[#1B3D5F] font-semibold"
+                        className="px-3 py-1.5 rounded-lg bg-[#E5F5EE] border border-[#DFDBD3] text-[#222426] font-semibold"
                       >
                         Manually Verify Price ($40) & Stock
                       </button>
@@ -383,7 +383,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                       className={`px-3 py-1.5 rounded-lg font-semibold border ${
                         draft.humanReviewed
                           ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                          : 'bg-white text-[#1B3D5F] border-[#405B70]'
+                          : 'bg-white text-[#222426] border-[#DFDBD3]'
                       }`}
                     >
                       {draft.humanReviewed
@@ -393,16 +393,16 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-white border border-[#D9DFE2] space-y-2.5">
-                  <div className="flex items-center gap-2 font-semibold text-[#1B3D5F]">
+                <div className="p-4 rounded-xl bg-white border border-[#DFDBD3] space-y-2.5">
+                  <div className="flex items-center gap-2 font-semibold text-[#222426]">
                     {draftValidation.valid ? (
                       <>
-                        <CheckCircle2 className="w-4 h-4 text-[#1B3D5F]" />
+                        <CheckCircle2 className="w-4 h-4 text-[#28537D]" />
                         <span>Ready to Publish to Canonical Product Record</span>
                       </>
                     ) : (
                       <>
-                        <AlertTriangle className="w-4 h-4 text-[#294B68]" />
+                        <AlertTriangle className="w-4 h-4 text-[#28537D]" />
                         <span>
                           Blocked From Publishing Until Editor Review Completes
                         </span>
@@ -411,13 +411,13 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
                   </div>
 
                   {draftValidation.errors.length > 0 ? (
-                    <ul className="space-y-1 text-[#294B68] list-disc list-inside">
+                    <ul className="space-y-1 text-[#292B2D] list-disc list-inside">
                       {draftValidation.errors.map((err, i) => (
                         <li key={i}>{err}</li>
                       ))}
                     </ul>
                   ) : (
-                    <p className="text-[#294B68]">
+                    <p className="text-[#292B2D]">
                       All required canonical fields, verified price, merchant URL, taxonomy arrays, and human review checks passed.
                     </p>
                   )}
@@ -428,41 +428,41 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
 
           {activeTab === 'seo-validator' && (
             <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-[#E5F5EE] border border-[#D9DFE2]">
+              <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-[#E5F5EE] border border-[#DFDBD3]">
                 <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-[#1B3D5F]" />
+                  <CheckCircle2 className="w-5 h-5 text-[#28537D]" />
                   <div>
-                    <div className="font-semibold text-sm text-[#1B3D5F]">
+                    <div className="font-semibold text-sm text-[#222426]">
                       Automated Build-Time Integrity Check:{' '}
                       {validation.passed ? 'All Checks Passed' : 'Issues Found'}
                     </div>
-                    <div className="text-xs text-[#294B68] font-mono tabular-nums">
+                    <div className="text-xs text-[#62666A] font-mono tabular-nums">
                       Checked {validation.checkedEntities} entities ·{' '}
                       {validation.canonicalProductsCount} canonical products ·{' '}
                       {validation.issues.length} broken links/routes
                     </div>
                   </div>
                 </div>
-                <span className="text-xs font-mono text-[#1B3D5F]">
+                <span className="text-xs font-mono text-[#62666A]">
                   robots.txt & sitemap.xml ready
                 </span>
               </div>
 
               <div className="space-y-3">
-                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#405B70]">
+                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-[#62666A]">
                   <FileCode2 className="w-4 h-4" />
                   <span>
                     Distinct Structured Data Output (Article vs. Gift Guide ItemList JSON-LD)
                   </span>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-3 rounded-xl bg-[#1B3D5F] text-[#FAF8F3] font-mono text-[11px] overflow-x-auto max-h-56">
+                  <div className="p-3 rounded-xl bg-[#1B3D5F] text-[#FAF7F2] font-mono text-[11px] overflow-x-auto max-h-56">
                     <div className="text-[#99BFF9] mb-1">
                       Article Schema ({ARTICLES[0].slug})
                     </div>
                     <pre>{JSON.stringify(buildArticleJsonLd(ARTICLES[0]), null, 2)}</pre>
                   </div>
-                  <div className="p-3 rounded-xl bg-[#1B3D5F] text-[#FAF8F3] font-mono text-[11px] overflow-x-auto max-h-56">
+                  <div className="p-3 rounded-xl bg-[#1B3D5F] text-[#FAF7F2] font-mono text-[11px] overflow-x-auto max-h-56">
                     <div className="text-[#C3F3DF] mb-1">
                       Gift Guide ItemList Schema ({GIFT_GUIDES[0].slug})
                     </div>

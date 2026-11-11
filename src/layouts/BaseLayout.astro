@@ -81,17 +81,17 @@ const featuredArticle = articles[0];
     }
   </head>
   <body
-    class={`${pageBgClass} text-[#1B3D5F] antialiased selection:bg-[#C3F3DF] selection:text-[#1B3D5F] min-h-screen flex flex-col`}
+    class={`${pageBgClass} text-[#292B2D] antialiased selection:bg-[#C3F3DF] selection:text-[#222426] min-h-screen flex flex-col`}
   >
     <!-- =====================================================================
          TOP NAVIGATION BAR (Clean 3-Zone Contract)
         ===================================================================== -->
-    <header class="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#1B3D5F]/8">
+    <header class="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#DFDBD3]">
       <div class="max-w-7xl mx-auto flex items-center justify-between gap-8 px-6 py-4">
         <!-- Zone 1: Brand Wordmark -->
         <a
           href="/"
-          class="text-2xl font-serif font-semibold tracking-tight text-[#1B3D5F] whitespace-nowrap shrink-0"
+          class="text-2xl font-serif font-semibold tracking-tight text-[#222426] whitespace-nowrap shrink-0"
         >
           Science of Gifts
         </a>
@@ -155,7 +155,7 @@ const featuredArticle = articles[0];
     <!-- Mobile Secondary Navigation Strip (Non-sticky so it never obscures mobile viewport) -->
     <nav
       aria-label="Mobile navigation"
-      class="md:hidden bg-[#F3ECE1] border-b border-[#1B3D5F]/10 px-6 py-2.5 flex items-center gap-5 overflow-x-auto text-xs font-semibold text-[#1B3D5F]"
+      class="md:hidden bg-[#F3ECE1] border-b border-[#DFDBD3] px-6 py-2.5 flex items-center gap-5 overflow-x-auto text-xs font-semibold text-[#28537D]"
     >
       <a href="/" class="whitespace-nowrap shrink-0 hover:underline">
         Home
@@ -186,16 +186,16 @@ const featuredArticle = articles[0];
     <!-- =====================================================================
          WARM EDITORIAL FOOTER
         ===================================================================== -->
-    <footer class="bg-[#F3ECE1] text-[#1B3D5F] border-t border-[#1B3D5F]/10">
+    <footer class="bg-[#F3ECE1] text-[#292B2D] border-t border-[#DFDBD3]">
       <div class="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-12 gap-10">
         <div class="md:col-span-5 space-y-3">
           <a
             href="/"
-            class="inline-block text-2xl font-serif font-semibold tracking-tight text-[#1B3D5F]"
+            class="inline-block text-2xl font-serif font-semibold tracking-tight text-[#222426]"
           >
             Science of Gifts
           </a>
-          <p class="text-sm text-[#28537D] leading-relaxed max-w-sm">
+          <p class="text-sm text-[#62666A] leading-relaxed max-w-sm">
             A magazine and gift-discovery destination dedicated to thoughtful giving, memorable objects, and the human stories behind why we give.
           </p>
         </div>
@@ -210,7 +210,7 @@ const featuredArticle = articles[0];
                 <li>
                   <a
                     href={`/gift-guides/${guide.slug}/`}
-                    class="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left block"
+                    class="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left block"
                   >
                     {guide.title}
                   </a>
@@ -222,7 +222,7 @@ const featuredArticle = articles[0];
                 <li>
                   <a
                     href={`/articles/${article.slug}/`}
-                    class="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left block"
+                    class="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left block"
                   >
                     {article.title}
                   </a>
@@ -236,7 +236,7 @@ const featuredArticle = articles[0];
           <div class="font-semibold uppercase tracking-wider text-[#28537D] mb-2">
             Your Gift List
           </div>
-          <p class="text-[#28537D] leading-relaxed">
+          <p class="text-[#62666A] leading-relaxed">
             Bookmark favorite ideas as you browse—your shortlist stays saved right in your browser.
           </p>
           <FooterSavedActionsIsland client:visible />

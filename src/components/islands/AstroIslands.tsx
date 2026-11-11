@@ -197,8 +197,8 @@ export const HomeHeroSpotlightIsland: React.FC<{
 
   return (
     <div className="p-6 md:p-7 rounded-3xl bg-[#E8F8F0] flex flex-col justify-between flex-1">
-      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[#1B3D5F] mb-4">
-        <span className="uppercase tracking-wider">Editor’s Gift of the Week</span>
+      <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[#222426] mb-4">
+        <span className="uppercase tracking-wider text-[#28537D]">Editor’s Gift of the Week</span>
         <span className="tabular-nums font-bold">
           ${product.price} {product.currency}
         </span>
@@ -216,8 +216,8 @@ export const HomeHeroSpotlightIsland: React.FC<{
           />
         </div>
         <div className="sm:col-span-7 space-y-2">
-          <div className="text-xs text-[#28537D] font-medium">{product.vendor}</div>
-          <h2 className="text-xl font-serif font-semibold text-[#1B3D5F] leading-snug group-hover:underline">
+          <div className="text-xs text-[#62666A] font-medium">{product.vendor}</div>
+          <h2 className="text-xl font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] group-hover:underline">
             <a
               href={`/products/${product.slug}/`}
               onClick={(e) => {
@@ -229,18 +229,18 @@ export const HomeHeroSpotlightIsland: React.FC<{
               {product.title}
             </a>
           </h2>
-          <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
+          <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
             {product.whyToGiveIt}
           </p>
         </div>
       </div>
 
-      <div className="pt-4 mt-4 border-t border-[#1B3D5F]/10 flex items-center justify-between text-xs">
+      <div className="pt-4 mt-4 border-t border-[#DFDBD3] flex items-center justify-between text-xs">
         <button
           type="button"
           onClick={() => toggleSaveProduct(product.id)}
           aria-pressed={isSaved}
-          className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+          className="inline-flex items-center gap-1.5 font-semibold text-[#222426] hover:text-[#28537D]"
         >
           <Heart
             className={`w-3.5 h-3.5 ${
@@ -255,7 +255,7 @@ export const HomeHeroSpotlightIsland: React.FC<{
             e.preventDefault();
             dispatchOpenProductModal(product);
           }}
-          className="font-semibold text-[#1B3D5F] hover:underline"
+          className="font-semibold text-[#28537D] hover:underline"
         >
           Why we love it →
         </a>
@@ -355,11 +355,11 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
               <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1.5">
                 Browse by Person & Mood
               </div>
-              <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F]">
+              <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426]">
                 Who Are You Shopping For Today?
               </h2>
             </div>
-            <p className="text-sm text-[#28537D] max-w-md">
+            <p className="text-sm text-[#292B2D] max-w-md">
               Pick a personality below to jump straight to gifts tailored to how they actually live.
             </p>
           </div>
@@ -393,15 +393,15 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
-                  <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug mb-1.5 px-1">
+                  <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug mb-1.5 px-1">
                     {spot.title}
                   </h3>
-                  <p className="text-xs text-[#28537D] leading-relaxed px-1 mb-3">
+                  <p className="text-xs text-[#292B2D] leading-relaxed px-1 mb-3">
                     {spot.subtitle}
                   </p>
                 </div>
 
-                <div className="px-1 pt-2 flex items-center gap-1 text-xs font-semibold text-[#1B3D5F] group-hover:text-[#28537D]">
+                <div className="px-1 pt-2 flex items-center gap-1 text-xs font-semibold text-[#28537D] group-hover:underline">
                   <span>See curated ideas</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                 </div>
@@ -421,7 +421,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                   <Sparkles className="w-4 h-4" />
                   <span>Interactive Gift Finder</span>
                 </div>
-                <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F]">
+                <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426]">
                   Let’s Find Something They’ll Genuinely Love
                 </h2>
               </div>
@@ -430,7 +430,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                 <button
                   type="button"
                   onClick={resetFinderFilters}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-xs font-semibold text-[#28537D] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
                   <span>Start Over ({products.length} Gifts)</span>
@@ -450,7 +450,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
               <div className="md:col-span-3 space-y-1.5">
                 <label
                   htmlFor="finder-recipient"
-                  className="block text-xs font-semibold text-[#28537D]"
+                  className="block text-xs font-semibold text-[#222426]"
                 >
                   1. Who is it for?
                 </label>
@@ -460,7 +460,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                   onChange={(e) =>
                     setSelectedRecipient(e.target.value as RecipientType | 'all')
                   }
-                  className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                  className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                 >
                   {RECIPIENT_PILLS.map((r) => (
                     <option key={r.value} value={r.value}>
@@ -473,7 +473,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
               <div className="md:col-span-4 space-y-1.5">
                 <label
                   htmlFor="finder-vibe"
-                  className="block text-xs font-semibold text-[#28537D]"
+                  className="block text-xs font-semibold text-[#222426]"
                 >
                   2. What do they enjoy?
                 </label>
@@ -483,7 +483,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                   onChange={(e) =>
                     setSelectedPersonality(e.target.value as PersonalityTrait | 'all')
                   }
-                  className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                  className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                 >
                   {VIBE_OPTIONS.map((v) => (
                     <option key={v.value} value={v.value}>
@@ -496,7 +496,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
               <div className="md:col-span-2 space-y-1.5">
                 <label
                   htmlFor="finder-budget"
-                  className="block text-xs font-semibold text-[#28537D]"
+                  className="block text-xs font-semibold text-[#222426]"
                 >
                   3. Budget
                 </label>
@@ -506,7 +506,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                   onChange={(e) =>
                     setSelectedBudget(e.target.value as HomeBudgetFilter)
                   }
-                  className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                  className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                 >
                   {BUDGET_PILLS.map((b) => (
                     <option key={b.value} value={b.value}>
@@ -519,19 +519,19 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
               <div className="md:col-span-3 space-y-1.5">
                 <label
                   htmlFor="finder-search"
-                  className="block text-xs font-semibold text-[#28537D]"
+                  className="block text-xs font-semibold text-[#222426]"
                 >
                   Or search by keyword
                 </label>
                 <div className="relative">
-                  <Search className="w-4 h-4 text-[#28537D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <Search className="w-4 h-4 text-[#62666A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     id="finder-search"
                     type="search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Matcha, honey, robe, kids..."
-                    className="w-full pl-10 pr-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] placeholder:text-[#28537D]/55 shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                    className="w-full pl-10 pr-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] placeholder:text-[#62666A]/70 shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                   />
                 </div>
               </div>
@@ -539,7 +539,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
 
             <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-xs font-semibold text-[#28537D] mr-1">
+                <span className="text-xs font-semibold text-[#62666A] mr-1">
                   Occasion:
                 </span>
                 {OCCASION_PILLS.map((occ) => (
@@ -550,7 +550,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                     className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
                       selectedOccasion === occ.value
                         ? 'bg-[#1B3D5F] text-white'
-                        : 'bg-white/80 text-[#28537D] hover:bg-white'
+                        : 'bg-white/80 text-[#292B2D] hover:bg-white hover:text-[#28537D]'
                     }`}
                   >
                     {occ.label}
@@ -558,7 +558,7 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
                 ))}
               </div>
 
-              <div className="text-xs font-semibold text-[#1B3D5F] tabular-nums">
+              <div className="text-xs font-semibold text-[#62666A] tabular-nums">
                 Showing {filteredProducts.length} thoughtful{' '}
                 {filteredProducts.length === 1 ? 'gift' : 'gifts'}
               </div>
@@ -568,10 +568,10 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
           {filteredProducts.length === 0 ? (
             <div className="p-12 rounded-3xl bg-[#F3ECE1]/70 text-center space-y-3">
               <Gift className="w-8 h-8 text-[#28537D] mx-auto opacity-75" />
-              <p className="text-xl font-serif text-[#1B3D5F]">
+              <p className="text-xl font-serif text-[#222426]">
                 We didn’t find an exact match for all of those filters together.
               </p>
-              <p className="text-xs text-[#28537D]">
+              <p className="text-xs text-[#292B2D]">
                 Try clearing one filter to see our full collection of editor-tested gifts.
               </p>
               <button
@@ -606,11 +606,11 @@ export const HomeDiscoveryAndFinderIsland: React.FC<{
               <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
                 The Sweet Spot Edit
               </div>
-              <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F] text-balance">
+              <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426] text-balance">
                 Small Wonders Under $50 That Feel Twice the Price
               </h2>
             </div>
-            <p className="text-sm text-[#28537D] max-w-md">
+            <p className="text-sm text-[#292B2D] max-w-md">
               Because a memorable gift is about thoughtfulness and charm—never about showing off a receipt.
             </p>
           </div>
@@ -682,7 +682,7 @@ export const ProductDetailActionsIsland: React.FC<{
         className={`px-5 py-3 rounded-full text-xs font-semibold inline-flex items-center gap-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
           isSaved
             ? 'bg-[#F2846B] text-white'
-            : 'bg-white text-[#1B3D5F] hover:bg-[#1B3D5F]/8'
+            : 'bg-white text-[#222426] hover:bg-[#1B3D5F]/8'
         }`}
       >
         <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />

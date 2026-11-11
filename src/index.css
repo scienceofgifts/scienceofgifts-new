@@ -5,26 +5,31 @@
     --font-serif: 'Fraunces', Georgia, serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --color-page-bg: #FAF8F3;
+    --color-page-bg: #FAF7F2;
     --color-ref-card-bg: #FFFFFF;
-    --color-ref-card-border: #D9DFE2;
-    --color-text-primary: #1B3D5F;
-    --color-text-body: #294B68;
-    --color-text-secondary: #405B70;
+    --color-ref-card-border: #DFDBD3;
+    --color-border-subtle: #DFDBD3;
+    --color-text-heading: #222426;
+    --color-text-primary: #222426;
+    --color-text-body: #292B2D;
+    --color-text-secondary: #62666A;
+    --color-text-callout: #292B2D;
+    --color-link-accent: #28537D;
     --color-mint-soft: #E5F5EE;
-    --color-control-selected-bg: #1B3D5F;
+    --color-control-selected-bg: #28537D;
     --color-control-selected-text: #FFFFFF;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: #FAF8F3;
-    color: #1B3D5F;
+    background-color: var(--color-page-bg);
+    color: var(--color-text-body);
     overflow-x: hidden;
   }
 
   h1, h2, h3, h4, .font-serif {
     font-family: var(--font-serif);
+    color: var(--color-text-heading);
   }
 
   .font-mono {

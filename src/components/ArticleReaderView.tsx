@@ -422,7 +422,7 @@ export const ArticleCalloutBlock: React.FC<{ callout: ArticleCallout }> = ({
       ? 'bg-[#FFF4D6]'
       : callout.tone === 'blue'
       ? 'bg-[#EBF3FE]'
-      : 'bg-[#F5F4F0] border border-[#1B3D5F]/10';
+      : 'bg-[#F5F4F0] border border-[#DFDBD3]';
 
   return (
     <aside
@@ -434,10 +434,10 @@ export const ArticleCalloutBlock: React.FC<{ callout: ArticleCallout }> = ({
           {callout.kicker}
         </div>
       )}
-      <h3 className="text-xl font-serif font-semibold text-[#1B3D5F]">
+      <h3 className="text-xl font-serif font-semibold text-[#222426]">
         {callout.title}
       </h3>
-      <p className="text-sm md:text-base text-[#1B3D5F]/90 leading-relaxed">
+      <p className="text-sm md:text-base text-[#292B2D] leading-relaxed">
         {callout.body}
       </p>
     </aside>
@@ -468,17 +468,17 @@ export const ArticleExpandableAdviceBlock: React.FC<{
   const panelId = `expandable-advice-${advice.id}`;
 
   return (
-    <div className="my-8 rounded-3xl bg-[#F5F4F0] border border-[#1B3D5F]/10 p-6 md:p-7 transition-colors">
+    <div className="my-8 rounded-3xl bg-[#F5F4F0] border border-[#DFDBD3] p-6 md:p-7 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[#28537D]">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Practical Reader Guide</span>
           </div>
-          <h3 className="text-xl font-serif font-semibold text-[#1B3D5F]">
+          <h3 className="text-xl font-serif font-semibold text-[#222426]">
             {advice.title}
           </h3>
-          <p className="text-xs md:text-sm text-[#28537D] leading-relaxed">
+          <p className="text-xs md:text-sm text-[#292B2D] leading-relaxed">
             {advice.summaryPreview}
           </p>
         </div>
@@ -504,17 +504,17 @@ export const ArticleExpandableAdviceBlock: React.FC<{
           id={panelId}
           role="region"
           aria-label={advice.title}
-          className="mt-6 pt-6 border-t border-[#1B3D5F]/12 grid grid-cols-1 md:grid-cols-2 gap-4"
+          className="mt-6 pt-6 border-t border-[#DFDBD3] grid grid-cols-1 md:grid-cols-2 gap-4"
         >
           {advice.items.map((item, idx) => (
             <div
               key={idx}
-              className="p-4 rounded-2xl bg-white border border-[#1B3D5F]/8 space-y-1.5"
+              className="p-4 rounded-2xl bg-white border border-[#DFDBD3] space-y-1.5"
             >
-              <h4 className="text-sm font-serif font-semibold text-[#1B3D5F]">
+              <h4 className="text-sm font-serif font-semibold text-[#222426]">
                 {item.label}
               </h4>
-              <p className="text-xs text-[#1B3D5F]/85 leading-relaxed">
+              <p className="text-xs text-[#292B2D] leading-relaxed">
                 <RichTextWithCitations
                   text={item.detail}
                   blockKey={`sec:${sectionId}:advice:${advice.id}:item:${idx}`}
@@ -561,10 +561,10 @@ export const ArticleContextualProductsBlock: React.FC<{
         <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
           Related Gift Ideas From Our Catalog
         </div>
-        <h3 className="text-xl font-serif font-semibold text-[#1B3D5F]">
+        <h3 className="text-xl font-serif font-semibold text-[#222426]">
           {block.heading}
         </h3>
-        <p className="text-xs text-[#28537D] leading-relaxed">
+        <p className="text-xs text-[#292B2D] leading-relaxed">
           {block.editorialContext}
         </p>
       </div>
@@ -594,7 +594,7 @@ export const ArticleContextualProductsBlock: React.FC<{
 
                 <div className="flex-1 min-w-0 space-y-1">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-medium text-[#28537D] truncate">
+                    <span className="text-[11px] font-medium text-[#62666A] truncate">
                       {product.vendor}
                     </span>
                     <button
@@ -606,7 +606,7 @@ export const ArticleContextualProductsBlock: React.FC<{
                           ? `Remove ${product.title} from Saved Gifts`
                           : `Bookmark ${product.title}`
                       }
-                      className="p-1.5 rounded-full text-[#1B3D5F] hover:bg-[#1B3D5F]/10 transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+                      className="p-1.5 rounded-full text-[#28537D] hover:bg-[#1B3D5F]/10 transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
                     >
                       <Heart
                         className={`w-4 h-4 ${
@@ -616,27 +616,27 @@ export const ArticleContextualProductsBlock: React.FC<{
                     </button>
                   </div>
 
-                  <h4 className="text-base font-serif font-semibold text-[#1B3D5F] leading-snug">
+                  <h4 className="text-base font-serif font-semibold text-[#222426] leading-snug">
                     <a
                       href={`/products/${product.slug}/`}
                       onClick={(e) => {
                         e.preventDefault();
                         onSelectProduct(product);
                       }}
-                      className="text-left hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
+                      className="text-left hover:text-[#28537D] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
                     >
                       {product.title}
                     </a>
                   </h4>
 
-                  <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-2">
+                  <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-2">
                     {product.whyToGiveIt}
                   </p>
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-[#1B3D5F]/10 flex items-center justify-between gap-2 text-xs">
-                <span className="font-semibold text-[#1B3D5F] tabular-nums">
+              <div className="pt-3 border-t border-[#DFDBD3] flex items-center justify-between gap-2 text-xs">
+                <span className="font-semibold text-[#222426] tabular-nums">
                   ${product.price} {product.currency}
                 </span>
 
@@ -865,7 +865,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
     .filter((a): a is Article => Boolean(a));
 
   return (
-    <article className="min-h-screen bg-[#FAF8F3] text-[#1B3D5F]">
+    <article className="min-h-screen bg-[#FAF7F2] text-[#292B2D]">
       {/* Discreet Reading Progress Bar (Respects prefers-reduced-motion) */}
       <div
         aria-hidden="true"
@@ -883,9 +883,9 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
            =================================================================== */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-8 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#1B3D5F]/10"
+          className="mb-8 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#DFDBD3]"
         >
-          <ol className="flex items-center gap-2 text-xs text-[#28537D]">
+          <ol className="flex items-center gap-2 text-xs text-[#62666A]">
             <li>
               <a
                 href="/"
@@ -895,7 +895,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     onBackHome();
                   }
                 }}
-                className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D] whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-1.5 font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D] whitespace-nowrap shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Home</span>
@@ -911,7 +911,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     onBackHome();
                   }
                 }}
-                className="hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
+                className="text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
               >
                 Stories
               </a>
@@ -919,24 +919,24 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             <li aria-hidden="true">/</li>
             <li
               aria-current="page"
-              className="text-[#1B3D5F] font-medium truncate max-w-xs"
+              className="text-[#62666A] font-medium truncate max-w-xs"
             >
               {article.category}
             </li>
           </ol>
 
-          <div className="flex items-center gap-4 text-xs text-[#28537D]">
+          <div className="flex items-center gap-4 text-xs text-[#62666A]">
             <span className="tabular-nums">
               {calculatedReadMinutes} min read ({wordCount.toLocaleString()} words)
             </span>
             <button
               type="button"
               onClick={handleShareCopy}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F5F4F0] border border-[#1B3D5F]/12 text-[#1B3D5F] font-semibold hover:bg-[#E8F8F0] transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F5F4F0] border border-[#DFDBD3] text-[#28537D] font-semibold hover:bg-[#E8F8F0] transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
             >
               {copiedShareLink ? (
                 <>
-                  <Check className="w-3.5 h-3.5 text-[#1B3D5F]" />
+                  <Check className="w-3.5 h-3.5 text-[#28537D]" />
                   <span>Link Copied</span>
                 </>
               ) : (
@@ -951,8 +951,8 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
 
         {/* Prominent Editorial Masthead */}
         <header className="max-w-3xl mb-10 space-y-4">
-          <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#28537D]">
-            <span>{article.category}</span>
+          <div className="flex flex-wrap items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#62666A]">
+            <span className="text-[#28537D]">{article.category}</span>
             <span aria-hidden="true">·</span>
             <span>Published {article.publishedAt}</span>
             {article.updatedAt && article.updatedAt !== article.publishedAt && (
@@ -963,11 +963,11 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1B3D5F] leading-[1.12] text-balance">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
             {article.title}
           </h1>
 
-          <p className="text-lg md:text-xl text-[#28537D] leading-relaxed">
+          <p className="text-lg md:text-xl text-[#292B2D] leading-relaxed">
             {article.subtitle}
           </p>
 
@@ -978,15 +978,15 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                 alt={author.name}
                 className="w-11 h-11 rounded-full object-cover shrink-0"
               />
-              <div className="text-xs text-[#28537D]">
+              <div className="text-xs text-[#62666A]">
                 <div>
-                  <span className="font-semibold text-[#1B3D5F]">
+                  <span className="font-semibold text-[#222426]">
                     By {author.name}
                   </span>
                   <span aria-hidden="true"> · </span>
                   <span>{author.role}</span>
                 </div>
-                <div className="text-[#28537D]/85 mt-0.5">
+                <div className="text-[#62666A] mt-0.5">
                   {calculatedReadMinutes} minute read · {article.citationIds.length} peer-reviewed studies cited
                 </div>
               </div>
@@ -1003,7 +1003,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
               className="w-full h-full object-cover"
             />
           </div>
-          <figcaption className="text-xs font-serif italic text-[#28537D] mt-3 px-1">
+          <figcaption className="text-xs font-serif italic text-[#62666A] mt-3 px-1">
             {article.heroCaption}
           </figcaption>
         </figure>
@@ -1011,7 +1011,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
         {/* Mobile Compact Table of Contents (Non-sticky, unobtrusive) */}
         <nav
           aria-label="Article sections mobile navigation"
-          className="lg:hidden mb-10 p-5 rounded-2xl bg-[#F5F4F0] border border-[#1B3D5F]/10 space-y-2.5"
+          className="lg:hidden mb-10 p-5 rounded-2xl bg-[#F5F4F0] border border-[#DFDBD3] space-y-2.5"
         >
           <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
             In This Essay
@@ -1022,7 +1022,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                 key={sec.id}
                 type="button"
                 onClick={() => jumpToSection(sec.id)}
-                className="px-3 py-1.5 rounded-full bg-white border border-[#1B3D5F]/10 text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors"
+                className="px-3 py-1.5 rounded-full bg-white border border-[#DFDBD3] text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors"
               >
                 {sec.shortNavTitle || sec.heading}
               </button>
@@ -1030,7 +1030,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             <button
               type="button"
               onClick={() => jumpToSection('academic-citations')}
-              className="px-3 py-1.5 rounded-full bg-white border border-[#1B3D5F]/10 text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors"
+              className="px-3 py-1.5 rounded-full bg-white border border-[#DFDBD3] text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors"
             >
               References ({article.citationIds.length})
             </button>
@@ -1045,7 +1045,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
           <aside className="hidden lg:block lg:col-span-3 lg:sticky lg:top-24 space-y-5">
             <nav
               aria-label="Table of contents"
-              className="p-6 rounded-3xl bg-[#F5F4F0] border border-[#1B3D5F]/10 space-y-4"
+              className="p-6 rounded-3xl bg-[#F5F4F0] border border-[#DFDBD3] space-y-4"
             >
               <div className="text-xs uppercase tracking-widest font-semibold text-[#28537D]">
                 In This Story
@@ -1058,8 +1058,8 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     onClick={() => jumpToSection('the-short-version')}
                     className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
                       activeSectionId === 'the-short-version'
-                        ? 'bg-[#1B3D5F] text-white font-semibold'
-                        : 'text-[#1B3D5F] hover:bg-white/60'
+                        ? 'bg-[#28537D] text-white font-semibold'
+                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                     }`}
                   >
                     {article.summaryTitle || 'The Short Version'}
@@ -1073,8 +1073,8 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                       onClick={() => jumpToSection(sec.id)}
                       className={`w-full text-left py-1.5 px-2.5 rounded-lg leading-snug transition-colors ${
                         activeSectionId === sec.id
-                          ? 'bg-[#1B3D5F] text-white font-semibold'
-                          : 'text-[#1B3D5F] hover:bg-white/60'
+                          ? 'bg-[#28537D] text-white font-semibold'
+                          : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                       }`}
                     >
                       {sec.heading}
@@ -1089,8 +1089,8 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                       onClick={() => jumpToSection('empirical-comparison')}
                       className={`w-full text-left py-1.5 px-2.5 rounded-lg leading-snug transition-colors ${
                         activeSectionId === 'empirical-comparison'
-                          ? 'bg-[#1B3D5F] text-white font-semibold'
-                          : 'text-[#1B3D5F] hover:bg-white/60'
+                          ? 'bg-[#28537D] text-white font-semibold'
+                          : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                       }`}
                     >
                       Price vs. Thoughtfulness Table
@@ -1098,14 +1098,14 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   </li>
                 )}
 
-                <li className="pt-2 border-t border-[#1B3D5F]/10">
+                <li className="pt-2 border-t border-[#DFDBD3]">
                   <button
                     type="button"
                     onClick={() => jumpToSection('academic-citations')}
                     className={`w-full text-left py-1.5 px-2.5 rounded-lg leading-snug transition-colors ${
                       activeSectionId === 'academic-citations'
-                        ? 'bg-[#1B3D5F] text-white font-semibold'
-                        : 'text-[#1B3D5F] hover:bg-white/60'
+                        ? 'bg-[#28537D] text-white font-semibold'
+                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                     }`}
                   >
                     References & Studies ({article.citationIds.length})
@@ -1114,12 +1114,12 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
               </ul>
             </nav>
 
-            <div className="p-5 rounded-3xl bg-[#E5F5EE] border border-[#D9DFE2] text-xs space-y-1.5">
-              <div className="font-semibold text-[#1B3D5F]">
+            <div className="p-5 rounded-3xl bg-[#E5F5EE] border border-[#DFDBD3] text-xs space-y-1.5">
+              <div className="font-semibold text-[#222426]">
                 Interactive Citations
               </div>
-              <p className="text-[#294B68] leading-relaxed">
-                Select any numbered citation marker like <span className="font-mono font-semibold text-[#1B3D5F]">[1]</span> in the essay to inspect the study summary and limitations, or scroll to the full reference list below.
+              <p className="text-[#292B2D] leading-relaxed">
+                Select any numbered citation marker like <span className="font-mono font-semibold text-[#28537D]">[1]</span> in the essay to inspect the study summary and limitations, or scroll to the full reference list below.
               </p>
             </div>
           </aside>
@@ -1132,13 +1132,13 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
               aria-labelledby="heading-short-version"
               className="p-6 md:p-8 rounded-3xl bg-[#E8F8F0] max-w-2xl scroll-mt-24"
             >
-              <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#1B3D5F] mb-3">
+              <div className="flex items-center gap-2 text-xs uppercase tracking-widest font-semibold text-[#222426] mb-3">
                 <BookOpen className="w-4 h-4 text-[#28537D]" />
-                <h2 id="heading-short-version">
+                <h2 id="heading-short-version" className="text-[#222426]">
                   {article.summaryTitle || 'The Short Version'}
                 </h2>
               </div>
-              <ul className="space-y-3 text-sm md:text-base text-[#1B3D5F] leading-relaxed">
+              <ul className="space-y-3 text-sm md:text-base text-[#292B2D] leading-relaxed">
                 {article.executiveSummary.map((item, idx) => (
                   <li key={idx} className="flex items-start gap-3">
                     <span
@@ -1164,7 +1164,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                 <div className="max-w-2xl space-y-5">
                   <h2
                     id={`h2-${section.id}`}
-                    className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F] leading-snug"
+                    className="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug"
                   >
                     {section.heading}
                   </h2>
@@ -1172,9 +1172,9 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   {section.paragraphs.map((p, pIdx) => (
                     <p
                       key={pIdx}
-                      className={`text-base md:text-[1.0625rem] text-[#1B3D5F]/90 leading-[1.8] ${
+                      className={`text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8] ${
                         sIdx === 0 && pIdx === 0
-                          ? 'first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-[#1B3D5F]'
+                          ? 'first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-[#222426]'
                           : ''
                       }`}
                     >
@@ -1194,13 +1194,13 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   {section.subSections &&
                     section.subSections.map((sub) => (
                       <div key={sub.id} id={sub.id} className="pt-3 space-y-4">
-                        <h3 className="text-xl font-serif font-semibold text-[#1B3D5F]">
+                        <h3 className="text-xl font-serif font-semibold text-[#222426]">
                           {sub.subheading}
                         </h3>
                         {sub.paragraphs.map((sp, spIdx) => (
                           <p
                             key={spIdx}
-                            className="text-base md:text-[1.0625rem] text-[#1B3D5F]/90 leading-[1.8]"
+                            className="text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8]"
                           >
                             <RichTextWithCitations
                               text={sp}
@@ -1216,11 +1216,11 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                         {sub.bulletList && (
                           <div className="pl-1 space-y-2.5">
                             {sub.bulletList.intro && (
-                              <p className="text-sm font-semibold text-[#28537D]">
+                              <p className="text-sm font-semibold text-[#222426]">
                                 {sub.bulletList.intro}
                               </p>
                             )}
-                            <ul className="space-y-2 text-sm md:text-base text-[#1B3D5F]/90 leading-relaxed">
+                            <ul className="space-y-2 text-sm md:text-base text-[#292B2D] leading-relaxed">
                               {sub.bulletList.items.map((li, liIdx) => (
                                 <li
                                   key={liIdx}
@@ -1253,11 +1253,11 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
 
                   {/* Pull Quote */}
                   {section.pullQuote && (
-                    <blockquote className="my-8 py-6 border-y border-[#1B3D5F]/15">
-                      <p className="text-xl md:text-2xl font-serif italic text-[#1B3D5F] leading-snug mb-2">
+                    <blockquote className="my-8 py-6 border-y border-[#DFDBD3]">
+                      <p className="text-xl md:text-2xl font-serif italic text-[#222426] leading-snug mb-2">
                         “{section.pullQuote.text}”
                       </p>
-                      <footer className="text-xs uppercase tracking-wider font-semibold text-[#28537D]">
+                      <footer className="text-xs uppercase tracking-wider font-semibold text-[#62666A]">
                         — {section.pullQuote.attribution}
                       </footer>
                     </blockquote>
@@ -1312,22 +1312,22 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                 aria-labelledby="heading-comparison-table"
                 className="pt-2 scroll-mt-24"
               >
-                <div className="rounded-3xl bg-[#F5F4F0] border border-[#1B3D5F]/10 p-6 md:p-8 space-y-4">
+                <div className="rounded-3xl bg-[#F5F4F0] border border-[#DFDBD3] p-6 md:p-8 space-y-4">
                   <div>
                     <h2
                       id="heading-comparison-table"
-                      className="font-serif font-semibold text-xl md:text-2xl text-[#1B3D5F]"
+                      className="font-serif font-semibold text-xl md:text-2xl text-[#222426]"
                     >
                       {article.comparisonTable.title}
                     </h2>
-                    <p className="text-xs text-[#28537D] mt-1">
+                    <p className="text-xs text-[#62666A] mt-1">
                       {article.comparisonTable.caption}
                     </p>
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse text-xs md:text-sm">
                       <thead>
-                        <tr className="border-b border-[#1B3D5F]/15 text-[#28537D] text-xs uppercase tracking-wider">
+                        <tr className="border-b border-[#DFDBD3] text-[#222426] text-xs uppercase tracking-wider">
                           {article.comparisonTable.headers.map((h, i) => (
                             <th key={i} className="py-3.5 px-4 font-semibold">
                               {h}
@@ -1335,19 +1335,19 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                           ))}
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-[#1B3D5F]/10">
+                      <tbody className="divide-y divide-[#DFDBD3]">
                         {article.comparisonTable.rows.map((row, rIdx) => (
                           <tr key={rIdx}>
-                            <td className="py-3.5 px-4 font-semibold text-[#1B3D5F]">
+                            <td className="py-3.5 px-4 font-semibold text-[#222426]">
                               {row.dimension}
                             </td>
-                            <td className="py-3.5 px-4 text-[#28537D]">
+                            <td className="py-3.5 px-4 text-[#292B2D]">
                               {row.noveltyGift}
                             </td>
-                            <td className="py-3.5 px-4 text-[#1B3D5F] font-medium">
+                            <td className="py-3.5 px-4 text-[#222426] font-medium">
                               {row.ritualObject}
                             </td>
-                            <td className="py-3.5 px-4 text-[#28537D]">
+                            <td className="py-3.5 px-4 text-[#292B2D]">
                               {row.empiricalEffect}
                             </td>
                           </tr>
@@ -1365,24 +1365,24 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             <section
               id="academic-citations"
               aria-labelledby="heading-references"
-              className="pt-10 border-t border-[#D9DFE2] space-y-6 scroll-mt-24"
+              className="pt-10 border-t border-[#DFDBD3] space-y-6 scroll-mt-24"
             >
               <div className="space-y-1.5 max-w-2xl">
-                <div className="text-xs font-semibold uppercase tracking-widest text-[#405B70]">
+                <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
                   Bibliography & Research Sources
                 </div>
                 <h2
                   id="heading-references"
-                  className="text-2xl font-serif font-semibold text-[#1B3D5F]"
+                  className="text-2xl font-serif font-semibold text-[#222426]"
                 >
                   References & Empirical Literature
                 </h2>
-                <p className="text-xs text-[#294B68] leading-relaxed">
+                <p className="text-xs text-[#62666A] leading-relaxed">
                   All studies cited in this article are real, peer-reviewed publications in social and consumer psychology. Summaries distinguish the original study findings from our editorial examples.
                 </p>
               </div>
 
-              <ol className="space-y-4 text-xs text-[#294B68]">
+              <ol className="space-y-4 text-xs text-[#292B2D]">
                 {article.citationIds.map((citId) => {
                   const cit = citationsMap[citId];
                   const num = citationIndexMap[citId];
@@ -1402,8 +1402,8 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                       id={`ref-${cit.id}`}
                       className={`p-5 md:p-6 rounded-2xl transition-colors scroll-mt-28 ${
                         isHighlighted
-                          ? 'bg-[#E5F5EE] border border-[#1B3D5F] ring-2 ring-[#1B3D5F]'
-                          : 'bg-[#FFFFFF] border border-[#D9DFE2]'
+                          ? 'bg-[#E5F5EE] border border-[#28537D] ring-2 ring-[#28537D]'
+                          : 'bg-[#FFFFFF] border border-[#DFDBD3]'
                       }`}
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
@@ -1419,44 +1419,44 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                                 );
                               }}
                               aria-label={`Return to citation [${num}] in article text`}
-                              className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-mono font-semibold text-[#1B3D5F] bg-[#E5F5EE] border border-[#405B70] hover:bg-[#1B3D5F] hover:text-[#FFFFFF] hover:border-[#1B3D5F] rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] no-underline"
+                              className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-mono font-semibold text-[#28537D] bg-[#E5F5EE] border border-[#28537D]/40 hover:bg-[#28537D] hover:text-[#FFFFFF] hover:border-[#28537D] rounded-md transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] no-underline"
                             >
                               [{num}]
                             </a>
                           ) : (
-                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-mono font-semibold text-[#1B3D5F] bg-[#E5F5EE] rounded-md">
+                            <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-mono font-semibold text-[#28537D] bg-[#E5F5EE] rounded-md">
                               [{num}]
                             </span>
                           )}
-                          <span className="font-mono font-semibold text-[#1B3D5F]">
+                          <span className="font-mono font-semibold text-[#222426]">
                             {cit.authors} ({cit.year})
                           </span>
                         </div>
-                        <span className="text-[11px] font-medium text-[#405B70]">
+                        <span className="text-[11px] font-medium text-[#62666A]">
                           {cit.verificationStatus === 'verified-doi'
                             ? 'Verified Peer-Reviewed Source'
                             : 'Sample Citation Fixture'}
                         </span>
                       </div>
 
-                      <h3 className="text-sm font-serif font-semibold text-[#1B3D5F] mb-1">
+                      <h3 className="text-sm font-serif font-semibold text-[#222426] mb-1">
                         {cit.title}
                       </h3>
 
-                      <div className="italic text-[#405B70] mb-3">
+                      <div className="italic text-[#62666A] mb-3">
                         {cit.publication}
                       </div>
 
-                      <div className="space-y-2 text-[#294B68] leading-relaxed mb-3">
+                      <div className="space-y-2 text-[#292B2D] leading-relaxed mb-3">
                         <p>
-                          <strong className="font-semibold text-[#1B3D5F]">
+                          <strong className="font-semibold text-[#222426]">
                             Study Finding:{' '}
                           </strong>
                           {cit.keyFinding}
                         </p>
                         {cit.limitations && (
-                          <p className="text-[#294B68]">
-                            <strong className="font-semibold text-[#1B3D5F]">
+                          <p className="text-[#292B2D]">
+                            <strong className="font-semibold text-[#222426]">
                               Context & Limitations:{' '}
                             </strong>
                             {cit.limitations}
@@ -1464,12 +1464,12 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                         )}
                       </div>
 
-                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#D9DFE2]">
+                      <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#DFDBD3]">
                         <a
                           href={cit.doiOrUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 font-semibold text-[#1B3D5F] hover:text-[#294B68] underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+                          className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F] underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
                         >
                           <span>Original Research ({cit.doiOrUrl})</span>
                           <ExternalLink className="w-3 h-3" />
@@ -1486,7 +1486,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                                   primaryReturnTarget.markerId
                                 );
                               }}
-                              className="inline-flex items-center gap-1 font-semibold text-[#294B68] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+                              className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
                             >
                               <ArrowUpLeft className="w-3.5 h-3.5" />
                               <span>Back to citation in text</span>
@@ -1497,7 +1497,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                                 aria-label={`All occurrences of citation ${num} in text`}
                                 className="inline-flex items-center gap-1.5 text-[11px]"
                               >
-                                <span className="text-[#405B70]" aria-hidden="true">·</span>
+                                <span className="text-[#62666A]" aria-hidden="true">·</span>
                                 {occurrencesForCit.map((occ) => (
                                   <a
                                     key={occ.markerId}
@@ -1509,8 +1509,8 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                                     aria-label={`Jump to citation ${num} occurrence ${occ.occurrenceSuffix}`}
                                     className={`px-1.5 py-0.5 rounded font-mono transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] no-underline ${
                                       primaryReturnTarget.markerId === occ.markerId
-                                        ? 'bg-[#1B3D5F] text-[#FFFFFF] border border-[#1B3D5F] font-semibold'
-                                        : 'bg-[#E5F5EE] text-[#1B3D5F] border border-[#405B70] hover:bg-[#1B3D5F] hover:text-[#FFFFFF] hover:border-[#1B3D5F]'
+                                        ? 'bg-[#28537D] text-[#FFFFFF] border border-[#28537D] font-semibold'
+                                        : 'bg-[#E5F5EE] text-[#28537D] border border-[#28537D]/40 hover:bg-[#28537D] hover:text-[#FFFFFF] hover:border-[#28537D]'
                                     }`}
                                   >
                                     {num}
@@ -1534,7 +1534,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             {author && (
               <aside
                 aria-label="About the author"
-                className="p-6 rounded-3xl bg-[#F5F4F0] border border-[#1B3D5F]/10 flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-2xl"
+                className="p-6 rounded-3xl bg-[#F5F4F0] border border-[#DFDBD3] flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-2xl"
               >
                 <PhotoImage
                   src={author.avatarUrl}
@@ -1542,11 +1542,11 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   className="w-14 h-14 rounded-full object-cover shrink-0"
                 />
                 <div className="space-y-1 text-xs">
-                  <div className="font-semibold text-sm text-[#1B3D5F]">
+                  <div className="font-semibold text-sm text-[#222426]">
                     Written by {author.name}
                   </div>
-                  <div className="text-[#28537D] font-medium">{author.role}</div>
-                  <p className="text-[#1B3D5F]/85 leading-relaxed">
+                  <div className="text-[#62666A] font-medium">{author.role}</div>
+                  <p className="text-[#292B2D] leading-relaxed">
                     {author.bio}
                   </p>
                 </div>
@@ -1556,7 +1556,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             {/* Related Gift Guides & Companion Stories */}
             <section
               aria-labelledby="heading-related-reading"
-              className="pt-8 border-t border-[#1B3D5F]/12 space-y-6"
+              className="pt-8 border-t border-[#DFDBD3] space-y-6"
             >
               <div>
                 <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1">
@@ -1564,7 +1564,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                 </div>
                 <h2
                   id="heading-related-reading"
-                  className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F]"
+                  className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
                 >
                   Related Gift Guides & Next Reading
                 </h2>
@@ -1596,7 +1596,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                       <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                         Gift Guide · {guide.readTimeMinutes} min read
                       </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug">
+                      <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug">
                         <a
                           href={`/gift-guides/${guide.slug}/`}
                           onClick={(e) => {
@@ -1605,12 +1605,12 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                               onSelectGuide(guide.slug);
                             }
                           }}
-                          className="text-left hover:underline"
+                          className="text-left hover:text-[#28537D] hover:underline"
                         >
                           {guide.title}
                         </a>
                       </h3>
-                      <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
+                      <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
                         {guide.subtitle}
                       </p>
                     </div>
@@ -1623,7 +1623,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                           onSelectGuide(guide.slug);
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                     >
                       <span>Explore Gift Guide</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1656,7 +1656,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                       <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                         Next Story · {relArt.category}
                       </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug">
+                      <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug">
                         <a
                           href={`/articles/${relArt.slug}/`}
                           onClick={(e) => {
@@ -1665,12 +1665,12 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                               onSelectArticle(relArt.slug);
                             }
                           }}
-                          className="text-left hover:underline"
+                          className="text-left hover:text-[#28537D] hover:underline"
                         >
                           {relArt.title}
                         </a>
                       </h3>
-                      <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
+                      <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
                         {relArt.subtitle}
                       </p>
                     </div>
@@ -1683,7 +1683,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                           onSelectArticle(relArt.slug);
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                     >
                       <span>Read Story</span>
                       <ArrowRight className="w-3.5 h-3.5" />

@@ -725,10 +725,10 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         aria-pressed={isSelected}
         className={`group w-full px-2.5 py-1.5 rounded-lg text-xs flex items-center justify-between gap-2 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[#1B3D5F] ${
           isSelected
-            ? 'bg-[#E8F8F0] text-[#1B3D5F] font-semibold ring-1 ring-[#1B3D5F]/20 shadow-2xs'
+            ? 'bg-[#E8F8F0] text-[#222426] font-semibold ring-1 ring-[#1B3D5F]/20 shadow-2xs'
             : isZeroUnselected
-              ? 'text-[#405B70]/65 opacity-55 hover:opacity-80 hover:bg-white/40 font-normal'
-              : 'text-[#1B3D5F] hover:bg-white/75 font-medium'
+              ? 'text-[#62666A]/65 opacity-55 hover:opacity-80 hover:bg-white/40 font-normal'
+              : 'text-[#292B2D] hover:bg-white/75 font-medium'
         }`}
       >
         <span className="flex items-center gap-2 min-w-0">
@@ -738,8 +738,8 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               isSelected
                 ? 'bg-[#1B3D5F] border-[#1B3D5F] text-white'
                 : isZeroUnselected
-                  ? 'border-[#1B3D5F]/20 bg-transparent'
-                  : 'border-[#1B3D5F]/30 bg-white/80 group-hover:border-[#1B3D5F]/60'
+                  ? 'border-[#DFDBD3] bg-transparent'
+                  : 'border-[#62666A]/45 bg-white/80 group-hover:border-[#28537D]'
             }`}
           >
             {isSelected && <Check className="w-2.5 h-2.5 stroke-[2.75]" />}
@@ -749,10 +749,10 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         <span
           className={`tabular-nums text-[11px] shrink-0 ${
             isSelected
-              ? 'font-semibold text-[#1B3D5F]'
+              ? 'font-semibold text-[#222426]'
               : isZeroUnselected
-                ? 'text-[#405B70]/55'
-                : 'font-medium text-[#28537D]'
+                ? 'text-[#62666A]/55'
+                : 'font-medium text-[#62666A]'
           }`}
         >
           {count}
@@ -797,8 +797,8 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       <div className="space-y-3.5">
         {/* Active Filter Chips inside Sidebar (for immediate visibility & individual removal) */}
         {activeSidebarFilterPills.length > 0 && (
-          <div className="pb-3 border-b border-[#1B3D5F]/10 space-y-1.5">
-            <div className="flex items-center justify-between text-[11px] text-[#28537D]">
+          <div className="pb-3 border-b border-[#DFDBD3] space-y-1.5">
+            <div className="flex items-center justify-between text-[11px] text-[#62666A]">
               <span className="font-medium">
                 Active filters ({activeSidebarFilterPills.length})
               </span>
@@ -818,7 +818,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     'Cleared active filters'
                   );
                 }}
-                className="font-semibold text-[#1B3D5F] hover:text-[#F2846B] underline"
+                className="font-semibold text-[#28537D] hover:text-[#F2846B] underline"
               >
                 Clear filters
               </button>
@@ -830,7 +830,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   type="button"
                   onClick={pill.onRemove}
                   aria-label={`Remove filter ${pill.label}`}
-                  className="px-2 py-1 rounded-md bg-white hover:bg-[#1B3D5F] text-[#1B3D5F] hover:text-white text-[11px] font-medium inline-flex items-center gap-1 transition-colors border border-[#1B3D5F]/12 focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+                  className="px-2 py-1 rounded-md bg-white hover:bg-[#1B3D5F] text-[#292B2D] hover:text-white text-[11px] font-medium inline-flex items-center gap-1 transition-colors border border-[#DFDBD3] focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
                 >
                   <span className="truncate max-w-[150px]">
                     {pill.shortLabel}
@@ -854,14 +854,14 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.budget}
               aria-controls={`${idPrefix}-panel-budget`}
               onClick={() => toggleSidebarSection('budget')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Budget & Price</span>
                 {hasAnyBudgetConstraint && (
                   <span
                     data-testid={`${idPrefix}-badge-budget`}
-                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
                   >
                     {filters.budgetTier !== 'all'
                       ? BUDGET_TIER_LABELS[filters.budgetTier]
@@ -913,8 +913,8 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                           isSelected
                             ? 'bg-[#1B3D5F] text-white font-semibold shadow-2xs'
                             : isZeroUnselected
-                              ? 'bg-white/45 text-[#405B70]/60 opacity-55 hover:opacity-80 border border-[#1B3D5F]/8'
-                              : 'bg-white/85 text-[#1B3D5F] hover:bg-white font-medium border border-[#1B3D5F]/12'
+                              ? 'bg-white/45 text-[#62666A]/60 opacity-55 hover:opacity-80 border border-[#DFDBD3]'
+                              : 'bg-white/85 text-[#292B2D] hover:bg-white font-medium border border-[#DFDBD3]'
                         }`}
                       >
                         <div className="leading-tight">
@@ -925,8 +925,8 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                             isSelected
                               ? 'text-[#C3F3DF] font-semibold'
                               : isZeroUnselected
-                                ? 'text-[#405B70]/50'
-                                : 'text-[#28537D]'
+                                ? 'text-[#62666A]/50'
+                                : 'text-[#62666A]'
                           }`}
                         >
                           {count} {count === 1 ? 'gift' : 'gifts'}
@@ -942,7 +942,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                 <div className="flex items-center justify-between gap-2">
                   <label
                     htmlFor={`${idPrefix}-custom-max-price`}
-                    className="text-[11px] font-medium text-[#28537D]"
+                    className="text-[11px] font-medium text-[#62666A]"
                   >
                     Or custom max ($):
                   </label>
@@ -962,7 +962,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     className="flex items-center gap-1"
                   >
                     <div className="relative flex items-center">
-                      <span className="text-[11px] text-[#28537D] absolute left-2 pointer-events-none">
+                      <span className="text-[11px] text-[#62666A] absolute left-2 pointer-events-none">
                         $
                       </span>
                       <input
@@ -981,7 +981,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                         }}
                         placeholder="Max"
                         aria-label="Custom maximum price in USD"
-                        className="w-20 pl-5 pr-2 py-1 text-xs rounded-lg bg-white text-[#1B3D5F] font-medium border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#1B3D5F] tabular-nums"
+                        className="w-20 pl-5 pr-2 py-1 text-xs rounded-lg bg-white text-[#292B2D] font-medium border border-[#DFDBD3] focus:outline-2 focus:outline-[#1B3D5F] tabular-nums"
                       />
                     </div>
                     <button
@@ -995,7 +995,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
                 {/* Quick Custom Max Presets ($40, $50, $100) */}
                 <div className="flex items-center justify-between gap-1 text-[11px]">
-                  <span className="text-[#405B70] text-[10px]">Quick caps:</span>
+                  <span className="text-[#62666A] text-[10px]">Quick caps:</span>
                   <div className="flex items-center gap-1">
                     {[40, 50, 100].map((cap) => {
                       const isCapActive =
@@ -1010,8 +1010,8 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                           aria-pressed={isCapActive}
                           className={`px-2 py-0.5 rounded-md text-[11px] tabular-nums transition-colors ${
                             isCapActive
-                              ? 'bg-[#E8F8F0] text-[#1B3D5F] font-semibold ring-1 ring-[#1B3D5F]/25'
-                              : 'bg-white/70 hover:bg-white text-[#28537D] font-medium'
+                              ? 'bg-[#E8F8F0] text-[#222426] font-semibold ring-1 ring-[#1B3D5F]/25'
+                              : 'bg-white/70 hover:bg-white text-[#292B2D] font-medium'
                           }`}
                         >
                           ≤ ${cap}
@@ -1023,25 +1023,25 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
                 {/* Active Budget Rule Explanation (prevents silent contradiction between ranges & custom max) */}
                 {hasAnyBudgetConstraint && (
-                  <div className="px-2.5 py-1.5 rounded-lg bg-[#E8F8F0]/80 text-[11px] text-[#1B3D5F] flex items-center justify-between gap-2">
+                  <div className="px-2.5 py-1.5 rounded-lg bg-[#E8F8F0]/80 text-[11px] text-[#292B2D] flex items-center justify-between gap-2">
                     <span className="truncate">
                       {filters.budgetTier !== 'all' ? (
                         <>
                           Active range:{' '}
-                          <strong>{BUDGET_TIER_LABELS[filters.budgetTier]}</strong>
+                          <strong className="text-[#222426]">{BUDGET_TIER_LABELS[filters.budgetTier]}</strong>
                         </>
                       ) : filters.maxPrice !== null ? (
                         <>
-                          Active custom max: <strong>≤ ${filters.maxPrice}</strong>
+                          Active custom max: <strong className="text-[#222426]">≤ ${filters.maxPrice}</strong>
                         </>
                       ) : (
                         <>
                           Query budget:{' '}
-                          <strong>≤ ${evaluation.effectiveMaxPrice}</strong>
+                          <strong className="text-[#222426]">≤ ${evaluation.effectiveMaxPrice}</strong>
                         </>
                       )}
                     </span>
-                    <span className="text-[10px] text-[#28537D] shrink-0">
+                    <span className="text-[10px] text-[#62666A] shrink-0">
                       {filters.budgetTier !== 'all'
                         ? 'Custom max replaces range'
                         : 'Range replaces custom max'}
@@ -1056,7 +1056,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* 3. Who Is It For? (Collapsible, starts collapsed) */}
         <section
           aria-labelledby={`${idPrefix}-heading-recipient`}
-          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+          className="space-y-1.5 pt-3.5 border-t border-[#DFDBD3]"
         >
           <div className="flex items-center justify-between gap-2">
             <button
@@ -1065,14 +1065,14 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.recipient}
               aria-controls={`${idPrefix}-panel-recipient`}
               onClick={() => toggleSidebarSection('recipient')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Who Is It For?</span>
                 {filters.recipient !== 'all' && (
                   <span
                     data-testid={`${idPrefix}-badge-recipient`}
-                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
                   >
                     {RECIPIENT_LABELS[filters.recipient]}
                   </span>
@@ -1116,7 +1116,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* 4. Occasion (Collapsible, starts collapsed) */}
         <section
           aria-labelledby={`${idPrefix}-heading-occasion`}
-          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+          className="space-y-1.5 pt-3.5 border-t border-[#DFDBD3]"
         >
           <div className="flex items-center justify-between gap-2">
             <button
@@ -1125,14 +1125,14 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.occasion}
               aria-controls={`${idPrefix}-panel-occasion`}
               onClick={() => toggleSidebarSection('occasion')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Occasion</span>
                 {filters.occasion !== 'all' && (
                   <span
                     data-testid={`${idPrefix}-badge-occasion`}
-                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
                   >
                     {OCCASION_LABELS[filters.occasion]}
                   </span>
@@ -1176,7 +1176,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* 5. Interests (Collapsible with Active Selection Indicator + Compact Top-6 / Expand All) */}
         <section
           aria-labelledby={`${idPrefix}-heading-interests`}
-          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+          className="space-y-1.5 pt-3.5 border-t border-[#DFDBD3]"
         >
           <div className="flex items-center justify-between gap-2">
             <button
@@ -1185,12 +1185,12 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.interests}
               aria-controls={`${idPrefix}-panel-interests`}
               onClick={() => toggleSidebarSection('interests')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Interests</span>
                 {filters.interest !== 'all' && (
-                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]">
+                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]">
                     {filters.interest}
                   </span>
                 )}
@@ -1245,7 +1245,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* 6. Gift Style & Vibe (Collapsible with Active Selection Indicator) */}
         <section
           aria-labelledby={`${idPrefix}-heading-style`}
-          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+          className="space-y-1.5 pt-3.5 border-t border-[#DFDBD3]"
         >
           <div className="flex items-center justify-between gap-2">
             <button
@@ -1254,12 +1254,12 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.style}
               aria-controls={`${idPrefix}-panel-style`}
               onClick={() => toggleSidebarSection('style')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Gift Style & Vibe</span>
                 {filters.personalityTrait !== 'all' && (
-                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[100px]">
+                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[100px]">
                     {PERSONALITY_LABELS[filters.personalityTrait]}
                   </span>
                 )}
@@ -1305,7 +1305,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* 7. Other Supported Facets: Product Category (Collapsible) & Editorial Picks */}
         <section
           aria-labelledby={`${idPrefix}-heading-category`}
-          className="space-y-1.5 pt-3.5 border-t border-[#1B3D5F]/10"
+          className="space-y-1.5 pt-3.5 border-t border-[#DFDBD3]"
         >
           <div className="flex items-center justify-between gap-2">
             <button
@@ -1314,12 +1314,12 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.category}
               aria-controls={`${idPrefix}-panel-category`}
               onClick={() => toggleSidebarSection('category')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Product Category</span>
                 {filters.category !== 'all' && (
-                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[100px]">
+                  <span className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[100px]">
                     {filters.category}
                   </span>
                 )}
@@ -1363,7 +1363,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* 8. Editorial Curation (Collapsible, starts collapsed) */}
         <section
           aria-labelledby={`${idPrefix}-heading-editorial`}
-          className="pt-3.5 border-t border-[#1B3D5F]/10 space-y-1.5"
+          className="pt-3.5 border-t border-[#DFDBD3] space-y-1.5"
         >
           <div className="flex items-center justify-between gap-2">
             <button
@@ -1372,14 +1372,14 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               aria-expanded={!collapsedSections.editorial}
               aria-controls={`${idPrefix}-panel-editorial`}
               onClick={() => toggleSidebarSection('editorial')}
-              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
+              className="flex-1 flex items-center justify-between gap-2 text-left text-xs font-semibold uppercase tracking-wider text-[#222426] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] rounded-sm"
             >
               <span className="flex items-center gap-1.5 min-w-0">
                 <span>Editorial Curation</span>
                 {filters.editorialOnly && (
                   <span
                     data-testid={`${idPrefix}-badge-editorial`}
-                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#1B3D5F] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
+                    className="px-1.5 py-0.5 rounded-sm bg-[#E8F8F0] text-[#222426] text-[10px] font-semibold normal-case tracking-normal truncate max-w-[110px]"
                   >
                     Editor’s Picks
                   </span>
@@ -1425,7 +1425,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
          ===================================================================== */}
       <section className="rounded-3xl bg-gradient-to-br from-[#EBF3FE] via-[#F4F9FD] to-[#E8F8F0] p-6 md:p-10 shadow-xs space-y-6">
         {/* Mode Switcher Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1B3D5F]/10 pb-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#DFDBD3] pb-5">
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
@@ -1433,7 +1433,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               className={`px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 transition-colors ${
                 activeMode === 'finder'
                   ? 'bg-[#1B3D5F] text-white'
-                  : 'bg-white/85 text-[#1B3D5F] hover:bg-white'
+                  : 'bg-white/85 text-[#292B2D] hover:bg-white'
               }`}
             >
               <Search className="w-3.5 h-3.5" />
@@ -1446,7 +1446,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               className={`px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 transition-colors ${
                 activeMode === 'quiz'
                   ? 'bg-[#1B3D5F] text-white'
-                  : 'bg-white/85 text-[#1B3D5F] hover:bg-white'
+                  : 'bg-white/85 text-[#292B2D] hover:bg-white'
               }`}
             >
               <Compass className="w-3.5 h-3.5" />
@@ -1463,7 +1463,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               className={`px-4 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-2 transition-colors ${
                 activeMode === 'lists'
                   ? 'bg-[#1B3D5F] text-white'
-                  : 'bg-white/85 text-[#1B3D5F] hover:bg-white'
+                  : 'bg-white/85 text-[#292B2D] hover:bg-white'
               }`}
             >
               <ListChecks className="w-3.5 h-3.5" />
@@ -1477,7 +1477,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
             <button
               type="button"
               onClick={handleCopyShareableUrl}
-              className="px-3.5 py-2 rounded-full bg-white/90 hover:bg-white text-xs font-semibold text-[#1B3D5F] inline-flex items-center gap-1.5 transition-colors"
+              className="px-3.5 py-2 rounded-full bg-white/90 hover:bg-white text-xs font-semibold text-[#292B2D] inline-flex items-center gap-1.5 transition-colors"
             >
               <Share2 className="w-3.5 h-3.5 text-[#28537D]" />
               <span>
@@ -1491,13 +1491,13 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         <form onSubmit={handleSearchSubmit} className="space-y-3" role="search">
           <label
             htmlFor="gift-finder-nl-input"
-            className="block text-sm font-semibold text-[#1B3D5F]"
+            className="block text-sm font-semibold text-[#222426]"
           >
             Describe who you are shopping for, what they love, or your budget in
             plain language:
           </label>
           <div className="relative flex items-center">
-            <Search className="w-5 h-5 text-[#28537D] absolute left-4 pointer-events-none" />
+            <Search className="w-5 h-5 text-[#62666A] absolute left-4 pointer-events-none" />
             <input
               id="gift-finder-nl-input"
               type="search"
@@ -1506,7 +1506,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                 setSearchDraft(e.target.value);
               }}
               placeholder="Try “tea gifts for mom under $50” or “housewarming gift for someone who likes plants”..."
-              className="w-full pl-12 pr-44 py-4 text-sm md:text-base rounded-2xl bg-white text-[#1B3D5F] placeholder:text-[#28537D]/55 shadow-xs border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#1B3D5F]"
+              className="w-full pl-12 pr-44 py-4 text-sm md:text-base rounded-2xl bg-white text-[#292B2D] placeholder:text-[#62666A]/70 shadow-xs border border-[#DFDBD3] focus:outline-2 focus:outline-[#1B3D5F]"
             />
             <div className="absolute right-2.5 flex items-center gap-1.5">
               {(searchDraft || filters.query) && (
@@ -1523,7 +1523,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     }
                   }}
                   aria-label="Clear search query"
-                  className="px-3 py-2 rounded-xl bg-[#F3ECE1] hover:bg-[#1B3D5F] hover:text-white text-xs font-semibold text-[#1B3D5F] transition-colors"
+                  className="px-3 py-2 rounded-xl bg-[#F3ECE1] hover:bg-[#1B3D5F] hover:text-white text-xs font-semibold text-[#292B2D] transition-colors"
                 >
                   Clear
                 </button>
@@ -1541,7 +1541,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
           {/* Example Natural-Language Prompts */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="text-xs font-semibold text-[#28537D]">
+            <span className="text-xs font-semibold text-[#62666A]">
               Try an example:
             </span>
             {EXAMPLE_NATURAL_QUERIES.map((example) => {
@@ -1566,7 +1566,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
                     isCurrent
                       ? 'bg-[#1B3D5F] text-white font-semibold'
-                      : 'bg-white/85 text-[#1B3D5F] hover:bg-white'
+                      : 'bg-white/85 text-[#292B2D] hover:bg-white'
                   }`}
                 >
                   “{example.label}”
@@ -1582,14 +1582,14 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
           evaluation.parsedQuery.inferredOccasions.length > 0 ||
           evaluation.parsedQuery.inferredInterests.length > 0 ||
           evaluation.effectiveMaxPrice !== null) && (
-          <div className="p-4 rounded-2xl bg-white/90 border border-[#1B3D5F]/10 space-y-2.5">
+          <div className="p-4 rounded-2xl bg-white/90 border border-[#DFDBD3] space-y-2.5">
             <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div className="flex flex-wrap items-center gap-2 text-[#28537D]">
-                <span className="font-semibold text-[#1B3D5F]">
+              <div className="flex flex-wrap items-center gap-2 text-[#292B2D]">
+                <span className="font-semibold text-[#222426]">
                   Active Criteria & Recognized Signals:
                 </span>
                 {evaluation.effectiveMaxPrice !== null && (
-                  <span className="font-semibold text-[#1B3D5F]">
+                  <span className="font-semibold text-[#222426]">
                     Hard Budget Cap: ≤ ${evaluation.effectiveMaxPrice} USD
                     (excludes over-budget & unpriced items)
                   </span>
@@ -1623,7 +1623,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-[#1B3D5F] hover:text-[#F2846B] underline shrink-0"
+                className="inline-flex items-center gap-1 text-xs font-semibold text-[#28537D] hover:text-[#F2846B] underline shrink-0"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset All ({products.length} Gifts)</span>
@@ -1637,7 +1637,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     key={pill.id}
                     type="button"
                     onClick={pill.onRemove}
-                    className="px-3 py-1 rounded-full bg-[#F3ECE1] hover:bg-[#1B3D5F] hover:text-white text-xs font-semibold text-[#1B3D5F] inline-flex items-center gap-1.5 transition-colors"
+                    className="px-3 py-1 rounded-full bg-[#F3ECE1] hover:bg-[#1B3D5F] hover:text-white text-xs font-semibold text-[#292B2D] inline-flex items-center gap-1.5 transition-colors"
                   >
                     <span>{pill.label}</span>
                     <X className="w-3 h-3" />
@@ -1655,7 +1655,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       {activeMode === 'quiz' && (
         <section
           aria-label="Guided Gift-Finding Quiz"
-          className="rounded-3xl bg-[#F3ECE1] p-6 md:p-10 space-y-8 border border-[#1B3D5F]/10"
+          className="rounded-3xl bg-[#F3ECE1] p-6 md:p-10 space-y-8 border border-[#DFDBD3]"
         >
           {/* Progress Header */}
           <div className="space-y-4">
@@ -1665,21 +1665,21 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   Guided Gift Concierge · Step {quizStepIndex + 1} of{' '}
                   {QUIZ_STEPS.length}
                 </div>
-                <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F]">
+                <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]">
                   {QUIZ_STEPS[quizStepIndex].question}
                 </h2>
-                <p className="text-sm text-[#28537D] mt-1">
+                <p className="text-sm text-[#292B2D] mt-1">
                   {QUIZ_STEPS[quizStepIndex].subtitle}
                 </p>
               </div>
 
               <div className="text-right">
-                <div className="text-xs text-[#28537D]">
+                <div className="text-xs text-[#62666A]">
                   Current Matching Gifts
                 </div>
-                <div className="text-2xl font-serif font-semibold text-[#1B3D5F] tabular-nums">
+                <div className="text-2xl font-serif font-semibold text-[#222426] tabular-nums">
                   {quizEvaluation.totalEligibleCount}{' '}
-                  <span className="text-xs font-sans font-normal text-[#28537D]">
+                  <span className="text-xs font-sans font-normal text-[#62666A]">
                     of {products.length}
                   </span>
                 </div>
@@ -1700,8 +1700,8 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       isCurrent
                         ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
                         : isDone
-                          ? 'bg-[#E8F8F0] text-[#1B3D5F] border-[#1B3D5F]/15'
-                          : 'bg-white/70 text-[#28537D] border-transparent hover:bg-white'
+                          ? 'bg-[#E8F8F0] text-[#222426] border-[#DFDBD3]'
+                          : 'bg-white/70 text-[#62666A] border-transparent hover:bg-white'
                     }`}
                   >
                     <div className="text-[10px] font-semibold uppercase tracking-wider opacity-80">
@@ -1747,7 +1747,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   className={`p-4 rounded-2xl text-left transition-colors border ${
                     quizAnswers.recipient === 'all'
                       ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                      : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                      : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                   }`}
                 >
                   <div className="font-serif font-semibold text-base">
@@ -1777,7 +1777,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       className={`p-4 rounded-2xl text-left transition-colors border ${
                         selected
                           ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                          : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                          : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                       }`}
                     >
                       <div className="font-serif font-semibold text-base">
@@ -1802,7 +1802,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   className={`p-4 rounded-2xl text-left transition-colors border ${
                     quizAnswers.interest === 'all'
                       ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                      : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                      : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                   }`}
                 >
                   <div className="font-semibold text-sm">
@@ -1827,7 +1827,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       className={`p-4 rounded-2xl text-left transition-colors border ${
                         selected
                           ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                          : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                          : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                       }`}
                     >
                       <div className="font-semibold text-sm">
@@ -1852,7 +1852,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   className={`p-4 rounded-2xl text-left transition-colors border ${
                     quizAnswers.occasion === 'all'
                       ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                      : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                      : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                   }`}
                 >
                   <div className="font-serif font-semibold text-base">
@@ -1878,7 +1878,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       className={`p-4 rounded-2xl text-left transition-colors border ${
                         selected
                           ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                          : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                          : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                       }`}
                     >
                       <div className="font-serif font-semibold text-base">
@@ -1930,7 +1930,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       className={`p-4 rounded-2xl text-left transition-colors border ${
                         selected
                           ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                          : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                          : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                       }`}
                     >
                       <div className="font-serif font-semibold text-base">
@@ -1953,7 +1953,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   className={`p-4 rounded-2xl text-left transition-colors border ${
                     quizAnswers.personalityTrait === 'all'
                       ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                      : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                      : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                   }`}
                 >
                   <div className="font-serif font-semibold text-base">
@@ -1982,7 +1982,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       className={`p-4 rounded-2xl text-left transition-colors border ${
                         selected
                           ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                          : 'bg-white text-[#1B3D5F] border-[#1B3D5F]/10 hover:border-[#1B3D5F]'
+                          : 'bg-white text-[#222426] border-[#DFDBD3] hover:border-[#1B3D5F]'
                       }`}
                     >
                       <div className="font-serif font-semibold text-base">
@@ -1996,13 +1996,13 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
           </div>
 
           {/* Quiz Footer Navigation */}
-          <div className="pt-4 border-t border-[#1B3D5F]/10 flex flex-wrap items-center justify-between gap-4">
+          <div className="pt-4 border-t border-[#DFDBD3] flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-2.5">
               <button
                 type="button"
                 disabled={quizStepIndex === 0}
                 onClick={() => setQuizStepIndex((i) => Math.max(0, i - 1))}
-                className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] disabled:opacity-40 inline-flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] disabled:opacity-40 inline-flex items-center gap-1.5"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Previous Step</span>
@@ -2069,17 +2069,17 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       {activeMode === 'lists' && (
         <section
           aria-label="Saved Gift Lists and Recipient Manager"
-          className="rounded-3xl bg-[#F3ECE1] p-6 md:p-10 space-y-8 border border-[#1B3D5F]/10"
+          className="rounded-3xl bg-[#F3ECE1] p-6 md:p-10 space-y-8 border border-[#DFDBD3]"
         >
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
                 Browser-Saved Gift Planner · Private & Local
               </div>
-              <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F]">
+              <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]">
                 Organize Saved Gifts by Recipient or Occasion
               </h2>
-              <p className="text-sm text-[#28537D] mt-1 max-w-2xl">
+              <p className="text-sm text-[#292B2D] mt-1 max-w-2xl">
                 Create separate lists for birthdays, hosts, and holidays, add
                 private notes, and track which gifts you have already purchased.
                 Your private notes stay in your browser and are never added to
@@ -2090,7 +2090,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
             <button
               type="button"
               onClick={dispatchOpenSavedDrawer}
-              className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors"
+              className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#1B3D5F] hover:text-white transition-colors"
             >
               Open Slide-Over Drawer
             </button>
@@ -2118,7 +2118,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                         className={`w-full p-3.5 rounded-2xl text-left transition-colors border ${
                           isSelected
                             ? 'bg-[#1B3D5F] text-white border-[#1B3D5F]'
-                            : 'bg-[#FAF7F2] text-[#1B3D5F] border-transparent hover:border-[#1B3D5F]/20'
+                            : 'bg-[#FAF7F2] text-[#222426] border-transparent hover:border-[#DFDBD3]'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
@@ -2132,7 +2132,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                         </div>
                         <div
                           className={`text-[11px] mt-1 ${
-                            isSelected ? 'text-[#C3F3DF]' : 'text-[#28537D]'
+                            isSelected ? 'text-[#C3F3DF]' : 'text-[#62666A]'
                           }`}
                         >
                           {[list.recipientLabel, list.occasionLabel]
@@ -2151,7 +2151,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                 onSubmit={handleCreateNewList}
                 className="p-5 rounded-2xl bg-white space-y-3.5"
               >
-                <div className="text-xs font-semibold uppercase tracking-wider text-[#1B3D5F] flex items-center gap-1.5">
+                <div className="text-xs font-semibold uppercase tracking-wider text-[#222426] flex items-center gap-1.5">
                   <Plus className="w-4 h-4 text-[#28537D]" />
                   <span>Create New Recipient List</span>
                 </div>
@@ -2159,7 +2159,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                 <div>
                   <label
                     htmlFor="finder-new-list-name"
-                    className="block text-xs font-medium text-[#28537D] mb-1"
+                    className="block text-xs font-medium text-[#62666A] mb-1"
                   >
                     List Name
                   </label>
@@ -2170,7 +2170,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     value={newListName}
                     onChange={(e) => setNewListName(e.target.value)}
                     placeholder="e.g., Mom’s Birthday, Holiday Hosts..."
-                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] border border-[#1B3D5F]/15 focus:outline-2 focus:outline-[#28537D]"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] border border-[#DFDBD3] focus:outline-2 focus:outline-[#28537D]"
                   />
                 </div>
 
@@ -2178,7 +2178,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                   <div>
                     <label
                       htmlFor="finder-new-list-recipient"
-                      className="block text-xs font-medium text-[#28537D] mb-1"
+                      className="block text-xs font-medium text-[#62666A] mb-1"
                     >
                       Relationship (optional)
                     </label>
@@ -2188,13 +2188,13 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       value={newListRecipient}
                       onChange={(e) => setNewListRecipient(e.target.value)}
                       placeholder="Parent, Friend..."
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] border border-[#1B3D5F]/15"
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] border border-[#DFDBD3]"
                     />
                   </div>
                   <div>
                     <label
                       htmlFor="finder-new-list-occasion"
-                      className="block text-xs font-medium text-[#28537D] mb-1"
+                      className="block text-xs font-medium text-[#62666A] mb-1"
                     >
                       Occasion (optional)
                     </label>
@@ -2204,7 +2204,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                       value={newListOccasion}
                       onChange={(e) => setNewListOccasion(e.target.value)}
                       placeholder="Birthday, Holidays..."
-                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#1B3D5F] border border-[#1B3D5F]/15"
+                      className="w-full px-3 py-2 text-xs rounded-xl bg-[#FAF7F2] text-[#292B2D] border border-[#DFDBD3]"
                     />
                   </div>
                 </div>
@@ -2220,12 +2220,12 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
             {/* Right Column: Active List Items & Management */}
             <div className="lg:col-span-8 p-6 rounded-2xl bg-white space-y-5">
-              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#1B3D5F]/10 pb-4">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#DFDBD3] pb-4">
                 <div>
-                  <h3 className="text-xl font-serif font-semibold text-[#1B3D5F]">
+                  <h3 className="text-xl font-serif font-semibold text-[#222426]">
                     {activeSavedList.name}
                   </h3>
-                  <div className="text-xs text-[#28537D] mt-0.5">
+                  <div className="text-xs text-[#62666A] mt-0.5">
                     {resolvedSavedList.validProductsCount}{' '}
                     {resolvedSavedList.validProductsCount === 1
                       ? 'gift'
@@ -2266,9 +2266,9 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               {confirmListAction && (
                 <div
                   role="alert"
-                  className="p-4 rounded-2xl bg-[#FFF4D6] border border-[#1B3D5F]/15 flex flex-wrap items-center justify-between gap-3 text-xs"
+                  className="p-4 rounded-2xl bg-[#FFF4D6] border border-[#DFDBD3] flex flex-wrap items-center justify-between gap-3 text-xs"
                 >
-                  <div className="flex items-center gap-2 font-medium text-[#1B3D5F]">
+                  <div className="flex items-center gap-2 font-medium text-[#292B2D]">
                     <AlertTriangle className="w-4 h-4 text-[#F2846B] shrink-0" />
                     <span>
                       {confirmListAction.type === 'delete-list'
@@ -2280,7 +2280,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     <button
                       type="button"
                       onClick={() => setConfirmListAction(null)}
-                      className="px-3 py-1.5 rounded-full bg-white text-[#1B3D5F] font-semibold"
+                      className="px-3 py-1.5 rounded-full bg-white text-[#222426] font-semibold"
                     >
                       Cancel
                     </button>
@@ -2306,10 +2306,10 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
               {resolvedSavedList.resolvedItems.length === 0 ? (
                 <div className="p-8 rounded-2xl bg-[#FAF7F2] text-center space-y-3">
-                  <p className="font-serif text-lg text-[#1B3D5F]">
+                  <p className="font-serif text-lg text-[#222426]">
                     This list doesn’t have any saved gifts yet.
                   </p>
-                  <p className="text-xs text-[#28537D]">
+                  <p className="text-xs text-[#292B2D]">
                     Switch to Search & Filter to add gifts directly to “
                     {activeSavedList.name}”.
                   </p>
@@ -2329,13 +2329,13 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                         return (
                           <div
                             key={entry.productId}
-                            className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#D9DFE2] flex items-center justify-between gap-4"
+                            className="p-4 rounded-2xl bg-[#FAF7F2] border border-[#DFDBD3] flex items-center justify-between gap-4"
                           >
                             <div>
-                              <div className="text-xs font-semibold text-[#1B3D5F]">
+                              <div className="text-xs font-semibold text-[#222426]">
                                 Unavailable Catalog Item ({entry.productId})
                               </div>
-                              <p className="text-xs text-[#28537D]">
+                              <p className="text-xs text-[#62666A]">
                                 This product is no longer available in the
                                 canonical catalog.
                               </p>
@@ -2348,7 +2348,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                                   activeSavedList.id
                                 )
                               }
-                              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#F2846B] hover:text-white"
+                              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#222426] hover:bg-[#F2846B] hover:text-white"
                             >
                               Remove
                             </button>
@@ -2362,7 +2362,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                           className={`p-4 rounded-2xl border transition-colors space-y-3 ${
                             entry.purchased
                               ? 'bg-[#E8F8F0]/45 border-[#C3F3DF]'
-                              : 'bg-[#FAF7F2] border-[#1B3D5F]/10'
+                              : 'bg-[#FAF7F2] border-[#DFDBD3]'
                           }`}
                         >
                           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -2378,15 +2378,15 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                                 />
                               </div>
                               <div className="min-w-0">
-                                <div className="text-xs text-[#28537D]">
+                                <div className="text-xs text-[#62666A]">
                                   {product.vendor} ·{' '}
-                                  <strong className="text-[#1B3D5F] tabular-nums">
+                                  <strong className="text-[#222426] tabular-nums">
                                     ${product.price} {product.currency}
                                   </strong>
                                 </div>
                                 <a
                                   href={`/products/${product.slug}/`}
-                                  className={`text-base font-serif font-semibold text-[#1B3D5F] hover:underline block truncate ${
+                                  className={`text-base font-serif font-semibold text-[#222426] hover:text-[#28537D] hover:underline block truncate ${
                                     entry.purchased
                                       ? 'line-through opacity-75'
                                       : ''
@@ -2410,7 +2410,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                                 className={`px-3 py-1.5 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 ${
                                   entry.purchased
                                     ? 'bg-[#1B3D5F] text-white'
-                                    : 'bg-white text-[#1B3D5F] hover:bg-[#E8F8F0]'
+                                    : 'bg-white text-[#292B2D] hover:bg-[#E8F8F0]'
                                 }`}
                               >
                                 <Check className="w-3.5 h-3.5" />
@@ -2432,7 +2432,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                                       e.target.value
                                     )
                                   }
-                                  className="px-2.5 py-1.5 rounded-full bg-white text-xs font-medium text-[#1B3D5F] border border-[#1B3D5F]/15"
+                                  className="px-2.5 py-1.5 rounded-full bg-white text-xs font-medium text-[#292B2D] border border-[#DFDBD3]"
                                 >
                                   {giftLists.map((l) => (
                                     <option key={l.id} value={l.id}>
@@ -2450,7 +2450,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                                     activeSavedList.id
                                   )
                                 }
-                                className="p-2 rounded-full text-[#28537D] hover:text-[#F2846B]"
+                                className="p-2 rounded-full text-[#62666A] hover:text-[#F2846B]"
                                 aria-label={`Remove ${product.title}`}
                               >
                                 <Trash2 className="w-4 h-4" />
@@ -2461,7 +2461,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                           <div>
                             <label
                               htmlFor={`planner-note-${activeSavedList.id}-${product.id}`}
-                              className="block text-[11px] font-medium text-[#28537D] mb-1"
+                              className="block text-[11px] font-medium text-[#62666A] mb-1"
                             >
                               Private Note for {activeSavedList.name}:
                             </label>
@@ -2477,7 +2477,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                                 )
                               }
                               placeholder="Add a private reminder (size, occasion date, card inscription)..."
-                              className="w-full px-3 py-2 text-xs rounded-xl bg-white text-[#1B3D5F] border border-[#1B3D5F]/15"
+                              className="w-full px-3 py-2 text-xs rounded-xl bg-white text-[#292B2D] border border-[#DFDBD3]"
                             />
                           </div>
                         </div>
@@ -2498,10 +2498,10 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
         {/* Desktop Faceted Filter Column (3 cols) */}
         <aside
           aria-label="Gift Finder Filters"
-          className="hidden lg:block lg:col-span-3 p-5 rounded-3xl bg-[#F3ECE1]/85 border border-[#1B3D5F]/8 space-y-4 sticky top-24"
+          className="hidden lg:block lg:col-span-3 p-5 rounded-3xl bg-[#F3ECE1]/85 border border-[#DFDBD3] space-y-4 sticky top-24"
         >
-          <div className="flex items-center justify-between border-b border-[#1B3D5F]/10 pb-2.5">
-            <h2 className="flex items-center gap-2 text-sm font-serif font-semibold text-[#1B3D5F]">
+          <div className="flex items-center justify-between border-b border-[#DFDBD3] pb-2.5">
+            <h2 className="flex items-center gap-2 text-sm font-serif font-semibold text-[#222426]">
               <SlidersHorizontal className="w-4 h-4 text-[#28537D]" />
               <span>Filter Gifts</span>
             </h2>
@@ -2525,7 +2525,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
           aria-busy={thinkingState !== null}
         >
           {/* Results Header Bar: Count, Mobile Filter Button, and Sort Control */}
-          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#1B3D5F]/10">
+          <div className="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#DFDBD3]">
             <div className="flex flex-wrap items-center gap-3">
               {/* Mobile Filter Drawer Trigger */}
               <button
@@ -2544,7 +2544,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
               <div
                 aria-live="polite"
-                className="text-sm font-semibold text-[#1B3D5F] tabular-nums"
+                className="text-sm font-semibold text-[#222426] tabular-nums"
               >
                 {thinkingState ? (
                   <span className="text-[#28537D]">
@@ -2555,7 +2555,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                     Showing {evaluation.totalEligibleCount} verified{' '}
                     {evaluation.totalEligibleCount === 1 ? 'gift' : 'gifts'}
                     {evaluation.effectiveMaxPrice !== null && (
-                      <span className="text-[#28537D] font-normal">
+                      <span className="text-[#62666A] font-normal">
                         {' '}
                         · strictly ≤ ${evaluation.effectiveMaxPrice} USD
                       </span>
@@ -2569,7 +2569,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
             <div className="flex items-center gap-2">
               <label
                 htmlFor="finder-sort-select"
-                className="text-xs font-semibold text-[#28537D]"
+                className="text-xs font-semibold text-[#62666A]"
               >
                 Sort by:
               </label>
@@ -2586,7 +2586,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                         : 'Best Match';
                   updateFilter('sort', nextSort, sortLabel);
                 }}
-                className="px-3.5 py-2 text-xs rounded-full bg-[#F3ECE1] text-[#1B3D5F] font-semibold focus:outline-2 focus:outline-[#1B3D5F]"
+                className="px-3.5 py-2 text-xs rounded-full bg-[#F3ECE1] text-[#292B2D] font-semibold focus:outline-2 focus:outline-[#1B3D5F]"
               >
                 <option value="relevance">Best Match (Relevance)</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -2597,11 +2597,11 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
 
           {/* Completed Guided Quiz Summary & Edit / Restart Controls */}
           {quizCompleted && !thinkingState && (
-            <div className="p-4 sm:px-5 sm:py-3.5 rounded-2xl bg-[#E8F8F0]/80 border border-[#1B3D5F]/12 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 text-xs text-[#1B3D5F]">
+            <div className="p-4 sm:px-5 sm:py-3.5 rounded-2xl bg-[#E8F8F0]/80 border border-[#DFDBD3] flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 text-xs text-[#292B2D]">
                 <Compass className="w-4 h-4 text-[#28537D] shrink-0" />
                 <span>
-                  <strong className="font-semibold">
+                  <strong className="font-semibold text-[#222426]">
                     Guided Quiz Recommendations Ready:
                   </strong>{' '}
                   Matched to your 5-step recipient profile.
@@ -2611,7 +2611,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                 <button
                   type="button"
                   onClick={() => setActiveMode('quiz')}
-                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#1B3D5F] hover:text-white text-xs font-semibold text-[#1B3D5F] transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-white hover:bg-[#1B3D5F] hover:text-white text-xs font-semibold text-[#292B2D] transition-colors"
                 >
                   Edit Quiz Answers
                 </button>
@@ -2652,14 +2652,14 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               {/* Refinement Suggestions Banner when results are 0 or narrow */}
               {evaluation.suggestions.length > 0 &&
                 evaluation.totalEligibleCount <= 2 && (
-                  <div className="p-6 rounded-3xl bg-[#FFF4D6] border border-[#1B3D5F]/10 space-y-4">
+                  <div className="p-6 rounded-3xl bg-[#FFF4D6] border border-[#DFDBD3] space-y-4">
                     <div className="space-y-1">
                       <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                         {evaluation.totalEligibleCount === 0
                           ? 'No Exact Matches Found for Every Constraint Together'
                           : 'Want to See More Options?'}
                       </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#1B3D5F]">
+                      <h3 className="text-lg font-serif font-semibold text-[#222426]">
                         {evaluation.totalEligibleCount === 0
                           ? 'Try one of these one-click adjustments to broaden your search:'
                           : 'Broaden a single filter to unlock more verified recommendations:'}
@@ -2674,7 +2674,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                           onClick={() =>
                             applyFilterPatch(sug.patch, 'filter', sug.label)
                           }
-                          className="px-4 py-2.5 rounded-2xl bg-white hover:bg-[#1B3D5F] text-[#1B3D5F] hover:text-white text-xs font-semibold transition-colors text-left shadow-2xs"
+                          className="px-4 py-2.5 rounded-2xl bg-white hover:bg-[#1B3D5F] text-[#292B2D] hover:text-white text-xs font-semibold transition-colors text-left shadow-2xs"
                         >
                           <div>{sug.label}</div>
                           <div className="text-[11px] font-normal opacity-80">
@@ -2699,10 +2699,10 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               {evaluation.results.length === 0 ? (
                 <div className="p-12 rounded-3xl bg-[#F3ECE1]/70 text-center space-y-4">
                   <Gift className="w-10 h-10 text-[#28537D] mx-auto opacity-75" />
-                  <h3 className="text-2xl font-serif font-semibold text-[#1B3D5F]">
+                  <h3 className="text-2xl font-serif font-semibold text-[#222426]">
                     No gifts matched that exact combination
                   </h3>
-                  <p className="text-sm text-[#28537D] max-w-md mx-auto">
+                  <p className="text-sm text-[#292B2D] max-w-md mx-auto">
                     We never invent fake matches or show over-budget items when
                     you set a strict price limit. Try removing one filter above
                     or view our full editor-tested catalog.
@@ -2746,19 +2746,19 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
           aria-label="Filter Gift Finder Results"
         >
           <div className="w-full max-w-md bg-[#FAF7F2] h-full flex flex-col shadow-2xl">
-            <div className="px-6 py-4 bg-[#F3ECE1] flex items-center justify-between border-b border-[#1B3D5F]/10">
+            <div className="px-6 py-4 bg-[#F3ECE1] flex items-center justify-between border-b border-[#DFDBD3]">
               <div>
-                <div className="text-xs font-medium text-[#28537D]">
+                <div className="text-xs font-medium text-[#62666A]">
                   Gift Finder Controls
                 </div>
-                <h2 className="text-lg font-serif font-semibold text-[#1B3D5F]">
+                <h2 className="text-lg font-serif font-semibold text-[#222426]">
                   Filters & Budget ({evaluation.totalEligibleCount} Matches)
                 </h2>
               </div>
               <button
                 type="button"
                 onClick={() => setIsMobileFilterOpen(false)}
-                className="p-2 rounded-full text-[#1B3D5F] hover:bg-[#1B3D5F]/10"
+                className="p-2 rounded-full text-[#222426] hover:bg-[#1B3D5F]/10"
                 aria-label="Close mobile filters"
               >
                 <X className="w-5 h-5" />
@@ -2769,11 +2769,11 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
               {renderFacetControls('mobile')}
             </div>
 
-            <div className="p-5 bg-[#F3ECE1] border-t border-[#1B3D5F]/10 flex items-center justify-between gap-3">
+            <div className="p-5 bg-[#F3ECE1] border-t border-[#DFDBD3] flex items-center justify-between gap-3">
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F]"
+                className="px-4 py-2.5 rounded-full bg-white text-xs font-semibold text-[#292B2D]"
               >
                 Reset All
               </button>
@@ -2828,7 +2828,7 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
     .map((r) => RECIPIENT_LABELS[r] || r);
 
   return (
-    <article className="group flex flex-col justify-between rounded-3xl bg-white p-4 shadow-xs border border-[#1B3D5F]/8 transition-transform duration-200 hover:-translate-y-1">
+    <article className="group flex flex-col justify-between rounded-3xl bg-white p-4 shadow-xs border border-[#DFDBD3] transition-transform duration-200 hover:-translate-y-1">
       <div>
         {/* Product Image Stage */}
         <div
@@ -2858,7 +2858,7 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
             className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
               isSaved
                 ? 'bg-[#F2846B] text-white'
-                : 'bg-white/95 text-[#1B3D5F] hover:bg-white'
+                : 'bg-white/95 text-[#222426] hover:bg-white'
             }`}
           >
             <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
@@ -2874,10 +2874,10 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
 
         {/* Unboxed Editorial Metadata Kicker */}
         <div className="px-1 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs text-[#28537D] font-medium truncate">
+          <div className="flex items-center gap-1.5 text-xs text-[#62666A] font-medium truncate">
             {leadBadge && (
               <>
-                <span className="font-semibold text-[#1B3D5F]">
+                <span className="font-semibold text-[#28537D]">
                   {leadBadge}
                 </span>
                 <span aria-hidden="true">·</span>
@@ -2886,7 +2886,7 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
             <span>{product.productType}</span>
           </div>
 
-          <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug group-hover:text-[#28537D] transition-colors">
+          <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors">
             <a
               href={`/products/${product.slug}/`}
               className="hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
@@ -2895,7 +2895,7 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
             </a>
           </h3>
 
-          <p className="text-xs font-medium text-[#28537D] line-clamp-2">
+          <p className="text-xs font-medium text-[#62666A] line-clamp-2">
             {product.subtitle}
           </p>
 
@@ -2903,11 +2903,11 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
           <div
             className={`p-3 rounded-2xl text-xs leading-relaxed ${
               hasActiveCriteria
-                ? 'bg-[#E8F8F0] text-[#1B3D5F]'
-                : 'bg-[#FAF7F2] text-[#28537D]'
+                ? 'bg-[#E8F8F0] text-[#292B2D]'
+                : 'bg-[#FAF7F2] text-[#292B2D]'
             }`}
           >
-            <strong className="font-semibold text-[#1B3D5F]">
+            <strong className="font-semibold text-[#222426]">
               {hasActiveCriteria ? 'Why it matched: ' : 'Why give it: '}
             </strong>
             <span>
@@ -2918,8 +2918,8 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
       </div>
 
       {/* Footer Metadata & Save-to-List / Canonical Links */}
-      <div className="px-1 pt-3 mt-3 border-t border-[#1B3D5F]/10 space-y-2.5 text-xs">
-        <div className="text-[#28537D] truncate">
+      <div className="px-1 pt-3 mt-3 border-t border-[#DFDBD3] space-y-2.5 text-xs">
+        <div className="text-[#62666A] truncate">
           <span>For: {recipientNames.join(', ')}</span>
           {product.interests?.[0] && (
             <>
@@ -2942,7 +2942,7 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
                 setJustAddedToListName(listObj?.name ?? 'List');
                 setTimeout(() => setJustAddedToListName(null), 2000);
               }}
-              className="px-2.5 py-1.5 rounded-xl bg-[#F3ECE1] text-[#1B3D5F] text-[11px] font-semibold cursor-pointer max-w-[155px] truncate"
+              className="px-2.5 py-1.5 rounded-xl bg-[#F3ECE1] text-[#292B2D] text-[11px] font-semibold cursor-pointer max-w-[155px] truncate"
             >
               <option value="">
                 {justAddedToListName
@@ -2964,8 +2964,8 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
               aria-pressed={isSaved}
               className={`px-3 py-1.5 rounded-full text-[11px] font-semibold inline-flex items-center gap-1 transition-colors ${
                 isSaved
-                  ? 'bg-[#F2846B]/15 text-[#1B3D5F]'
-                  : 'bg-[#F3ECE1] text-[#1B3D5F] hover:bg-[#E8F8F0]'
+                  ? 'bg-[#F2846B]/15 text-[#222426]'
+                  : 'bg-[#F3ECE1] text-[#292B2D] hover:bg-[#E8F8F0]'
               }`}
             >
               <Bookmark className="w-3 h-3" />
@@ -2983,7 +2983,7 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
             </button>
             <a
               href={`/products/${product.slug}/`}
-              className="inline-flex items-center gap-1 font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+              className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F]"
             >
               <span>Details</span>
               <ExternalLink className="w-3 h-3" />

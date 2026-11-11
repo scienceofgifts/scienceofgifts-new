@@ -105,10 +105,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           {/* Right: Editorial Details & Gift Rationale */}
           <div className="md:col-span-7 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs text-[#28537D] font-medium">
+              <div className="flex items-center gap-1.5 text-xs text-[#62666A] font-medium">
                 {activeTag && (
                   <>
-                    <span className="font-semibold uppercase tracking-wider text-[#1B3D5F]">
+                    <span className="font-semibold uppercase tracking-wider text-[#28537D]">
                       {activeTag}
                     </span>
                     <span aria-hidden="true">·</span>
@@ -119,13 +119,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <span>{product.vendor}</span>
               </div>
 
-              <div className="text-lg font-semibold text-[#1B3D5F] tabular-nums">
-                ${product.price} <span className="text-xs font-normal text-[#28537D]">{product.currency}</span>
+              <div className="text-lg font-semibold text-[#222426] tabular-nums">
+                ${product.price} <span className="text-xs font-normal text-[#62666A]">{product.currency}</span>
               </div>
             </div>
 
             <div>
-              <h3 className="text-xl md:text-2xl font-serif font-semibold text-[#1B3D5F] leading-snug mb-1">
+              <h3 className="text-xl md:text-2xl font-serif font-semibold text-[#222426] leading-snug mb-1">
                 <a
                   href={`/products/${product.slug}/`}
                   onClick={(e) => {
@@ -137,31 +137,31 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   {product.title}
                 </a>
               </h3>
-              <p className="text-sm font-medium text-[#28537D]">{product.subtitle}</p>
+              <p className="text-sm font-medium text-[#62666A]">{product.subtitle}</p>
             </div>
 
-            <div className="space-y-2 text-sm text-[#1B3D5F]/90 leading-relaxed">
+            <div className="space-y-2 text-sm text-[#292B2D] leading-relaxed">
               <p>
-                <strong className="font-semibold text-[#1B3D5F]">Why it makes a great gift: </strong>
+                <strong className="font-semibold text-[#222426]">Why it makes a great gift: </strong>
                 {customEditorialNote || product.whyToGiveIt}
               </p>
               {idealForNote && (
-                <p className="text-xs text-[#28537D]">
-                  <strong className="font-semibold text-[#1B3D5F]">Best for: </strong>
+                <p className="text-xs text-[#62666A]">
+                  <strong className="font-semibold text-[#222426]">Best for: </strong>
                   {idealForNote}
                 </p>
               )}
               {goodToKnowNote && (
-                <p className="text-xs text-[#28537D]">
-                  <strong className="font-semibold text-[#1B3D5F]">Good to know: </strong>
+                <p className="text-xs text-[#62666A]">
+                  <strong className="font-semibold text-[#222426]">Good to know: </strong>
                   {goodToKnowNote}
                 </p>
               )}
             </div>
 
             {/* Unboxed Recipient, Occasion & Interest Metadata + Explicit Actions */}
-            <div className="pt-3 border-t border-[#1B3D5F]/10 flex flex-wrap items-center justify-between gap-4">
-              <div className="text-xs text-[#28537D]">
+            <div className="pt-3 border-t border-[#DFDBD3] flex flex-wrap items-center justify-between gap-4">
+              <div className="text-xs text-[#62666A]">
                 <span>For: {recipientLabels.join(', ')}</span>
                 <span aria-hidden="true"> · </span>
                 <span>Occasions: {occasionLabels.join(', ')}</span>
@@ -174,8 +174,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   aria-pressed={isSaved}
                   className={`px-3.5 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
                     isSaved
-                      ? 'bg-[#F2846B]/15 text-[#1B3D5F]'
-                      : 'bg-[#F3ECE1] text-[#1B3D5F] hover:bg-[#E8F8F0]'
+                      ? 'bg-[#F2846B]/15 text-[#222426]'
+                      : 'bg-[#F3ECE1] text-[#222426] hover:bg-[#E8F8F0]'
                   }`}
                 >
                   <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-[#F2846B] text-[#F2846B]' : ''}`} />
@@ -244,7 +244,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className={`absolute top-3.5 right-3.5 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
               isSaved
                 ? 'bg-[#F2846B] text-white'
-                : 'bg-white/95 text-[#1B3D5F] hover:bg-white'
+                : 'bg-white/95 text-[#222426] hover:bg-white'
             }`}
           >
             <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
@@ -259,10 +259,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Open, Unboxed Editorial Copy */}
         <div className="px-1">
           {/* Unboxed Kicker Line */}
-          <div className="flex items-center gap-1.5 text-xs text-[#28537D] mb-1.5 font-medium">
+          <div className="flex items-center gap-1.5 text-xs text-[#62666A] mb-1.5 font-medium">
             {activeTag && (
               <>
-                <span className="text-[#1B3D5F] font-semibold">{activeTag}</span>
+                <span className="text-[#28537D] font-semibold">{activeTag}</span>
                 <span aria-hidden="true">·</span>
               </>
             )}
@@ -270,7 +270,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {/* Product Name */}
-          <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug group-hover:text-[#28537D] transition-colors mb-1">
+          <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors mb-1">
             <a
               href={`/products/${product.slug}/`}
               onClick={(e) => {
@@ -284,26 +284,26 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </h3>
 
           {/* Short, specific description */}
-          <p className="text-xs font-medium text-[#28537D] mb-2 line-clamp-2">
+          <p className="text-xs font-medium text-[#62666A] mb-2 line-clamp-2">
             {product.subtitle}
           </p>
 
           {/* Clear explanation of why it makes a good gift */}
-          <p className="text-sm text-[#1B3D5F]/85 leading-relaxed mb-3">
+          <p className="text-sm text-[#292B2D] leading-relaxed mb-3">
             {customEditorialNote || product.whyToGiveIt}
           </p>
 
           {goodToKnowNote && (
-            <p className="text-xs text-[#28537D] mb-2">
-              <strong className="font-semibold text-[#1B3D5F]">Note:</strong> {goodToKnowNote}
+            <p className="text-xs text-[#62666A] mb-2">
+              <strong className="font-semibold text-[#222426]">Note:</strong> {goodToKnowNote}
             </p>
           )}
         </div>
       </div>
 
       {/* Recipient/Occasion Labels & Explicit Product Link */}
-      <div className="px-1 pt-2.5 border-t border-[#1B3D5F]/10 space-y-2 text-xs">
-        <div className="text-[#28537D] truncate">
+      <div className="px-1 pt-2.5 border-t border-[#DFDBD3] space-y-2 text-xs">
+        <div className="text-[#62666A] truncate">
           <span>For: {recipientLabels.join(', ')}</span>
           {product.interests?.[0] && (
             <>
@@ -314,7 +314,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </div>
 
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="font-semibold text-[#1B3D5F] tabular-nums">
+          <span className="font-semibold text-[#222426] tabular-nums">
             ${product.price} {product.currency}
           </span>
 
@@ -324,7 +324,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               e.preventDefault();
               onSelectProduct(product);
             }}
-            className="inline-flex items-center gap-1 font-semibold text-[#1B3D5F] hover:text-[#28537D] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#28537D]"
+            className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#28537D]"
           >
             <span>
               {product.isPlaceholderLink ? 'Sample Link & Details' : 'See why we love it'}

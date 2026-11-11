@@ -287,7 +287,7 @@ export default function App() {
     selectedOccasion !== 'all';
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#1B3D5F]">
+    <div className="min-h-screen flex flex-col bg-[#FAF7F2] text-[#292B2D]">
       {/* Dynamic Schema.org JSON-LD */}
       <script
         type="application/ld+json"
@@ -297,7 +297,7 @@ export default function App() {
       {/* =====================================================================
           TOP NAVIGATION BAR (Clean 3-Zone Contract)
          ===================================================================== */}
-      <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#1B3D5F]/8">
+      <header className="sticky top-0 z-30 bg-[#FAF7F2]/95 backdrop-blur-md border-b border-[#DFDBD3]">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-8 px-6 py-4">
           {/* Zone 1: Brand Wordmark */}
           <a
@@ -307,7 +307,7 @@ export default function App() {
               setRoute({ view: 'home' });
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            className="text-2xl font-serif font-semibold tracking-tight text-[#1B3D5F] whitespace-nowrap shrink-0"
+            className="text-2xl font-serif font-semibold tracking-tight text-[#222426] whitespace-nowrap shrink-0"
           >
             Science of Gifts
           </a>
@@ -378,7 +378,7 @@ export default function App() {
       {/* Mobile Secondary Navigation Strip (Non-sticky so it never obscures mobile viewport) */}
       <nav
         aria-label="Mobile navigation"
-        className="md:hidden bg-[#F3ECE1] border-b border-[#1B3D5F]/10 px-6 py-2.5 flex items-center gap-5 overflow-x-auto text-xs font-semibold text-[#1B3D5F]"
+        className="md:hidden bg-[#F3ECE1] border-b border-[#DFDBD3] px-6 py-2.5 flex items-center gap-5 overflow-x-auto text-xs font-semibold text-[#28537D]"
       >
         <button
           type="button"
@@ -448,9 +448,9 @@ export default function App() {
         {route.view === 'home' && (
           <div>
             {/* ===============================================================
-                SECTION 1: WARM MAGAZINE & STOREFRONT HERO SPREAD
-                Expressive photography, emotional storytelling, shoppable spotlights
-               =============================================================== */}
+                 SECTION 1: WARM MAGAZINE & STOREFRONT HERO SPREAD
+                 Expressive photography, emotional storytelling, shoppable spotlights
+                =============================================================== */}
             <section className="pt-6 pb-14 md:pt-10 md:pb-20">
               <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-stretch">
@@ -479,15 +479,15 @@ export default function App() {
                     </div>
 
                     <div className="space-y-4 px-1">
-                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                        <span>Cover Guide</span>
+                      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#62666A]">
+                        <span className="text-[#28537D]">Cover Guide</span>
                         <span aria-hidden="true">·</span>
                         <span>By {AUTHORS[featuredGuide.authorId].name}</span>
                         <span aria-hidden="true">·</span>
                         <span>{featuredGuide.readTimeMinutes} min read</span>
                       </div>
 
-                      <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-serif font-semibold text-[#1B3D5F] leading-[1.12] text-balance">
+                      <h1 className="text-3xl sm:text-4xl lg:text-[2.75rem] font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
                         <button
                           type="button"
                           onClick={() =>
@@ -499,7 +499,7 @@ export default function App() {
                         </button>
                       </h1>
 
-                      <p className="text-base md:text-lg text-[#28537D] leading-relaxed max-w-2xl">
+                      <p className="text-base md:text-lg text-[#292B2D] leading-relaxed max-w-2xl">
                         {featuredGuide.subtitle}
                       </p>
 
@@ -517,7 +517,7 @@ export default function App() {
                         <button
                           type="button"
                           onClick={() => scrollToSection('gift-finder')}
-                          className="px-6 py-3 rounded-full bg-[#EBF3FE] text-[#1B3D5F] text-xs font-semibold hover:bg-[#99BFF9]/40 transition-colors whitespace-nowrap shrink-0"
+                          className="px-6 py-3 rounded-full bg-[#EBF3FE] text-[#28537D] text-xs font-semibold hover:bg-[#99BFF9]/40 transition-colors whitespace-nowrap shrink-0"
                         >
                           Try the Interactive Gift Finder
                         </button>
@@ -530,8 +530,8 @@ export default function App() {
                     {/* Top Card: Gift of the Week Spotlight on Warm Mint Surface */}
                     {heroSpotlightProduct && (
                       <div className="p-6 md:p-7 rounded-3xl bg-[#E8F8F0] flex flex-col justify-between flex-1">
-                        <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[#1B3D5F] mb-4">
-                          <span className="uppercase tracking-wider">
+                        <div className="flex items-center justify-between gap-2 text-xs font-semibold text-[#222426] mb-4">
+                          <span className="uppercase tracking-wider text-[#28537D]">
                             Editor’s Gift of the Week
                           </span>
                           <span className="tabular-nums font-bold">
@@ -551,24 +551,24 @@ export default function App() {
                             />
                           </div>
                           <div className="sm:col-span-7 space-y-2">
-                            <div className="text-xs text-[#28537D] font-medium">
+                            <div className="text-xs text-[#62666A] font-medium">
                               {heroSpotlightProduct.vendor}
                             </div>
-                            <h2 className="text-xl font-serif font-semibold text-[#1B3D5F] leading-snug group-hover:underline">
+                            <h2 className="text-xl font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] group-hover:underline">
                               {heroSpotlightProduct.title}
                             </h2>
-                            <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
+                            <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
                               {heroSpotlightProduct.whyToGiveIt}
                             </p>
                           </div>
                         </div>
 
-                        <div className="pt-4 mt-4 border-t border-[#1B3D5F]/10 flex items-center justify-between text-xs">
+                        <div className="pt-4 mt-4 border-t border-[#DFDBD3] flex items-center justify-between text-xs">
                           <button
                             type="button"
                             onClick={() => toggleSaveProduct(heroSpotlightProduct.id)}
                             aria-pressed={savedProductIds.includes(heroSpotlightProduct.id)}
-                            className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                            className="inline-flex items-center gap-1.5 font-semibold text-[#222426] hover:text-[#28537D]"
                           >
                             <Heart
                               className={`w-3.5 h-3.5 ${
@@ -586,7 +586,7 @@ export default function App() {
                           <button
                             type="button"
                             onClick={() => setInspectedProduct(heroSpotlightProduct)}
-                            className="font-semibold text-[#1B3D5F] hover:underline"
+                            className="font-semibold text-[#28537D] hover:underline"
                           >
                             Why we love it →
                           </button>
@@ -597,13 +597,13 @@ export default function App() {
                     {/* Bottom Card: Warm Butter-Tinted Etiquette Essay */}
                     <div className="p-6 md:p-7 rounded-3xl bg-[#FFF4D6] flex flex-col justify-between">
                       <div className="space-y-2.5">
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#28537D]">
-                          <span>Modern Etiquette</span>
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#62666A]">
+                          <span className="text-[#28537D]">Modern Etiquette</span>
                           <span aria-hidden="true">·</span>
                           <span>{etiquetteArticle.readTimeMinutes} min read</span>
                         </div>
 
-                        <h2 className="text-xl md:text-2xl font-serif font-semibold text-[#1B3D5F] leading-snug">
+                        <h2 className="text-xl md:text-2xl font-serif font-semibold text-[#222426] leading-snug">
                           <button
                             type="button"
                             onClick={() =>
@@ -612,19 +612,19 @@ export default function App() {
                                 slug: etiquetteArticle.slug,
                               })
                             }
-                            className="text-left hover:underline"
+                            className="text-left hover:text-[#28537D] hover:underline"
                           >
                             {etiquetteArticle.title}
                           </button>
                         </h2>
 
-                        <p className="text-xs md:text-sm text-[#1B3D5F]/80 leading-relaxed">
+                        <p className="text-xs md:text-sm text-[#292B2D] leading-relaxed">
                           {etiquetteArticle.subtitle}
                         </p>
                       </div>
 
                       <div className="pt-4 mt-3 flex items-center justify-between text-xs">
-                        <span className="text-[#28537D]">
+                        <span className="text-[#62666A]">
                           By {AUTHORS[etiquetteArticle.authorId].name}
                         </span>
                         <button
@@ -635,7 +635,7 @@ export default function App() {
                               slug: etiquetteArticle.slug,
                             })
                           }
-                          className="inline-flex items-center gap-1 font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                          className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F]"
                         >
                           <span>Read the story</span>
                           <ArrowRight className="w-3.5 h-3.5" />
@@ -648,9 +648,9 @@ export default function App() {
             </section>
 
             {/* ===============================================================
-                SECTION 2: "WHO ARE YOU SHOPPING FOR?" PORTRAIT SPOTLIGHTS
-                Visual recipient entry points with varied warm color washes
-               =============================================================== */}
+                 SECTION 2: "WHO ARE YOU SHOPPING FOR?" PORTRAIT SPOTLIGHTS
+                 Visual recipient entry points with varied warm color washes
+                =============================================================== */}
             <section className="py-14 bg-[#F3ECE1]/65">
               <div className="max-w-7xl mx-auto px-6 space-y-8">
                 <div className="flex flex-wrap items-end justify-between gap-4">
@@ -658,11 +658,11 @@ export default function App() {
                     <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1.5">
                       Browse by Person & Mood
                     </div>
-                    <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F]">
+                    <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426]">
                       Who Are You Shopping For Today?
                     </h2>
                   </div>
-                  <p className="text-sm text-[#28537D] max-w-md">
+                  <p className="text-sm text-[#292B2D] max-w-md">
                     Pick a personality below to jump straight to gifts tailored to how they actually live.
                   </p>
                 </div>
@@ -696,15 +696,15 @@ export default function App() {
                             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />
                         </div>
-                        <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug mb-1.5 px-1">
+                        <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug mb-1.5 px-1">
                           {spot.title}
                         </h3>
-                        <p className="text-xs text-[#28537D] leading-relaxed px-1 mb-3">
+                        <p className="text-xs text-[#292B2D] leading-relaxed px-1 mb-3">
                           {spot.subtitle}
                         </p>
                       </div>
 
-                      <div className="px-1 pt-2 flex items-center gap-1 text-xs font-semibold text-[#1B3D5F] group-hover:text-[#28537D]">
+                      <div className="px-1 pt-2 flex items-center gap-1 text-xs font-semibold text-[#28537D] group-hover:underline">
                         <span>See curated ideas</span>
                         <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                       </div>
@@ -728,7 +728,7 @@ export default function App() {
                         <Sparkles className="w-4 h-4" />
                         <span>Interactive Gift Finder</span>
                       </div>
-                      <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F]">
+                      <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426]">
                         Let’s Find Something They’ll Genuinely Love
                       </h2>
                     </div>
@@ -737,7 +737,7 @@ export default function App() {
                       <button
                         type="button"
                         onClick={resetFinderFilters}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-xs font-semibold text-[#28537D] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
                       >
                         <RotateCcw className="w-3.5 h-3.5" />
                         <span>Start Over ({allProducts.length} Gifts)</span>
@@ -751,7 +751,7 @@ export default function App() {
                     <div className="md:col-span-3 space-y-1.5">
                       <label
                         htmlFor="finder-recipient"
-                        className="block text-xs font-semibold text-[#28537D]"
+                        className="block text-xs font-semibold text-[#222426]"
                       >
                         1. Who is it for?
                       </label>
@@ -761,7 +761,7 @@ export default function App() {
                         onChange={(e) =>
                           setSelectedRecipient(e.target.value as RecipientType | 'all')
                         }
-                        className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                        className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                       >
                         {RECIPIENT_PILLS.map((r) => (
                           <option key={r.value} value={r.value}>
@@ -775,7 +775,7 @@ export default function App() {
                     <div className="md:col-span-4 space-y-1.5">
                       <label
                         htmlFor="finder-vibe"
-                        className="block text-xs font-semibold text-[#28537D]"
+                        className="block text-xs font-semibold text-[#222426]"
                       >
                         2. What do they enjoy?
                       </label>
@@ -785,7 +785,7 @@ export default function App() {
                         onChange={(e) =>
                           setSelectedPersonality(e.target.value as PersonalityTrait | 'all')
                         }
-                        className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                        className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                       >
                         {VIBE_OPTIONS.map((v) => (
                           <option key={v.value} value={v.value}>
@@ -799,7 +799,7 @@ export default function App() {
                     <div className="md:col-span-2 space-y-1.5">
                       <label
                         htmlFor="finder-budget"
-                        className="block text-xs font-semibold text-[#28537D]"
+                        className="block text-xs font-semibold text-[#222426]"
                       >
                         3. Budget
                       </label>
@@ -809,7 +809,7 @@ export default function App() {
                         onChange={(e) =>
                           setSelectedBudget(e.target.value as HomeBudgetFilter)
                         }
-                        className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                        className="w-full px-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] font-medium shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                       >
                         {BUDGET_PILLS.map((b) => (
                           <option key={b.value} value={b.value}>
@@ -823,19 +823,19 @@ export default function App() {
                     <div className="md:col-span-3 space-y-1.5">
                       <label
                         htmlFor="finder-search"
-                        className="block text-xs font-semibold text-[#28537D]"
+                        className="block text-xs font-semibold text-[#222426]"
                       >
                         Or search by keyword
                       </label>
                       <div className="relative">
-                        <Search className="w-4 h-4 text-[#28537D] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <Search className="w-4 h-4 text-[#62666A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                         <input
                           id="finder-search"
                           type="search"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
                           placeholder="Matcha, honey, robe, kids..."
-                          className="w-full pl-10 pr-4 py-3 text-sm rounded-2xl bg-white text-[#1B3D5F] placeholder:text-[#28537D]/55 shadow-2xs focus:outline-2 focus:outline-[#28537D]"
+                          className="w-full pl-10 pr-4 py-3 text-sm rounded-2xl bg-white text-[#292B2D] placeholder:text-[#62666A]/70 shadow-2xs focus:outline-2 focus:outline-[#28537D]"
                         />
                       </div>
                     </div>
@@ -844,7 +844,7 @@ export default function App() {
                   {/* Interactive Occasion Filter Tabs */}
                   <div className="pt-2 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-semibold text-[#28537D] mr-1">
+                      <span className="text-xs font-semibold text-[#62666A] mr-1">
                         Occasion:
                       </span>
                       {OCCASION_PILLS.map((occ) => (
@@ -855,7 +855,7 @@ export default function App() {
                           className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-colors whitespace-nowrap shrink-0 ${
                             selectedOccasion === occ.value
                               ? 'bg-[#1B3D5F] text-white'
-                              : 'bg-white/80 text-[#28537D] hover:bg-white'
+                              : 'bg-white/80 text-[#292B2D] hover:bg-white hover:text-[#28537D]'
                           }`}
                         >
                           {occ.label}
@@ -863,7 +863,7 @@ export default function App() {
                       ))}
                     </div>
 
-                    <div className="text-xs font-semibold text-[#1B3D5F] tabular-nums">
+                    <div className="text-xs font-semibold text-[#62666A] tabular-nums">
                       Showing {filteredProducts.length} thoughtful{' '}
                       {filteredProducts.length === 1 ? 'gift' : 'gifts'}
                     </div>
@@ -874,10 +874,10 @@ export default function App() {
                 {filteredProducts.length === 0 ? (
                   <div className="p-12 rounded-3xl bg-[#F3ECE1]/70 text-center space-y-3">
                     <Gift className="w-8 h-8 text-[#28537D] mx-auto opacity-75" />
-                    <p className="text-xl font-serif text-[#1B3D5F]">
+                    <p className="text-xl font-serif text-[#222426]">
                       We didn’t find an exact match for all of those filters together.
                     </p>
-                    <p className="text-xs text-[#28537D]">
+                    <p className="text-xs text-[#292B2D]">
                       Try clearing one filter to see our full collection of editor-tested gifts.
                     </p>
                     <button
@@ -915,11 +915,11 @@ export default function App() {
                     <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
                       The Sweet Spot Edit
                     </div>
-                    <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F] text-balance">
+                    <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426] text-balance">
                       Small Wonders Under $50 That Feel Twice the Price
                     </h2>
                   </div>
-                  <p className="text-sm text-[#28537D] max-w-md">
+                  <p className="text-sm text-[#292B2D] max-w-md">
                     Because a memorable gift is about thoughtfulness and charm—never about showing off a receipt.
                   </p>
                 </div>
@@ -950,7 +950,7 @@ export default function App() {
                     <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1.5">
                       Curated Gift Guides
                     </div>
-                    <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#1B3D5F]">
+                    <h2 className="text-2xl md:text-4xl font-serif font-semibold text-[#222426]">
                       Handpicked Guides for Real People & Occasions
                     </h2>
                   </div>
@@ -982,27 +982,27 @@ export default function App() {
                           </div>
 
                           <div className="space-y-2.5">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-[#28537D]">
-                              <span>{guide.category}</span>
+                            <div className="flex items-center gap-2 text-xs font-semibold text-[#62666A]">
+                              <span className="text-[#28537D]">{guide.category}</span>
                               <span aria-hidden="true">·</span>
                               <span>By {author?.name}</span>
                               <span aria-hidden="true">·</span>
                               <span>{guide.readTimeMinutes} min read</span>
                             </div>
 
-                            <h3 className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F] leading-snug">
+                            <h3 className="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug">
                               <button
                                 type="button"
                                 onClick={() =>
                                   setRoute({ view: 'guide', slug: guide.slug })
                                 }
-                                className="text-left hover:underline"
+                                className="text-left hover:text-[#28537D] hover:underline"
                               >
                                 {guide.title}
                               </button>
                             </h3>
 
-                            <p className="text-sm text-[#1B3D5F]/80 leading-relaxed">
+                            <p className="text-sm text-[#292B2D] leading-relaxed">
                               {guide.subtitle}
                             </p>
                           </div>
@@ -1034,12 +1034,12 @@ export default function App() {
                                         <div className="text-[11px] font-semibold text-[#28537D]">
                                           {qp.label}
                                         </div>
-                                        <div className="text-xs font-serif font-semibold text-[#1B3D5F] truncate">
+                                        <div className="text-xs font-serif font-semibold text-[#222426] truncate">
                                           {prod.title}
                                         </div>
                                       </div>
                                     </div>
-                                    <span className="text-xs font-semibold text-[#1B3D5F] tabular-nums shrink-0">
+                                    <span className="text-xs font-semibold text-[#222426] tabular-nums shrink-0">
                                       ${prod.price} {prod.currency}
                                     </span>
                                   </div>
@@ -1134,19 +1134,19 @@ export default function App() {
       {/* =====================================================================
           WARM EDITORIAL FOOTER
          ===================================================================== */}
-      <footer className="bg-[#F3ECE1] text-[#1B3D5F] border-t border-[#1B3D5F]/10">
+      <footer className="bg-[#F3ECE1] text-[#292B2D] border-t border-[#DFDBD3]">
         <div className="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-12 gap-10">
           <div className="md:col-span-5 space-y-3">
-            <div className="text-2xl font-serif font-semibold tracking-tight text-[#1B3D5F]">
+            <div className="text-2xl font-serif font-semibold tracking-tight text-[#222426]">
               Science of Gifts
             </div>
-            <p className="text-sm text-[#28537D] leading-relaxed max-w-sm">
+            <p className="text-sm text-[#62666A] leading-relaxed max-w-sm">
               A magazine and gift-discovery destination dedicated to thoughtful giving, memorable objects, and the human stories behind why we give.
             </p>
           </div>
 
           <div className="md:col-span-4 space-y-2 text-xs">
-            <div className="font-semibold uppercase tracking-wider text-[#28537D] mb-3">
+            <div className="font-semibold uppercase tracking-wider text-[#222426] mb-3">
               Guides & Stories
             </div>
             <ul className="space-y-2.5 text-sm">
@@ -1156,7 +1156,7 @@ export default function App() {
                   onClick={() =>
                     setRoute({ view: 'guide', slug: GIFT_GUIDES[0].slug })
                   }
-                  className="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left"
+                  className="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left"
                 >
                   Thoughtful Gifts for People Who Appreciate the Little Things
                 </button>
@@ -1167,7 +1167,7 @@ export default function App() {
                   onClick={() =>
                     setRoute({ view: 'guide', slug: GIFT_GUIDES[1].slug })
                   }
-                  className="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left"
+                  className="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left"
                 >
                   Host Gifts & Tabletop Favorites Under $100
                 </button>
@@ -1178,7 +1178,7 @@ export default function App() {
                   onClick={() =>
                     setRoute({ view: 'article', slug: ARTICLES[0].slug })
                   }
-                  className="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left"
+                  className="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left"
                 >
                   Why Thoughtful Gifts Matter More Than Expensive Ones
                 </button>
@@ -1189,7 +1189,7 @@ export default function App() {
                   onClick={() =>
                     setRoute({ view: 'article', slug: ARTICLES[1].slug })
                   }
-                  className="text-[#1B3D5F] hover:text-[#28537D] hover:underline text-left"
+                  className="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left"
                 >
                   What to Bring When the Host Says “Bring Nothing”
                 </button>
@@ -1198,10 +1198,10 @@ export default function App() {
           </div>
 
           <div className="md:col-span-3 space-y-3 text-xs">
-            <div className="font-semibold uppercase tracking-wider text-[#28537D] mb-2">
+            <div className="font-semibold uppercase tracking-wider text-[#222426] mb-2">
               Your Gift List
             </div>
-            <p className="text-[#28537D] leading-relaxed">
+            <p className="text-[#62666A] leading-relaxed">
               Bookmark favorite ideas as you browse—your shortlist stays saved right in your browser.
             </p>
             <div className="flex flex-wrap items-center gap-3 pt-1">

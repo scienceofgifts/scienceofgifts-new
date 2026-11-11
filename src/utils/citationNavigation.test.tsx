@@ -228,7 +228,7 @@ test('5. scrollElementIntoViewWithOffset accounts for sticky header offset', () 
   }
 });
 
-test('6. ArticleReaderView applies the refined citation section palette (#FAF8F3 page, #FFFFFF reference cards, #D9DFE2 borders, #1B3D5F/#294B68/#405B70 text, #E5F5EE mint accents)', () => {
+test('6. ArticleReaderView applies the refined editorial typography & citation palette (#FAF7F2 page, #FFFFFF reference cards, #DFDBD3 borders, #222426/#292B2D/#62666A text, #28537D links, #E5F5EE/#E8F8F0 mint accents)', () => {
   const article = ARTICLES[0];
   const html = renderToStaticMarkup(
     <ArticleReaderView
@@ -242,27 +242,29 @@ test('6. ArticleReaderView applies the refined citation section palette (#FAF8F3
     />
   );
 
-  // Page background (#FAF8F3) and mint "The Short Version" summary panel preserved
-  assert.match(html, /bg-\[#FAF8F3\]/);
+  // Page background (#FAF7F2) and mint "The Short Version" summary panel preserved
+  assert.match(html, /bg-\[#FAF7F2\]/);
   assert.match(html, /id="the-short-version"[^>]*class="[^"]*bg-\[#E8F8F0\]/);
 
-  // "In This Story" contents panel uses #F5F4F0 with subtle border
+  // "In This Story" contents panel uses #F5F4F0 with subtle #DFDBD3 border
   assert.match(
     html,
-    /aria-label="Table of contents"\s+class="[^"]*bg-\[#F5F4F0\]\s+border\s+border-\[#1B3D5F\]\/10/
+    /aria-label="Table of contents"\s+class="[^"]*bg-\[#F5F4F0\]\s+border\s+border-\[#DFDBD3\]/
   );
 
-  // Reference cards use #FFFFFF background and #D9DFE2 border
+  // Reference cards use #FFFFFF background and #DFDBD3 border
   assert.match(
     html,
-    /id="ref-cit_flynn_adams_2009"\s+class="[^"]*bg-\[#FFFFFF\]\s+border\s+border-\[#D9DFE2\]/
+    /id="ref-cit_flynn_adams_2009"\s+class="[^"]*bg-\[#FFFFFF\]\s+border\s+border-\[#DFDBD3\]/
   );
 
-  // Selected occurrence control uses #1B3D5F with #FFFFFF text; unselected uses #E5F5EE with #1B3D5F text
-  assert.match(html, /bg-\[#1B3D5F\]\s+text-\[#FFFFFF\]/);
-  assert.match(html, /bg-\[#E5F5EE\]\s+text-\[#1B3D5F\]/);
-  assert.match(html, /text-\[#294B68\]/);
-  assert.match(html, /text-\[#405B70\]/);
+  // Selected occurrence control uses #28537D with #FFFFFF text; unselected uses #E5F5EE with #28537D text
+  assert.match(html, /bg-\[#28537D\]\s+text-\[#FFFFFF\]/);
+  assert.match(html, /bg-\[#E5F5EE\]\s+text-\[#28537D\]/);
+  assert.match(html, /text-\[#222426\]/);
+  assert.match(html, /text-\[#292B2D\]/);
+  assert.match(html, /text-\[#62666A\]/);
+  assert.match(html, /text-\[#28537D\]/);
 });
 
 test('7. calculateCitationPopoverPosition places popover below when near top of viewport and prefers above in middle/bottom when room exists', () => {
@@ -430,16 +432,20 @@ test('11. Citation section foreground/background and control boundary combinatio
 
   // Normal text combinations must be >= 4.5:1
   const textCombinations: Array<[string, string, string]> = [
-    ['Headings (#1B3D5F) on Page (#FAF8F3)', '#1B3D5F', '#FAF8F3'],
-    ['Body text (#294B68) on Page (#FAF8F3)', '#294B68', '#FAF8F3'],
-    ['Secondary text (#405B70) on Page (#FAF8F3)', '#405B70', '#FAF8F3'],
-    ['Headings (#1B3D5F) on Reference Card (#FFFFFF)', '#1B3D5F', '#FFFFFF'],
-    ['Body text (#294B68) on Reference Card (#FFFFFF)', '#294B68', '#FFFFFF'],
-    ['Secondary text (#405B70) on Reference Card (#FFFFFF)', '#405B70', '#FFFFFF'],
-    ['Primary text (#1B3D5F) on Soft Mint (#E5F5EE)', '#1B3D5F', '#E5F5EE'],
-    ['Body text (#294B68) on Soft Mint (#E5F5EE)', '#294B68', '#E5F5EE'],
-    ['Secondary text (#405B70) on Soft Mint (#E5F5EE)', '#405B70', '#E5F5EE'],
-    ['Selected control text (#FFFFFF) on Selected Control (#1B3D5F)', '#FFFFFF', '#1B3D5F'],
+    ['Headings (#222426) on Page (#FAF7F2)', '#222426', '#FAF7F2'],
+    ['Body text (#292B2D) on Page (#FAF7F2)', '#292B2D', '#FAF7F2'],
+    ['Secondary text (#62666A) on Page (#FAF7F2)', '#62666A', '#FAF7F2'],
+    ['Links (#28537D) on Page (#FAF7F2)', '#28537D', '#FAF7F2'],
+    ['Headings (#222426) on Reference Card (#FFFFFF)', '#222426', '#FFFFFF'],
+    ['Body text (#292B2D) on Reference Card (#FFFFFF)', '#292B2D', '#FFFFFF'],
+    ['Secondary text (#62666A) on Reference Card (#FFFFFF)', '#62666A', '#FFFFFF'],
+    ['Links (#28537D) on Reference Card (#FFFFFF)', '#28537D', '#FFFFFF'],
+    ['Headings (#222426) on Soft Mint (#E5F5EE)', '#222426', '#E5F5EE'],
+    ['Callout body (#292B2D) on Soft Mint (#E5F5EE)', '#292B2D', '#E5F5EE'],
+    ['Callout body (#292B2D) on Blue-Gray (#EBF3FE)', '#292B2D', '#EBF3FE'],
+    ['Secondary text (#62666A) on Soft Mint (#E5F5EE)', '#62666A', '#E5F5EE'],
+    ['Selected TOC text (#FFFFFF) on Brand Blue (#28537D)', '#FFFFFF', '#28537D'],
+    ['Selected control text (#FFFFFF) on Primary Control (#1B3D5F)', '#FFFFFF', '#1B3D5F'],
   ];
 
   for (const [label, fg, bg] of textCombinations) {
@@ -452,9 +458,10 @@ test('11. Citation section foreground/background and control boundary combinatio
 
   // Interactive control boundary combinations must be >= 3.0:1
   const controlBoundaries: Array<[string, string, string]> = [
-    ['Citation badge border (#405B70) on Card (#FFFFFF)', '#405B70', '#FFFFFF'],
+    ['Citation badge border (#62666A) on Card (#FFFFFF)', '#62666A', '#FFFFFF'],
+    ['Selected TOC fill (#28537D) on Page (#FAF7F2)', '#28537D', '#FAF7F2'],
     ['Selected control fill (#1B3D5F) on Card (#FFFFFF)', '#1B3D5F', '#FFFFFF'],
-    ['Highlighted card border/ring (#1B3D5F) on Page (#FAF8F3)', '#1B3D5F', '#FAF8F3'],
+    ['Highlighted card border/ring (#1B3D5F) on Page (#FAF7F2)', '#1B3D5F', '#FAF7F2'],
   ];
 
   for (const [label, borderOrControl, surface] of controlBoundaries) {
@@ -2037,9 +2044,8 @@ test('30. Contextual Facet Counts & Individual Filter Removal: facet counts matc
   assert.ok(zeroEval.facets.interests.every((i) => i.count === 0));
 });
 
-test('31. Collapsible Budget & Price and Who Is It For? sections start collapsed by default, preserve active filters and badges when collapsed, and expose full controls when expanded', () => {
-  // 1. Default initial load: both Budget & Price and Who Is It For? are collapsed (aria-expanded="false")
-  // while Interests and Gift Style & Vibe remain expanded by default (aria-expanded="true")
+test('31. Every Gift Finder sidebar filter section starts collapsed by default, preserves active filters and badges when collapsed, and exposes full controls when expanded', () => {
+  // 1. Default initial load: ALL 7 filter sections are collapsed (aria-expanded="false")
   const defaultHtml = renderToStaticMarkup(
     <GiftFinderExperience
       products={contentRepository.getAllProducts()}
@@ -2049,26 +2055,28 @@ test('31. Collapsible Budget & Price and Who Is It For? sections start collapsed
     />
   );
 
-  assert.match(
-    defaultHtml,
-    /id="desktop-heading-budget"[^>]*aria-expanded="false"[^>]*aria-controls="desktop-panel-budget"/
-  );
-  assert.match(
-    defaultHtml,
-    /id="desktop-heading-recipient"[^>]*aria-expanded="false"[^>]*aria-controls="desktop-panel-recipient"/
-  );
-  assert.match(
-    defaultHtml,
-    /id="desktop-heading-interests"[^>]*aria-expanded="true"[^>]*aria-controls="desktop-panel-interests"/
-  );
-  assert.match(
-    defaultHtml,
-    /id="desktop-heading-style"[^>]*aria-expanded="true"[^>]*aria-controls="desktop-panel-style"/
-  );
-
-  // Panels for Budget & Price and Who Is It For? are hidden when collapsed
-  assert.doesNotMatch(defaultHtml, /id="desktop-panel-budget"/);
-  assert.doesNotMatch(defaultHtml, /id="desktop-panel-recipient"/);
+  for (const sectionId of [
+    'budget',
+    'recipient',
+    'occasion',
+    'interests',
+    'style',
+    'category',
+    'editorial',
+  ]) {
+    assert.match(
+      defaultHtml,
+      new RegExp(
+        `id="desktop-heading-${sectionId}"[^>]*aria-expanded="false"[^>]*aria-controls="desktop-panel-${sectionId}"`
+      ),
+      `Section "${sectionId}" must start collapsed by default with aria-expanded="false"`
+    );
+    assert.doesNotMatch(
+      defaultHtml,
+      new RegExp(`id="desktop-panel-${sectionId}"`),
+      `Panel for "${sectionId}" must be hidden when collapsed`
+    );
+  }
 
   // Selected filters in collapsed sections remain active and show badges beside the headings
   assert.match(

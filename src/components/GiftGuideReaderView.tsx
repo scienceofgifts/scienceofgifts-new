@@ -64,18 +64,18 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
       className={`space-y-8 scroll-mt-24 ${surfaceBg}`}
     >
       {/* Section Header */}
-      <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-[#1B3D5F]/10 pb-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-[#DFDBD3] pb-4">
         <div className="space-y-1.5 max-w-2xl">
           <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
             Budget Tier · {section.priceRangeLabel}
           </div>
           <h2
             id={`heading-${section.id}`}
-            className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F]"
+            className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
           >
             {section.title}
           </h2>
-          <p className="text-sm text-[#28537D] leading-relaxed">{section.summary}</p>
+          <p className="text-sm text-[#292B2D] leading-relaxed">{section.summary}</p>
         </div>
       </div>
 
@@ -208,16 +208,16 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
     .filter((a): a is Article => Boolean(a));
 
   return (
-    <article className="min-h-screen bg-[#FAF7F2] text-[#1B3D5F]">
+    <article className="min-h-screen bg-[#FAF7F2] text-[#292B2D]">
       <div className="max-w-7xl mx-auto px-6 py-8 md:py-12">
         {/* ===================================================================
             A. GUIDE INTRODUCTION: Breadcrumb, H1, Intro, Hero, Disclosure
            =================================================================== */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-8 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#1B3D5F]/10"
+          className="mb-8 flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-[#DFDBD3]"
         >
-          <ol className="flex items-center gap-2 text-xs text-[#28537D]">
+          <ol className="flex items-center gap-2 text-xs text-[#62666A]">
             <li>
               <a
                 href="/"
@@ -227,7 +227,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                     onBackHome();
                   }
                 }}
-                className="inline-flex items-center gap-1.5 font-semibold text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D] whitespace-nowrap shrink-0"
+                className="inline-flex items-center gap-1.5 font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D] whitespace-nowrap shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Home</span>
@@ -243,18 +243,18 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                     onBackHome();
                   }
                 }}
-                className="hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
+                className="text-[#28537D] hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
               >
                 Gift Guides
               </a>
             </li>
             <li aria-hidden="true">/</li>
-            <li aria-current="page" className="text-[#1B3D5F] font-medium truncate max-w-xs">
+            <li aria-current="page" className="text-[#62666A] font-medium truncate max-w-xs">
               {guide.category}
             </li>
           </ol>
 
-          <div className="flex items-center gap-2 text-xs text-[#28537D]">
+          <div className="flex items-center gap-2 text-xs text-[#62666A]">
             <span>Last updated {guide.updatedAt}</span>
             <span aria-hidden="true">·</span>
             <span>{guide.readTimeMinutes} min read</span>
@@ -270,17 +270,17 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
               <span>{guide.category}</span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#1B3D5F] leading-[1.12] text-balance">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
               {guide.title}
             </h1>
 
-            <p className="text-lg md:text-xl text-[#28537D] leading-relaxed">
+            <p className="text-lg md:text-xl text-[#292B2D] leading-relaxed">
               {guide.subtitle}
             </p>
 
             {/* Concise Editorial Intro Paragraphs */}
             {guide.introParagraphs && guide.introParagraphs.length > 0 && (
-              <div className="space-y-3 text-sm md:text-base text-[#1B3D5F]/85 leading-relaxed pt-1">
+              <div className="space-y-3 text-sm md:text-base text-[#292B2D] leading-relaxed pt-1">
                 {guide.introParagraphs.map((para, idx) => (
                   <p key={idx}>{para}</p>
                 ))}
@@ -295,13 +295,13 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                   alt={author.name}
                   className="w-11 h-11 rounded-full object-cover shrink-0"
                 />
-                <div className="text-xs text-[#28537D]">
+                <div className="text-xs text-[#62666A]">
                   <div>
-                    <span className="font-semibold text-[#1B3D5F]">By {author.name}</span>
+                    <span className="font-semibold text-[#222426]">By {author.name}</span>
                     <span aria-hidden="true"> · </span>
                     <span>{author.role}</span>
                   </div>
-                  <p className="text-[#28537D]/85 line-clamp-1 mt-0.5">{author.bio}</p>
+                  <p className="text-[#62666A] line-clamp-1 mt-0.5">{author.bio}</p>
                 </div>
               </div>
             )}
@@ -318,7 +318,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 />
               </div>
               {guide.heroImageCaption && (
-                <figcaption className="text-xs font-serif italic text-[#28537D] mt-2.5 px-1">
+                <figcaption className="text-xs font-serif italic text-[#62666A] mt-2.5 px-1">
                   {guide.heroImageCaption}
                 </figcaption>
               )}
@@ -329,7 +329,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                   Who This Guide Is For
                 </div>
-                <ul className="space-y-1.5 text-xs text-[#1B3D5F]">
+                <ul className="space-y-1.5 text-xs text-[#292B2D]">
                   {guide.whoThisGuideIsFor.map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
                       <span aria-hidden="true" className="text-[#28537D] font-bold">
@@ -347,7 +347,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
         {/* Unobtrusive Affiliate & Sample Content Disclosure */}
         <aside
           aria-label="Editorial and affiliate disclosure"
-          className="mb-10 px-5 py-3.5 rounded-2xl bg-[#F3ECE1]/65 text-xs text-[#28537D] flex items-start gap-2.5"
+          className="mb-10 px-5 py-3.5 rounded-2xl bg-[#F3ECE1]/65 text-xs text-[#62666A] flex items-start gap-2.5"
         >
           <Info className="w-4 h-4 text-[#28537D] shrink-0 mt-0.5" />
           <p className="leading-relaxed">{guide.affiliateDisclosure}</p>
@@ -365,14 +365,14 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
             <button
               type="button"
               onClick={() => jumpToAnchor('editors-pick')}
-              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
+              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
             >
               Editor’s Pick
             </button>
             <button
               type="button"
               onClick={() => jumpToAnchor('quick-picks')}
-              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
+              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
             >
               Quick Picks ({guide.quickPicks.length})
             </button>
@@ -381,7 +381,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 key={sec.id}
                 type="button"
                 onClick={() => jumpToAnchor(sec.id)}
-                className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
+                className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
               >
                 {sec.shortNavTitle}
               </button>
@@ -389,7 +389,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
             <button
               type="button"
               onClick={() => jumpToAnchor('buying-advice')}
-              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#1B3D5F] hover:bg-[#1B3D5F] hover:text-white transition-colors whitespace-nowrap shrink-0"
+              className="px-3 py-1.5 rounded-full bg-white text-xs font-semibold text-[#292B2D] hover:bg-[#28537D] hover:text-white transition-colors whitespace-nowrap shrink-0"
             >
               Buying Advice
             </button>
@@ -417,8 +417,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                     onClick={() => jumpToAnchor('editors-pick')}
                     className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
                       activeSectionId === 'editors-pick'
-                        ? 'bg-[#1B3D5F] text-white font-semibold'
-                        : 'text-[#1B3D5F] hover:bg-white/60'
+                        ? 'bg-[#28537D] text-white font-semibold'
+                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                     }`}
                   >
                     Editor’s Standout Pick
@@ -430,8 +430,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                     onClick={() => jumpToAnchor('quick-picks')}
                     className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
                       activeSectionId === 'quick-picks'
-                        ? 'bg-[#1B3D5F] text-white font-semibold'
-                        : 'text-[#1B3D5F] hover:bg-white/60'
+                        ? 'bg-[#28537D] text-white font-semibold'
+                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                     }`}
                   >
                     Quick Picks ({guide.quickPicks.length})
@@ -449,8 +449,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                       onClick={() => jumpToAnchor(sec.id)}
                       className={`w-full text-left py-1.5 px-2.5 rounded-lg flex items-center justify-between transition-colors ${
                         activeSectionId === sec.id
-                          ? 'bg-[#1B3D5F] text-white font-semibold'
-                          : 'text-[#1B3D5F] hover:bg-white/60'
+                          ? 'bg-[#28537D] text-white font-semibold'
+                          : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                       }`}
                     >
                       <span>{sec.shortNavTitle}</span>
@@ -465,8 +465,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                     onClick={() => jumpToAnchor('buying-advice')}
                     className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
                       activeSectionId === 'buying-advice'
-                        ? 'bg-[#1B3D5F] text-white font-semibold'
-                        : 'text-[#1B3D5F] hover:bg-white/60'
+                        ? 'bg-[#28537D] text-white font-semibold'
+                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                     }`}
                   >
                     How to Choose Well
@@ -479,8 +479,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                     onClick={() => jumpToAnchor('related-discoveries')}
                     className={`w-full text-left py-1.5 px-2.5 rounded-lg transition-colors ${
                       activeSectionId === 'related-discoveries'
-                        ? 'bg-[#1B3D5F] text-white font-semibold'
-                        : 'text-[#1B3D5F] hover:bg-white/60'
+                        ? 'bg-[#28537D] text-white font-semibold'
+                        : 'text-[#292B2D] hover:text-[#28537D] hover:bg-white/60'
                     }`}
                   >
                     Related Guides & Stories
@@ -491,11 +491,11 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
 
             {/* Saved in This Guide Counter */}
             <div className="p-5 rounded-3xl bg-[#E8F8F0] space-y-2 text-xs">
-              <div className="flex items-center justify-between font-semibold text-[#1B3D5F]">
+              <div className="flex items-center justify-between font-semibold text-[#222426]">
                 <span>Saved From This Guide</span>
                 <span className="tabular-nums">{savedInThisGuideCount}</span>
               </div>
-              <p className="text-[#28537D] leading-relaxed">
+              <p className="text-[#292B2D] leading-relaxed">
                 Tap the heart icon on any recommendation to bookmark it. Your saved state stays synced everywhere that product appears.
               </p>
             </div>
@@ -513,11 +513,11 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 className="rounded-3xl bg-gradient-to-br from-[#E8F8F0] via-[#F2FBF7] to-[#EBF3FE] p-6 md:p-10 scroll-mt-24"
               >
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-6">
-                  <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#1B3D5F]">
+                  <div className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-[#28537D]">
                     <Sparkles className="w-4 h-4 text-[#28537D]" />
                     <span id="heading-editors-pick">{guide.editorsPick.kicker}</span>
                   </div>
-                  <span className="text-xs font-medium text-[#28537D]">
+                  <span className="text-xs font-medium text-[#62666A]">
                     {editorsPickProduct.productType} · {editorsPickProduct.vendor}
                   </span>
                 </div>
@@ -549,7 +549,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                       className={`absolute top-3.5 right-3.5 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
                         savedProductIds.includes(editorsPickProduct.id)
                           ? 'bg-[#F2846B] text-white'
-                          : 'bg-white/95 text-[#1B3D5F] hover:bg-white'
+                          : 'bg-white/95 text-[#222426] hover:bg-white'
                       }`}
                     >
                       <Heart
@@ -569,33 +569,33 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                         {guide.editorsPick.headline}
                       </p>
                       <div className="flex flex-wrap items-baseline justify-between gap-2">
-                        <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F] leading-snug">
+                        <h2 className="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug">
                           <button
                             type="button"
                             onClick={() => onSelectProduct(editorsPickProduct)}
-                            className="text-left hover:underline"
+                            className="text-left hover:text-[#28537D] hover:underline"
                           >
                             {editorsPickProduct.title}
                           </button>
                         </h2>
-                        <span className="text-xl font-semibold text-[#1B3D5F] tabular-nums">
+                        <span className="text-xl font-semibold text-[#222426] tabular-nums">
                           ${editorsPickProduct.price}{' '}
-                          <span className="text-xs font-normal text-[#28537D]">
+                          <span className="text-xs font-normal text-[#62666A]">
                             {editorsPickProduct.currency}
                           </span>
                         </span>
                       </div>
-                      <p className="text-sm font-medium text-[#28537D]">
+                      <p className="text-sm font-medium text-[#62666A]">
                         {editorsPickProduct.subtitle}
                       </p>
                     </div>
 
-                    <p className="text-sm md:text-base text-[#1B3D5F]/90 leading-relaxed">
+                    <p className="text-sm md:text-base text-[#292B2D] leading-relaxed">
                       {guide.editorsPick.editorialRationale}
                     </p>
 
-                    <div className="p-4 rounded-2xl bg-white/80 text-xs text-[#1B3D5F] space-y-1">
-                      <div className="font-semibold text-[#28537D] uppercase tracking-wider text-[11px]">
+                    <div className="p-4 rounded-2xl bg-white/80 text-xs text-[#292B2D] space-y-1">
+                      <div className="font-semibold text-[#222426] uppercase tracking-wider text-[11px]">
                         Who & When to Give It
                       </div>
                       <p className="leading-relaxed">
@@ -625,7 +625,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                         type="button"
                         onClick={() => toggleSaveProductWithFeedback(editorsPickProduct.id)}
                         aria-pressed={savedProductIds.includes(editorsPickProduct.id)}
-                        className="px-4 py-2.5 rounded-full bg-white text-[#1B3D5F] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-white/80 transition-colors whitespace-nowrap shrink-0"
+                        className="px-4 py-2.5 rounded-full bg-white text-[#222426] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-white/80 transition-colors whitespace-nowrap shrink-0"
                       >
                         <Heart
                           className={`w-3.5 h-3.5 ${
@@ -670,12 +670,12 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                   </div>
                   <h2
                     id="heading-quick-picks"
-                    className="text-2xl font-serif font-semibold text-[#1B3D5F]"
+                    className="text-2xl font-serif font-semibold text-[#222426]"
                   >
                     Quick Picks by Recipient & Occasion
                   </h2>
                 </div>
-                <p className="text-xs text-[#28537D]">
+                <p className="text-xs text-[#62666A]">
                   Editorial highlights — select any pick to jump to its full review below
                 </p>
               </div>
@@ -722,7 +722,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                                   ? `Remove ${product.title} from Saved Gifts`
                                   : `Bookmark ${product.title}`
                               }
-                              className="p-1.5 rounded-full text-[#1B3D5F] hover:bg-[#1B3D5F]/10 transition-colors"
+                              className="p-1.5 rounded-full text-[#28537D] hover:bg-[#1B3D5F]/10 transition-colors"
                             >
                               <Heart
                                 className={`w-4 h-4 ${
@@ -732,37 +732,37 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                             </button>
                           </div>
 
-                          <h3 className="text-base font-serif font-semibold text-[#1B3D5F] leading-snug">
+                          <h3 className="text-base font-serif font-semibold text-[#222426] leading-snug">
                             <button
                               type="button"
                               onClick={() => jumpToAnchor(`rec-${product.id}`)}
-                              className="text-left hover:underline"
+                              className="text-left hover:text-[#28537D] hover:underline"
                             >
                               {product.title}
                             </button>
                           </h3>
 
-                          <p className="text-xs text-[#28537D] leading-relaxed">
+                          <p className="text-xs text-[#292B2D] leading-relaxed">
                             {qp.reason}
                           </p>
                         </div>
                       </div>
 
-                      <div className="pt-3 border-t border-[#1B3D5F]/10 flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span className="font-semibold text-[#1B3D5F] tabular-nums">
-                          ${product.price} {product.currency} · {product.vendor}
+                      <div className="pt-3 border-t border-[#DFDBD3] flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span className="font-semibold text-[#222426] tabular-nums">
+                          ${product.price} {product.currency} · <span className="font-normal text-[#62666A]">{product.vendor}</span>
                         </span>
 
                         <div className="flex items-center gap-3">
                           <button
                             type="button"
                             onClick={() => jumpToAnchor(`rec-${product.id}`)}
-                            className="font-semibold text-[#28537D] hover:text-[#1B3D5F] inline-flex items-center gap-1"
+                            className="font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline inline-flex items-center gap-1"
                           >
                             <span>Jump to review</span>
                             <ArrowDownRight className="w-3.5 h-3.5" />
                           </button>
-                          <span aria-hidden="true" className="text-[#1B3D5F]/25">
+                          <span aria-hidden="true" className="text-[#62666A]">
                             ·
                           </span>
                           <a
@@ -771,7 +771,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                               e.preventDefault();
                               onSelectProduct(product);
                             }}
-                            className="font-semibold text-[#1B3D5F] hover:underline"
+                            className="font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                           >
                             Details →
                           </a>
@@ -814,12 +814,12 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 </div>
                 <h2
                   id="heading-buying-advice"
-                  className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F]"
+                  className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
                 >
                   How to Choose for People Who Notice the Little Things
                 </h2>
                 {guide.buyingAdviceIntro && (
-                  <p className="text-sm text-[#28537D] leading-relaxed">
+                  <p className="text-sm text-[#292B2D] leading-relaxed">
                     {guide.buyingAdviceIntro}
                   </p>
                 )}
@@ -835,10 +835,10 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                       key={tip.id}
                       className="p-5 md:p-6 rounded-2xl bg-[#FAF7F2] space-y-3"
                     >
-                      <h3 className="text-lg font-serif font-semibold text-[#1B3D5F]">
+                      <h3 className="text-lg font-serif font-semibold text-[#222426]">
                         {tip.heading}
                       </h3>
-                      <p className="text-sm text-[#1B3D5F]/85 leading-relaxed">
+                      <p className="text-sm text-[#292B2D] leading-relaxed">
                         {tip.body}
                       </p>
 
@@ -864,7 +864,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                               id={panelId}
                               role="region"
                               aria-label={tip.expandablePrompt}
-                              className="mt-3 p-4 rounded-xl bg-[#EBF3FE]/60 text-xs text-[#1B3D5F] leading-relaxed"
+                              className="mt-3 p-4 rounded-xl bg-[#EBF3FE]/60 text-xs text-[#292B2D] leading-relaxed"
                             >
                               {tip.expandableDetails}
                             </div>
@@ -883,7 +883,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
             <section
               id="related-discoveries"
               aria-labelledby="heading-related-discoveries"
-              className="pt-8 border-t border-[#1B3D5F]/12 space-y-8 scroll-mt-24"
+              className="pt-8 border-t border-[#DFDBD3] space-y-8 scroll-mt-24"
             >
               <div>
                 <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D] mb-1.5">
@@ -891,7 +891,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 </div>
                 <h2
                   id="heading-related-discoveries"
-                  className="text-2xl md:text-3xl font-serif font-semibold text-[#1B3D5F]"
+                  className="text-2xl md:text-3xl font-serif font-semibold text-[#222426]"
                 >
                   Related Gift Guides & Editorial Stories
                 </h2>
@@ -923,7 +923,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                       <div className="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                         Companion Gift Guide · {relGuide.readTimeMinutes} min read
                       </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug">
+                      <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug">
                         <a
                           href={`/gift-guides/${relGuide.slug}/`}
                           onClick={(e) => {
@@ -932,12 +932,12 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                               onSelectGuide(relGuide.slug);
                             }
                           }}
-                          className="text-left hover:underline"
+                          className="text-left hover:text-[#28537D] hover:underline"
                         >
                           {relGuide.title}
                         </a>
                       </h3>
-                      <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
+                      <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
                         {relGuide.subtitle}
                       </p>
                     </div>
@@ -950,7 +950,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                           onSelectGuide(relGuide.slug);
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                     >
                       <span>Explore Guide</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -984,7 +984,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                         <BookOpen className="w-3.5 h-3.5" />
                         <span>{art.category}</span>
                       </div>
-                      <h3 className="text-lg font-serif font-semibold text-[#1B3D5F] leading-snug">
+                      <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug">
                         <a
                           href={`/articles/${art.slug}/`}
                           onClick={(e) => {
@@ -993,12 +993,12 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                               onSelectArticle(art.slug);
                             }
                           }}
-                          className="text-left hover:underline"
+                          className="text-left hover:text-[#28537D] hover:underline"
                         >
                           {art.title}
                         </a>
                       </h3>
-                      <p className="text-xs text-[#1B3D5F]/80 leading-relaxed line-clamp-3">
+                      <p className="text-xs text-[#292B2D] leading-relaxed line-clamp-3">
                         {art.subtitle}
                       </p>
                     </div>
@@ -1011,7 +1011,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                           onSelectArticle(art.slug);
                         }
                       }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] hover:text-[#28537D]"
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
                     >
                       <span>Read Story</span>
                       <ArrowRight className="w-3.5 h-3.5" />
