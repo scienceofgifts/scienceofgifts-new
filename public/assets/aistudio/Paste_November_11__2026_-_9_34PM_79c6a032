@@ -1,0 +1,936 @@
+# Science of Gifts: Editorial Design Refinement and Premium Product Page Redesign
+
+## Project Context
+
+We are continuing development of Science of Gifts, an editorial gift publication and gift-discovery website built using Astro, React, TypeScript, and Tailwind CSS v4.
+
+The project already contains a substantially upgraded editorial gift guide experience, along with product pages, articles, the Gift Finder, and saved-gift functionality.
+
+The recent gift guide redesign has been successful in improving functionality, editorial depth, and information architecture.
+
+However, there are two remaining problems:
+
+1. **The website's overall visual identity lacks cohesion and refinement.** Typography, colors, spacing, hierarchy, and component treatments sometimes compete rather than work together.
+2. **The product detail pages remain too basic.** They resemble conventional ecommerce pages with some editorial information added, rather than sophisticated gift-focused product profiles.
+
+Your task is to address both problems through actual implementation.
+
+This is not a request for a design proposal, suggestions, or a theoretical analysis. Inspect the current project and make the necessary changes.
+
+## 1. Important Constraints
+
+- Work exclusively in the current development project.
+- Do not modify the production Science of Gifts website, DNS, redirects, or hosting.
+- Preserve Astro static rendering and the existing React islands architecture.
+- Preserve all existing routes and canonical product IDs.
+- Preserve the existing content repository abstraction.
+- Preserve functional Gift Finder features.
+- Preserve saved-gift functionality.
+- Preserve existing product relationships and guide relationships.
+- Do not integrate Sanity or Fourthwall APIs during this task.
+- Do not replace the application architecture.
+- Do not fabricate product information, ratings, prices, testing results, or purchase destinations.
+- Avoid unnecessary dependencies.
+
+Most importantly, **do not undo the substantial improvements recently made to the gift guides.**
+
+We are refining their presentation, not reverting them to simpler versions.
+
+Implement the work in the following order.
+
+# PHASE 1: Refine the Editorial Design System
+
+## 2. Overall Visual Direction
+
+Science of Gifts should feel like a substantial premium editorial publication.
+
+The visual ambition is closer to The New York Times Wirecutter, New York Magazine's The Strategist, and sophisticated independent magazines than to a typical ecommerce store or WordPress blog.
+
+These are quality references, not templates to copy.
+
+The website should feel:
+
+- Editorial
+- Sophisticated
+- Knowledgeable
+- Warm and approachable
+- Visually confident
+- Information-rich
+- Carefully composed
+- Distinctive and recognizable
+
+We do not want sterile minimalism.
+
+We also do not want excessive decoration.
+
+The objective is a **rich editorial experience with disciplined visual hierarchy**.
+
+### The current problem
+
+The website currently uses too many competing visual treatments:
+
+- Beige backgrounds
+- Slightly different beige panels
+- Mint information boxes
+- Multiple styles of small uppercase labels
+- Serif section headings
+- Sans-serif headings
+- Monospaced-looking metadata
+- Rounded cards
+- Heavy bordered containers
+- Dark navy navigation states
+- Bold uppercase buttons
+
+Individually, many of these elements are attractive.
+
+Together, they make the page feel overly compartmentalized.
+
+The gift guide sometimes resembles an editorial dashboard rather than a magazine.
+
+The solution is not to remove content. It is to establish a clearer design language.
+
+## 3. Refine the Color Palette
+
+Preserve the recognizable Science of Gifts identity, but introduce a more disciplined use of color.
+
+### Proposed foundation
+
+| Role | Suggested color |
+|---|---|
+| Editorial canvas | `#FAF9F6` |
+| Main paper surface | `#FFFFFF` |
+| Primary text | `#24282B` |
+| Secondary text | `#636A6F` |
+| Brand navy | `#1B3D5F` |
+| Interactive blue | `#28537D` |
+| Subtle mint | `#E5F3EC` |
+| Soft borders | `#E3E1DB` |
+
+The existing powder blue `#99BFF9` and mint `#C3F3DF` may remain as selective brand accents.
+
+These values are an initial direction, not an instruction to replace every existing color blindly.
+
+### Color usage rules
+
+1. The predominant editorial background should be neutral and unobtrusive.
+2. Standard editorial text should be charcoal, not blue.
+3. Use white and very light neutral surfaces to establish reading areas.
+4. Use navy primarily for meaningful links, navigation, buttons, and selected states.
+5. Mint should be a selective editorial accent, not a default background for every informational section.
+6. Avoid layering multiple similar beige containers within one another.
+7. Prefer whitespace and typography over colored boxes for section separation.
+8. Use stronger color contrast only where it establishes genuine hierarchy.
+9. Do not introduce an entirely new color palette or remove the existing brand identity.
+
+The overall effect should be lighter, clearer, and more sophisticated.
+
+## 4. Establish a Consistent Typography System
+
+The current typography has too many competing voices.
+
+Create a unified editorial hierarchy.
+
+### Typographic roles
+
+**Display headline**
+
+Used for major editorial page introductions.
+
+Expressive serif typography with strong scale and deliberate line breaks.
+
+**Section headline**
+
+Used for major page sections such as recommendations, buying advice, and recipient analysis.
+
+Use the editorial serif family consistently.
+
+**Product headline**
+
+Used for individual product names and major recommendations.
+
+Distinctive and readable, with appropriate visual weight.
+
+**Body typography**
+
+Clean, highly readable sans-serif typography.
+
+Comfortable line height, sensible measure, and natural spacing.
+
+**Editorial metadata**
+
+Small, restrained text for categories, authors, dates, makers, prices, and other supporting information.
+
+**Interactive typography**
+
+Clear typography for navigation, controls, buttons, and filters.
+
+### Implementation requirements
+
+Inspect the fonts already installed in the project.
+
+Prefer reusing the existing typefaces if they are suitable. Do not add multiple new fonts.
+
+Define a consistent type scale with sensible responsive sizes.
+
+As a starting direction:
+
+- Major display headings: approximately 44 to 60px on desktop
+- Major section headings: approximately 28 to 36px
+- Product and feature headings: approximately 22 to 30px
+- Editorial body copy: approximately 16 to 18px
+- Supporting text: approximately 13 to 15px
+- Metadata: approximately 12 to 13px
+
+These are guidelines. Adjust according to the actual composition.
+
+### Important refinements
+
+Reduce excessive use of:
+
+- Uppercase text
+- Wide letter spacing
+- Tiny metadata
+- Monospaced-looking labels
+- Competing heading treatments
+- Bold navigation elements
+
+Not every section needs an uppercase eyebrow label.
+
+Not every important piece of information needs to be bold.
+
+Establish a visual hierarchy where readers can immediately distinguish the page title, section headings, product titles, body copy, and supporting metadata.
+
+The final typography should feel like one publication, not several unrelated component libraries.
+
+## 5. Improve Spacing and Composition
+
+Inspect the current layout widths, spacing values, component padding, and vertical rhythm.
+
+Create consistent editorial spacing rules.
+
+The website should support different content widths:
+
+- Wide canvas for editorial compositions
+- Standard content area for major sections
+- Narrow reading measure for long-form prose
+- Compact widths for metadata and supporting information
+
+Do not force every component into the same container width.
+
+Use deliberate variation.
+
+### Containers
+
+Reduce unnecessary nested containers.
+
+A product recommendation should not automatically require:
+
+- An outer beige card
+- A colored header
+- An internal image card
+- Multiple smaller information cards
+- Another specifications box
+
+Prefer open editorial compositions with clear spacing.
+
+Use borders and cards selectively.
+
+A subtle rule, a typographic heading, and generous whitespace can often create better hierarchy than another box.
+
+### Visual rhythm
+
+Different sections should have noticeably different editorial compositions while remaining visually consistent.
+
+For example:
+
+- Open, photographic introduction
+- Compact recommendation shortlist
+- Large editorial product feature
+- Detailed two-column product recommendation
+- Narrow long-form buying advice
+- Subtle editorial note
+- Wide comparison section
+- Related reading grid
+
+The website should not feel mechanically assembled from repeating components.
+
+## 6. Refine the Existing Gift Guide
+
+Do not redesign its information architecture from scratch.
+
+Preserve its current editorial functionality, including:
+
+- Editorial index
+- Quick Picks
+- Recipient discovery
+- Featured recommendation
+- Curated recommendations
+- Recipient suitability
+- Practical considerations
+- Product specifications
+- Comparisons
+- Buying advice
+- FAQs
+- Related guides
+- Saved-gift features
+
+Focus on improving presentation.
+
+### Specific improvements
+
+**Editorial index**
+
+The sidebar currently feels relatively heavy.
+
+Make it visually lighter and more restrained.
+
+It should help readers navigate without competing with the main content.
+
+Reduce excessive borders, background weight, and unnecessarily prominent active states.
+
+Preserve sticky behavior if it works well.
+
+**Featured recommendation**
+
+The standout recommendation currently contains many nested visual elements.
+
+Improve the balance between imagery, heading, editorial explanation, and supplemental information.
+
+Make the product photograph more prominent and better integrated into the composition.
+
+The title and image should feel like the dominant elements.
+
+Recipient suitability, practical details, and specifications should remain readily accessible but not compete with the main recommendation.
+
+**Editorial labels**
+
+Simplify terminology where it sounds unnecessarily elaborate or technical.
+
+For example, labels such as "Quick Picks Ledger" or "Gift Comparison Ledger" may be better presented as "Quick Picks" and "Compare the Gifts."
+
+Use natural editorial language.
+
+**Information panels**
+
+Avoid turning every piece of useful information into a separate colored card.
+
+Explore more elegant treatments using typographic headings, subtle dividers, compact lists, or open editorial sidebars.
+
+### Critical requirement
+
+The gift guide should retain the same richness and functionality after refinement.
+
+Do not remove useful information merely to create a cleaner appearance.
+
+# PHASE 2: Redesign Product Pages as Editorial Gift Profiles
+
+## 7. Fundamental Product Page Philosophy
+
+This is the most important part of the implementation.
+
+The existing product page resembles a conventional ecommerce product detail page:
+
+- Large product image
+- Product title
+- Price
+- Purchase controls
+- Short description
+- Why it makes a great gift
+- Product specifications
+
+These are necessary, but not sufficient.
+
+Science of Gifts is an editorial gift-discovery publication.
+
+Its product pages should help visitors answer:
+
+**Is this the right gift for the person I have in mind?**
+
+That question should define the product page's structure.
+
+A product page should feel like an individual editorial gift profile.
+
+It must combine:
+
+1. Strong product presentation
+2. Gift-specific editorial analysis
+3. Recipient suitability
+4. Purchasing information
+5. Practical considerations
+6. Relevant gift occasions
+7. Alternatives and comparisons
+8. Connections to broader gift guides and articles
+
+These sections should be part of a cohesive editorial experience.
+
+Do not simply stack additional colored cards beneath the existing ecommerce layout.
+
+## 8. Product Page Layout
+
+Create a substantially more sophisticated desktop and mobile product page.
+
+### A. Editorial Product Hero
+
+The top of the page should contain:
+
+- Breadcrumb navigation
+- Product category
+- Product image or gallery
+- Product headline
+- Concise editorial description
+- Short gift verdict
+- Price, when available
+- Maker or brand, when available
+- Purchasing options
+- Save-to-list functionality
+
+### Visual direction
+
+Use a thoughtfully balanced editorial composition.
+
+On desktop, a substantial photograph or image gallery should sit alongside the product introduction and essential details.
+
+Avoid excessive blank space, oversized purchase panels, or awkward vertical alignment.
+
+The current large beige purchase box feels too much like a standard ecommerce template.
+
+Refine the purchase interface into a smaller, visually coherent component.
+
+Price and purchasing actions should remain easy to find.
+
+They should not visually overwhelm the editorial content.
+
+### Product photography
+
+Use actual product images associated with the canonical product record.
+
+Preserve their original proportions appropriately.
+
+Do not stretch, distort, or arbitrarily crop products.
+
+Do not fabricate additional gallery images when only one image exists.
+
+The current development prototype contains sample products and placeholder imagery.
+
+In at least one example, the image depicts a bright orange beverage while the product description refers to a blue-and-mint bedside carafe.
+
+Do not allow mismatched imagery to create misleading product presentations.
+
+Use valid product data wherever possible.
+
+If a product has only sample assets, clearly indicate its development status without overwhelming the visible design.
+
+Do not invent visually convincing but inaccurate product photography.
+
+## 9. The Gift Verdict
+
+Create a prominent editorial section answering:
+
+**Why is this product worth considering as a gift?**
+
+This should be one of the defining features of Science of Gifts.
+
+The section should include, where supported:
+
+- A concise editorial assessment
+- The product's particular appeal
+- Why someone would enjoy receiving it
+- What makes it different from similar products
+- Any important caveat
+
+The visual presentation should feel like an editorial recommendation.
+
+Use sophisticated typography and composition.
+
+Avoid a generic pastel callout box.
+
+The verdict should carry more editorial significance than ordinary product marketing copy.
+
+Do not imply hands-on testing unless testing actually occurred.
+
+## 10. Ideal Recipient
+
+Create a dedicated section explaining who would appreciate the gift.
+
+This may include:
+
+- Interests
+- Hobbies
+- Profession or field of study
+- Personality or preferences
+- Lifestyle
+- Relationship to the gift giver
+- Relevant occasions
+
+Do not use every category for every product.
+
+Show only information supported by the actual product metadata and editorial content.
+
+### Presentation
+
+This should be a meaningful editorial feature, not just a row of generic tags.
+
+For example, a thoughtful heading could introduce the type of recipient most likely to appreciate the gift, followed by a concise explanation and relevant supporting details.
+
+Use recipient tags where useful, but do not rely on them as the entire section.
+
+Where suitable, link to relevant recipient-oriented guides or discovery collections.
+
+## 11. Why It Makes a Great Gift
+
+Preserve and enhance the existing gift-rationale information.
+
+This section should go deeper than the short Gift Verdict.
+
+It should discuss the relationship between the product, the recipient, and the gift-giving context.
+
+For example:
+
+A novelty mug is not necessarily interesting because it is ceramic and holds coffee.
+
+It might be interesting because its design references a very specific academic experience, becomes part of the recipient's daily routine, and communicates that the gift giver understands their interests.
+
+That is the kind of editorial explanation the website should support.
+
+Use conversational, knowledgeable writing.
+
+Avoid generic marketing language.
+
+Where an existing description already provides this explanation, reuse it instead of inventing new copy.
+
+Avoid repeating exactly the same paragraph across the verdict, introduction, and detailed rationale.
+
+## 12. What to Consider Before Buying
+
+Create an editorial considerations section.
+
+Potential information includes:
+
+- Size or fit
+- Materials
+- Practical compatibility
+- Care instructions
+- Personalization availability
+- Fragility
+- Portability
+- Intended use
+- Recipient preferences
+- Important product limitations
+
+This should help readers make informed decisions.
+
+Do not manufacture drawbacks merely to populate a section.
+
+If a product does not have meaningful caveats, omit the section or use an appropriate concise format.
+
+The goal is useful editorial judgment, not unnecessary negativity.
+
+## 13. Gift Occasions and Buying Context
+
+Include relevant occasions where appropriate.
+
+Examples:
+
+- Birthday
+- Graduation
+- Christmas
+- Housewarming
+- Appreciation gifts
+- Career milestones
+
+Do not automatically tag every product with every occasion.
+
+Use supported metadata and editorial relevance.
+
+Provide contextual links to related occasion or recipient guides where those destinations exist.
+
+This is an opportunity to improve internal discovery without adding irrelevant navigation.
+
+## 14. Specifications and Product Details
+
+Create a restrained, easy-to-scan product details section.
+
+Potential fields:
+
+- Materials
+- Dimensions
+- Available sizes
+- Color variants
+- Capacity
+- Care instructions
+- Maker
+- Product category
+- Other relevant specifications
+
+Use actual available data.
+
+Do not use generic filler values.
+
+Present specifications in a compact editorial format, such as a clean definition list or table.
+
+Avoid large empty panels.
+
+Commerce-specific variant selectors should only be included if supported by existing verified functionality.
+
+## 15. Compare With Similar Gifts
+
+Introduce a substantial related-gifts experience.
+
+This should help readers who are interested in the general idea but unsure about the particular product.
+
+Include relevant alternatives when actual catalog relationships support them.
+
+Possible distinctions:
+
+- A more affordable alternative
+- A more premium alternative
+- A more practical option
+- A more unusual gift
+- A related product for a similar recipient
+
+These classifications must be grounded in genuine product differences.
+
+Do not assign artificial comparative labels.
+
+### Visual treatment
+
+Use editorial product recommendations with:
+
+- Product imagery
+- Product title
+- Available price
+- Short explanation of the alternative
+- Link to the product profile
+
+Avoid generic recommendation carousels that show only images and prices.
+
+Prefer a restrained, visually rich editorial layout.
+
+## 16. Featured Gift Guide
+
+A Science of Gifts product should feel connected to the broader editorial publication.
+
+Create a prominent but tasteful section connecting the product to its main gift guide.
+
+This section could include:
+
+- The related guide's title
+- A short editorial introduction
+- Appropriate imagery
+- A link to the full guide
+- Additional context about the recipient or gift category
+
+Use actual canonical relationships.
+
+Do not invent guide associations.
+
+This should be more substantial than a small generic hyperlink, but it should not overshadow the product itself.
+
+## 17. Related Editorial Content
+
+Where available, connect the product to relevant articles, buying advice, recipient collections, or other curated recommendations.
+
+Use contextual relationships rather than random site-wide recommendations.
+
+The purpose is to make Science of Gifts feel like a connected publication.
+
+Avoid repeated links to the same guide throughout the page.
+
+## 18. A More Sophisticated Product Page Hierarchy
+
+The new page should have a clear reading journey.
+
+### Primary level
+
+- Product photography
+- Product title
+- Core gift verdict
+- Price and purchase options
+
+### Secondary level
+
+- Ideal recipient
+- Why it makes a great gift
+- Practical considerations
+
+### Supporting level
+
+- Detailed specifications
+- Relevant occasions
+- Alternatives
+- Related gift guides and editorial content
+
+Not every piece of information needs identical visual emphasis.
+
+The reader should understand the page naturally.
+
+Important decisions should be possible without scrolling through every section.
+
+Additional detail should reward deeper exploration.
+
+## 19. Build a Reusable Editorial Product Template
+
+Do not hardcode a single sample product into the layout.
+
+Inspect the current product content model and repository.
+
+Extend the existing architecture with optional editorial fields only where needed.
+
+Potential fields include:
+
+- Gift verdict
+- Gift rationale
+- Ideal recipient summary
+- Recipient interests
+- Gift occasions
+- Practical considerations
+- Product highlights
+- Comparison relationships
+- Featured gift guide relationship
+- Related editorial content
+
+Reuse existing fields wherever possible.
+
+The template must gracefully support:
+
+- Products with detailed editorial content
+- Products with shorter descriptions
+- Products with one image
+- Products with multiple images
+- Products with missing optional specifications
+- Affiliate products
+- Future Fourthwall products
+- Products with no verified price
+- Products with no verified purchase destination
+
+Do not create empty sections.
+
+Do not fabricate content to satisfy the layout.
+
+### Purchase controls
+
+Preserve existing functional purchase and save actions.
+
+If the purchase URL is a development placeholder, do not disguise it as a real purchase destination.
+
+Make the action clearly unavailable or appropriately labeled in development.
+
+Do not claim products are in stock without verified inventory data.
+
+Do not expose internal product IDs or placeholder merchant URLs prominently in the customer-facing editorial composition.
+
+Development diagnostics may remain accessible in a clearly separated development-only context.
+
+## 20. Align the Product Page With the Gift Guide
+
+The gift guide and product page must now look like they belong to the same publication.
+
+They should share:
+
+- Typography
+- Color tokens
+- Content spacing
+- Editorial labels
+- Border treatments
+- Button styles
+- Navigation
+- Image presentation principles
+- Section hierarchy
+- Product metadata formatting
+
+However, the layouts should not be identical.
+
+A gift guide is a curated editorial roundup.
+
+A product page is a detailed profile of one gift.
+
+They should have different compositions while retaining a common design language.
+
+## 21. Global Navigation and Header
+
+Inspect the current site header and navigation.
+
+Refine obvious inconsistencies in typography, spacing, alignment, button hierarchy, and responsiveness.
+
+Preserve all existing destinations and functionality.
+
+Keep the header elegant and relatively restrained.
+
+The site's editorial content should be the main attraction.
+
+Do not rebuild the entire navigation system or introduce new menus unrelated to this task.
+
+## 22. Responsive Design
+
+Both the redesigned product page and refined gift guide must work properly at:
+
+- 1440px desktop
+- 1024px tablet
+- 768px tablet
+- 390px mobile
+- 320px narrow mobile
+
+Pay particular attention to:
+
+- Hero layouts
+- Product image ratios
+- Large serif titles
+- Editorial navigation
+- Price and purchase actions
+- Recipient information
+- Related product recommendations
+- Comparison layouts
+- Reading column widths
+- Touch target sizes
+- Vertical rhythm
+
+Do not allow horizontal overflow.
+
+Do not hide important editorial content on mobile just to simplify the design.
+
+The mobile experience should feel intentionally designed rather than mechanically stacked.
+
+## 23. Performance, Accessibility, and SEO
+
+Preserve the project's existing SEO architecture.
+
+Requirements:
+
+- Crawlable static editorial content
+- Semantic heading hierarchy
+- One meaningful H1 per page
+- Valid canonical URLs
+- Appropriate structured data without fabricated claims
+- Descriptive internal links
+- Accurate image alt text
+- Optimized image loading
+- Minimal layout shifts
+- Accessible navigation
+- Visible keyboard focus
+- Appropriate color contrast
+- Reduced-motion support
+- No unnecessary client-side hydration
+
+Use Astro components for primarily static editorial content.
+
+Use React only where interactivity requires it.
+
+Do not convert the entire product detail page or gift guide into a large client-rendered application.
+
+## 24. Implementation Requirements
+
+This is an implementation task.
+
+### Step 1: Audit the current project
+
+Inspect:
+
+- Global styles and design tokens
+- Existing typography
+- Page layouts
+- Header
+- Gift guide components
+- Product page components
+- Current content repository
+- Product metadata
+- Existing saved-gift integration
+- Product-guide relationships
+- Shared UI components
+
+Identify opportunities to reuse existing code.
+
+### Step 2: Implement the shared design system refinement
+
+Create or refine reusable:
+
+- Color tokens
+- Typography rules
+- Spacing values
+- Container widths
+- Editorial headings
+- Section treatments
+- Metadata styles
+- Button hierarchy
+- Image presentation
+- Responsive behavior
+
+Avoid scattered, conflicting CSS overrides.
+
+### Step 3: Refine the gift guide
+
+Apply the improved design system to the upgraded guide.
+
+Preserve all content and functionality.
+
+Reduce the dashboard-like appearance and improve hierarchy.
+
+### Step 4: Redesign the product page
+
+Implement the full editorial gift-profile experience.
+
+Use the existing product repository and real product relationships.
+
+Create reusable components rather than hardcoded sections.
+
+### Step 5: Validate
+
+Verify that:
+
+1. The Astro production build succeeds.
+2. Existing routes work.
+3. Gift guides retain their functionality.
+4. Gift Finder functionality is unaffected.
+5. Saved-gift actions continue to work.
+6. Product links resolve correctly.
+7. Placeholder purchase links are not presented as live shopping destinations.
+8. Missing optional metadata does not break the layout.
+9. There are no hydration errors.
+10. No meaningful content disappears from gift guides.
+11. Desktop and mobile layouts are responsive.
+12. There are no unnecessary dependencies.
+13. Editorial content remains crawlable.
+14. No inaccurate product claims have been introduced.
+
+If visual preview or browser inspection is available, inspect the actual rendered pages.
+
+Check both the guide and at least two product pages with different amounts of content.
+
+Do not claim a test passed unless it actually ran.
+
+## 25. What Not to Do
+
+Do not interpret this brief as a request for a simplistic minimalist redesign.
+
+Do not:
+
+- Remove useful editorial sections
+- Make every page a series of generic cards
+- Replace the existing identity with an unrelated theme
+- Introduce excessive animations
+- Add unnecessary icons
+- Overuse pastel information boxes
+- Duplicate the same content in multiple sections
+- Add placeholder reviews or ratings
+- Invent product comparisons
+- Introduce a separate design language for product pages
+- Modify the production website
+- Rebuild working functionality
+- Begin CMS or commerce integration
+
+## 26. Expected Outcome
+
+After implementation, the gift guide should feel more polished, cohesive, and magazine-like while retaining its new editorial depth.
+
+The product page should be transformed much more substantially.
+
+It should no longer look like a standard ecommerce product page with a few gift-related boxes.
+
+It should look like a rich editorial profile that genuinely helps visitors determine whether the product is a thoughtful gift for a particular person.
+
+The typography, color, imagery, composition, and editorial components should work together as one coherent publication.
+
+Science of Gifts should feel established, sophisticated, and useful without becoming visually overwhelming.
+
+**The guiding principle: make the website feel like a premium publication that understands gifting, not a collection of ecommerce and blog components.**
+
+Proceed with implementation, then summarize the changes, modified files, any content limitations, and the verification results.

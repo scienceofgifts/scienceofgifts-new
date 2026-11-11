@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GuideFAQItem, Product } from '../../types/content';
-import { ArrowDownRight, ChevronDown, HelpCircle } from 'lucide-react';
+import { ArrowDownRight, ChevronDown } from 'lucide-react';
 
 export interface GuideFAQProps {
   faqs?: GuideFAQItem[];
@@ -13,7 +13,6 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
   productsMap,
   onJumpToRecommendation,
 }) => {
-  // Open the first FAQ item by default so static HTML and initial readers see an immediate answer
   const [openIds, setOpenIds] = useState<Record<string, boolean>>(() => {
     if (!faqs || faqs.length === 0) return {};
     return { [faqs[0].id]: true };
@@ -41,17 +40,16 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
     <section
       id="guide-faq"
       aria-labelledby="guide-faq-heading"
-      className="scroll-mt-24 rounded-3xl border border-[#D5CFC4] bg-[#F4EFE6] p-6 sm:p-8"
+      className="scroll-mt-24 border-t border-[#E3E1DB] pt-10"
     >
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#D5CFC4] pb-5">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
         <div>
-          <p className="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#28537D]">
-            <HelpCircle className="h-3.5 w-3.5" />
-            Practical Gifting Questions · Answered
+          <p className="text-xs font-semibold text-[#28537D]">
+            Common Questions
           </p>
           <h2
             id="guide-faq-heading"
-            className="mt-1.5 font-serif text-2xl font-bold text-[#222426] sm:text-3xl"
+            className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
           >
             Frequently Asked Questions
           </h2>
@@ -60,14 +58,14 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
         <button
           type="button"
           onClick={toggleAll}
-          className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3.5 py-2 text-xs font-bold text-[#28537D] transition-colors hover:border-[#28537D]"
+          className="rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#28537D] transition-colors hover:border-[#28537D]"
         >
           {allExpanded ? 'Collapse All Answers' : 'Expand All Answers'}
         </button>
       </div>
 
-      <div className="mt-6 divide-y divide-[#DFDBD3] rounded-2xl border border-[#D5CFC4] bg-[#FAF7F2]">
-        {faqs.map((faq, idx) => {
+      <div className="mt-6 divide-y divide-[#E3E1DB] rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF]">
+        {faqs.map((faq) => {
           const isOpen = Boolean(openIds[faq.id]);
           const panelId = `faq-answer-${faq.id}`;
           const relatedProduct = faq.relatedProductId
@@ -84,10 +82,7 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
                   onClick={() => toggleItem(faq.id)}
                   className="flex w-full items-start justify-between gap-4 text-left"
                 >
-                  <span className="font-serif text-base font-bold leading-snug text-[#222426] sm:text-lg">
-                    <span className="mr-2 font-mono text-xs text-[#28537D] tabular-nums">
-                      Q0{idx + 1}.
-                    </span>
+                  <span className="font-serif text-base font-semibold leading-snug text-[#24282B] sm:text-lg">
                     {faq.question}
                   </span>
                   <ChevronDown
@@ -98,12 +93,8 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
                 </button>
               </h3>
 
-              <div
-                id={panelId}
-                hidden={!isOpen}
-                className="mt-3 pl-0 sm:pl-8"
-              >
-                <p className="text-sm leading-[1.75] text-[#292B2D] sm:text-base">
+              <div id={panelId} hidden={!isOpen} className="mt-3">
+                <p className="max-w-[68ch] text-sm leading-[1.8] text-[#24282B] sm:text-base">
                   {faq.answer}
                 </p>
 
@@ -112,19 +103,19 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
                     <button
                       type="button"
                       onClick={() => onJumpToRecommendation(relatedProduct.id)}
-                      className="inline-flex items-center gap-1 font-bold text-[#28537D] underline decoration-[#28537D]/30 underline-offset-4 hover:text-[#1B3D5F]"
+                      className="inline-flex items-center gap-1 font-semibold text-[#28537D] underline decoration-[#28537D]/35 underline-offset-4 hover:text-[#1B3D5F]"
                     >
                       Jump to {relatedProduct.title} (${relatedProduct.price})
                       <ArrowDownRight className="h-3.5 w-3.5" />
                     </button>
-                    <span aria-hidden="true" className="text-[#8C867B]">
+                    <span aria-hidden="true" className="text-[#C5C1B8]">
                       ·
                     </span>
                     <a
                       href={`/products/${relatedProduct.slug}/`}
-                      className="font-semibold text-[#62666A] hover:text-[#28537D]"
+                      className="font-medium text-[#636A6F] hover:text-[#28537D]"
                     >
-                      Open Product Profile →
+                      Read Gift Profile →
                     </a>
                   </div>
                 )}

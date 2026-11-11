@@ -63,6 +63,50 @@ export interface ProductImage {
   fallbackColor: string;
   alt: string;
   caption?: string;
+  isSampleAsset?: boolean;
+}
+
+export interface ProductGiftVerdict {
+  editorialAssessment: string;
+  standoutReason: string;
+  recipientDelight: string;
+  importantCaveat?: string;
+  summary?: string;
+  appeal?: string;
+  whyEnjoyReceiving?: string;
+  distinctDifference?: string;
+  caveat?: string;
+}
+
+export interface ProductIdealRecipientProfile {
+  headline: string;
+  narrative: string;
+  lifestyleNotes?: string[];
+  relationshipFit?: string[];
+}
+
+export interface ProductBuyingConsideration {
+  label: string;
+  detail: string;
+}
+
+export interface ProductOccasionNote {
+  occasion: OccasionType;
+  label: string;
+  note: string;
+}
+
+export interface ProductSpecificationItem {
+  label: string;
+  value: string;
+}
+
+export interface ProductSimilarComparison {
+  productId: string;
+  comparisonAngle: string;
+  summary: string;
+  distinctionLabel?: string;
+  comparisonNote?: string;
 }
 
 export interface Product {
@@ -91,6 +135,14 @@ export interface Product {
   personalityTraits: PersonalityTrait[];
   images: ProductImage[];
   citationIds: string[];
+  seo?: SEOConfig;
+  giftVerdict?: ProductGiftVerdict;
+  idealRecipientProfile?: ProductIdealRecipientProfile;
+  extendedGiftRationale?: string[];
+  buyingConsiderationsList?: ProductBuyingConsideration[];
+  occasionContextNotes?: ProductOccasionNote[];
+  specifications?: ProductSpecificationItem[];
+  similarGiftComparisons?: ProductSimilarComparison[];
 }
 
 export type GuidePresentationStyle =
@@ -129,6 +181,10 @@ export interface GuideComparisonRow {
   mainAppeal: string;
   keyConsideration: string;
   bestOccasion: string;
+  bestFor?: string;
+  standoutTrait?: string;
+  everydayUsefulness?: string;
+  careOrStorage?: string;
 }
 
 export interface GuideComparisonConfig {
@@ -153,7 +209,11 @@ export interface GuideRecommendation {
   layoutHighlight?: 'feature-horizontal' | 'standard' | 'compact' | 'special-editorial';
   presentationStyle?: GuidePresentationStyle;
   editorialHeadline?: string;
+  editorialHook?: string;
   whyItWorks?: string;
+  whyWeChoseIt?: string;
+  whoItsBestFor?: string;
+  keepInMind?: string;
   buyingConsiderations?: string;
   betterAlternativeNote?: string;
 }
@@ -178,6 +238,11 @@ export interface GuideEditorsPick {
   intendedRecipientAndSituation: string;
   targetSectionId: string;
   buyingConsiderations?: string;
+  awardLabel?: string;
+  editorialHeadline?: string;
+  whyItStoodOut?: string;
+  whoItFitsBest?: string;
+  practicalNotes?: string;
 }
 
 export interface GuideQuickPick {
@@ -186,6 +251,7 @@ export interface GuideQuickPick {
   productId: string;
   reason: string;
   targetSectionId: string;
+  bestFor?: string;
 }
 
 export interface GuideBuyingTip {

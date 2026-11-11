@@ -1,14 +1,6 @@
 import React from 'react';
 import { GuideEditorsPick, Product } from '../../types/content';
-import {
-  ArrowDownRight,
-  Award,
-  Bookmark,
-  CheckCircle2,
-  ExternalLink,
-  Info,
-  Sparkles,
-} from 'lucide-react';
+import { ArrowDownRight, Award, Bookmark, ExternalLink } from 'lucide-react';
 
 export interface FeaturedGiftRecommendationProps {
   editorsPick: GuideEditorsPick;
@@ -32,69 +24,80 @@ export const FeaturedGiftRecommendation: React.FC<
   const primaryImage = product.images[0];
   const headline =
     editorsPick.headline ||
+    editorsPick.editorialHeadline ||
     `${product.title}: A Thoughtful Everyday Upgrade`;
+  const rationale =
+    editorsPick.editorialRationale ||
+    editorsPick.whyItStoodOut ||
+    product.whyToGiveIt;
   const intendedRecipient =
-    editorsPick.intendedRecipientAndSituation || product.bestForSummary;
+    editorsPick.intendedRecipientAndSituation ||
+    editorsPick.whoItFitsBest ||
+    product.bestForSummary;
   const considerations = (
-    editorsPick.buyingConsiderations || product.detailsAndCare
+    editorsPick.buyingConsiderations ||
+    editorsPick.practicalNotes ||
+    product.detailsAndCare
   )?.replace(/\s*—\s*/g, ', ');
 
   return (
     <section
       id="editors-pick"
       aria-labelledby="featured-pick-heading"
-      className="scroll-mt-24 overflow-hidden rounded-3xl border border-[#C9C1B4] bg-[#F3ECE1] shadow-sm"
+      className="scroll-mt-24 overflow-hidden rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF]"
     >
-      {/* Top Editorial Banner */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC4] bg-[#EAE2D3] px-6 py-3.5 sm:px-8">
-        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-[#28537D]">
-          <Award className="h-4 w-4" />
-          <span>{editorsPick.kicker || 'Editor’s Standout Selection'}</span>
+      {/* Subtle Top Editorial Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E3E1DB] bg-[#FAF9F6] px-6 py-3.5 sm:px-8">
+        <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#1B3D5F]">
+          <Award className="h-4 w-4 text-[#28537D]" />
+          <span>
+            {editorsPick.kicker ||
+              editorsPick.awardLabel ||
+              'Editor’s Standout Selection'}
+          </span>
         </div>
-        <span className="font-mono text-xs font-semibold text-[#62666A] tabular-nums">
+        <span className="text-xs font-medium text-[#636A6F] tabular-nums">
           {product.vendor} · ${product.price} {product.currency}
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:items-center lg:gap-10">
-        {/* Left: Large Magazine Product Photography */}
-        <div className="lg:col-span-5">
-          <div className="overflow-hidden rounded-2xl border border-[#D5CFC4] bg-[#FAF7F2]">
+      <div className="grid grid-cols-1 gap-8 p-6 sm:p-8 lg:grid-cols-12 lg:items-start lg:gap-10">
+        {/* Left: Prominent Magazine Product Photography */}
+        <div className="lg:col-span-6">
+          <figure className="overflow-hidden rounded-xl border border-[#E3E1DB] bg-[#FAF9F6]">
             {primaryImage && (
               <a
                 href={`/products/${product.slug}/`}
-                className="block aspect-[4/3] w-full overflow-hidden bg-[#EDE7DC]"
+                className="block aspect-[4/3] w-full overflow-hidden bg-[#F6F4EF]"
               >
                 <img
                   src={primaryImage.url}
                   alt={primaryImage.alt}
-                  width={720}
-                  height={540}
+                  width={760}
+                  height={570}
                   loading="lazy"
-                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.03]"
+                  className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
                 />
               </a>
             )}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#DFDBD3] px-4 py-3 text-xs text-[#62666A]">
-              <span className="font-medium text-[#222426]">
-                {product.productType}
-              </span>
-              <span className="font-mono font-bold text-[#28537D] tabular-nums">
+            <figcaption className="flex flex-wrap items-center justify-between gap-2 border-t border-[#E3E1DB] px-4 py-3 text-xs text-[#636A6F]">
+              <span>{primaryImage?.caption || product.productType}</span>
+              <span className="font-semibold text-[#24282B] tabular-nums">
                 ${product.price} {product.currency}
               </span>
-            </div>
-          </div>
+            </figcaption>
+          </figure>
         </div>
 
-        {/* Right: Editorial Feature Essay & Specifications */}
-        <div className="lg:col-span-7">
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-[#62666A]">
-            {product.vendor} · Featured Recommendation
+        {/* Right: Open Editorial Feature Essay & Hairline Details */}
+        <div className="lg:col-span-6">
+          <p className="text-xs font-medium text-[#636A6F]">
+            {product.vendor} · {product.productType}
           </p>
 
           <h2
             id="featured-pick-heading"
-            className="mt-1.5 font-serif text-2xl font-bold leading-snug text-[#222426] sm:text-3xl"
+            className="mt-1.5 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-3xl"
           >
             <a
               href={`/products/${product.slug}/`}
@@ -104,80 +107,83 @@ export const FeaturedGiftRecommendation: React.FC<
             </a>
           </h2>
 
-          <p className="mt-1 font-serif text-base italic text-[#28537D]">
+          <p className="mt-2 font-serif text-base italic text-[#28537D]">
             {headline}
           </p>
 
-          <p className="mt-4 text-base leading-[1.75] text-[#292B2D]">
-            {editorsPick.editorialRationale}
+          <p className="mt-4 text-base leading-[1.8] text-[#24282B]">
+            {rationale}
           </p>
 
-          {/* Structured Editorial Dossier Grid */}
-          <dl className="mt-5 grid grid-cols-1 gap-3 border-y border-[#D5CFC4] py-4 sm:grid-cols-2">
+          {/* Hairline-Divided Editorial Notes (No Nested Sub-Cards) */}
+          <dl className="mt-6 divide-y divide-[#E3E1DB] border-y border-[#E3E1DB] text-sm">
             {intendedRecipient && (
-              <div className="rounded-xl border border-[#DFDBD3] bg-[#FAF7F2] p-3.5">
-                <dt className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#28537D]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Best Suited For
+              <div className="py-3.5">
+                <dt className="text-xs font-semibold text-[#1B3D5F]">
+                  Best suited for
                 </dt>
-                <dd className="mt-1 text-xs leading-relaxed text-[#292B2D]">
+                <dd className="mt-1 leading-relaxed text-[#24282B]">
                   {intendedRecipient}
                 </dd>
               </div>
             )}
 
             {considerations && (
-              <div className="rounded-xl border border-[#DFDBD3] bg-[#FAF7F2] p-3.5">
-                <dt className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#62666A]">
-                  <Info className="h-3.5 w-3.5 text-[#28537D]" />
-                  Practical Details & Care
+              <div className="py-3.5">
+                <dt className="text-xs font-semibold text-[#636A6F]">
+                  What to keep in mind
                 </dt>
-                <dd className="mt-1 text-xs leading-relaxed text-[#292B2D]">
+                <dd className="mt-1 leading-relaxed text-[#24282B]">
                   {considerations}
+                </dd>
+              </div>
+            )}
+
+            {product.detailsAndCare && (
+              <div className="py-3.5">
+                <dt className="text-xs font-semibold text-[#636A6F]">
+                  Details & specifications
+                </dt>
+                <dd className="mt-1 text-xs leading-relaxed text-[#636A6F]">
+                  {product.detailsAndCare.replace(/\s*—\s*/g, ', ')}
                 </dd>
               </div>
             )}
           </dl>
 
-          {/* Specifications & Craft Summary */}
-          {product.detailsAndCare && (
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-[#62666A]">
-              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#28537D]" />
-              <span className="font-bold uppercase tracking-[0.12em] text-[#222426]">
-                Specifications:
-              </span>
-              <span>{product.detailsAndCare.replace(/\s*—\s*/g, ', ')}</span>
-            </div>
-          )}
-
           {/* Action Bar */}
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <a
               href={`/products/${product.slug}/`}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#28537D] px-5 py-3 text-xs font-bold uppercase tracking-wider text-white transition-colors hover:bg-[#1E4164] tabular-nums"
+              className="inline-flex items-center gap-2 rounded-lg bg-[#1B3D5F] px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
             >
-              View Product Profile · ${product.price}
+              Read Gift Profile · ${product.price}
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
 
-            <button
-              type="button"
-              onClick={() =>
-                onJumpToRecommendation(product.id, editorsPick.targetSectionId)
-              }
-              className="inline-flex items-center gap-1.5 rounded-xl border border-[#C9C1B4] bg-[#FAF7F2] px-4 py-3 text-xs font-bold uppercase tracking-wider text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
-            >
-              Jump to Chapter Context
-              <ArrowDownRight className="h-3.5 w-3.5 text-[#28537D]" />
-            </button>
+            {editorsPick.targetSectionId && (
+              <button
+                type="button"
+                onClick={() =>
+                  onJumpToRecommendation(
+                    product.id,
+                    editorsPick.targetSectionId!
+                  )
+                }
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-4 py-2.5 text-xs font-semibold text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+              >
+                See in Budget Chapter
+                <ArrowDownRight className="h-3.5 w-3.5 text-[#28537D]" />
+              </button>
+            )}
 
             {onSelectProduct && (
               <button
                 type="button"
                 onClick={() => onSelectProduct(product)}
-                className="rounded-xl border border-[#C9C1B4] bg-[#FAF7F2] px-3.5 py-3 text-xs font-bold text-[#62666A] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+                className="rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3.5 py-2.5 text-xs font-medium text-[#636A6F] transition-colors hover:border-[#28537D] hover:text-[#24282B]"
               >
-                Quick Inspect
+                Quick View
               </button>
             )}
 
@@ -189,10 +195,10 @@ export const FeaturedGiftRecommendation: React.FC<
                   ? `Remove ${product.title} from saved gifts`
                   : `Save ${product.title}`
               }
-              className={`inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-3 text-xs font-bold transition-colors ${
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition-colors ${
                 isSaved
-                  ? 'border-[#28537D] bg-[#28537D] text-white'
-                  : 'border-[#C9C1B4] bg-[#FAF7F2] text-[#222426] hover:border-[#28537D] hover:text-[#28537D]'
+                  ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
+                  : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]'
               }`}
             >
               <Bookmark

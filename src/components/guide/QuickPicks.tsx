@@ -17,7 +17,6 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
   onToggleSaveProduct,
   onJumpToRecommendation,
 }) => {
-  // Deduplicate quickPicks by productId while preserving editorial order
   const seenProductIds = new Set<string>();
   const resolvedPicks = quickPicks
     .map((qp) => ({
@@ -37,46 +36,42 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
     <section
       id="quick-picks"
       aria-labelledby="quick-picks-heading"
-      className="scroll-mt-24 rounded-3xl border border-[#D5CFC4] bg-[#F4EFE6] p-6 sm:p-8"
+      className="scroll-mt-24"
     >
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#D5CFC4] pb-5">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#28537D]">
-            Executive Shortlist · At a Glance
+          <p className="text-xs font-semibold text-[#28537D]">
+            Shortlist at a Glance
           </p>
           <h2
             id="quick-picks-heading"
-            className="mt-1.5 font-serif text-2xl font-bold text-[#222426] sm:text-3xl"
+            className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
           >
-            Quick Picks: The Top Gifts by Need & Budget
+            Quick Picks
           </h2>
         </div>
-        <p className="max-w-md text-xs leading-relaxed text-[#62666A]">
-          Short on time? Start with these {resolvedPicks.length} standout selections, or jump directly to the full curatorial review below.
+        <p className="max-w-md text-xs leading-relaxed text-[#636A6F]">
+          Short on time? Start with these {resolvedPicks.length} standout selections, or jump directly to the full review below.
         </p>
       </div>
 
-      {/* High-density architectural ledger */}
-      <div className="mt-6 divide-y divide-[#DFDBD3] rounded-2xl border border-[#D5CFC4] bg-[#FAF7F2]">
-        {resolvedPicks.map(({ qp, product }, idx) => {
+      {/* Clean White Paper Ledger without Outer Box Nesting */}
+      <div className="mt-5 divide-y divide-[#E3E1DB] rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF]">
+        {resolvedPicks.map(({ qp, product }) => {
           const isSaved = savedProductIds.includes(product.id);
           const primaryImage = product.images[0];
 
           return (
             <article
               key={qp.id}
-              className="group grid grid-cols-1 gap-4 p-4 transition-colors hover:bg-[#F3ECE1]/60 sm:grid-cols-12 sm:items-center sm:gap-5 sm:p-5"
+              className="group grid grid-cols-1 gap-4 p-4 transition-colors hover:bg-[#FAF9F6] sm:grid-cols-12 sm:items-center sm:gap-5 sm:p-5"
             >
-              {/* Rank + Thumbnail + Superlative + Product Title */}
+              {/* Thumbnail + Award Label + Product Title */}
               <div className="flex items-start gap-4 sm:col-span-5 sm:items-center">
-                <span className="hidden font-mono text-xs font-bold text-[#62666A] tabular-nums sm:inline-block">
-                  0{idx + 1}
-                </span>
-
                 {primaryImage && (
                   <a
                     href={`/products/${product.slug}/`}
-                    className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[#DFDBD3] bg-[#EDE7DC]"
+                    className="h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-[#E3E1DB] bg-[#F6F4EF]"
                   >
                     <img
                       src={primaryImage.url}
@@ -90,11 +85,10 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
                 )}
 
                 <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#28537D]">
-                    <span className="font-mono sm:hidden">0{idx + 1} ·</span>
-                    <span>{qp.label}</span>
+                  <div className="text-xs font-semibold text-[#28537D]">
+                    {qp.label}
                   </div>
-                  <h3 className="mt-0.5 font-serif text-base font-bold leading-snug text-[#222426] sm:text-lg">
+                  <h3 className="mt-0.5 font-serif text-base font-semibold leading-snug text-[#24282B] sm:text-lg">
                     <a
                       href={`/products/${product.slug}/`}
                       className="transition-colors hover:text-[#28537D]"
@@ -102,9 +96,9 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
                       {product.title}
                     </a>
                   </h3>
-                  <p className="mt-0.5 text-xs text-[#62666A]">
+                  <p className="mt-0.5 text-xs text-[#636A6F]">
                     {product.vendor} ·{' '}
-                    <span className="font-semibold text-[#222426] tabular-nums">
+                    <span className="font-semibold text-[#24282B] tabular-nums">
                       ${product.price} {product.currency}
                     </span>
                   </p>
@@ -113,8 +107,8 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
 
               {/* Concise Editorial Reason */}
               <div className="sm:col-span-4">
-                <p className="text-xs leading-relaxed text-[#292B2D] sm:text-sm">
-                  {qp.reason}
+                <p className="text-xs leading-relaxed text-[#24282B] sm:text-sm">
+                  {qp.reason || qp.bestFor}
                 </p>
               </div>
 
@@ -123,9 +117,12 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
                 <button
                   type="button"
                   onClick={() =>
-                    onJumpToRecommendation(product.id, qp.targetSectionId)
+                    onJumpToRecommendation(
+                      product.id,
+                      qp.targetSectionId ?? ''
+                    )
                   }
-                  className="inline-flex items-center gap-1 rounded-lg border border-[#D5CFC4] bg-[#F4EFE6] px-3 py-2 text-xs font-bold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+                  className="inline-flex items-center gap-1 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-2 text-xs font-semibold text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
                 >
                   Read Review
                   <ArrowDownRight className="h-3.5 w-3.5 text-[#28537D]" />
@@ -133,7 +130,7 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
 
                 <a
                   href={`/products/${product.slug}/`}
-                  className="inline-flex items-center gap-1 rounded-lg bg-[#28537D] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E4164] tabular-nums"
+                  className="inline-flex items-center gap-1 rounded-lg bg-[#1B3D5F] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
                 >
                   ${product.price}
                   <ExternalLink className="h-3 w-3 opacity-80" />
@@ -149,8 +146,8 @@ export const QuickPicks: React.FC<QuickPicksProps> = ({
                   }
                   className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
                     isSaved
-                      ? 'border-[#28537D] bg-[#28537D] text-white'
-                      : 'border-[#D5CFC4] bg-[#FAF7F2] text-[#62666A] hover:border-[#28537D] hover:text-[#28537D]'
+                      ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
+                      : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#636A6F] hover:border-[#28537D] hover:text-[#28537D]'
                   }`}
                 >
                   <Bookmark

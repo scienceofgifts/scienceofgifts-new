@@ -5,31 +5,46 @@
     --font-serif: 'Fraunces', Georgia, serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
-    --color-page-bg: #FAF7F2;
+
+    /* Refined Editorial Palette (Section 3) */
+    --color-editorial-canvas: #FAF9F6;
+    --color-paper-surface: #FFFFFF;
+    --color-paper-subtle: #F6F4EF;
+    --color-ink-primary: #24282B;
+    --color-ink-secondary: #636A6F;
+    --color-brand-navy: #1B3D5F;
+    --color-interactive-blue: #28537D;
+    --color-mint-subtle: #E5F3EC;
+    --color-border-soft: #E3E1DB;
+
+    /* Preserved Legacy & Article Variables */
+    --color-page-bg: #FAF9F6;
     --color-ref-card-bg: #FFFFFF;
-    --color-ref-card-border: #DFDBD3;
-    --color-border-subtle: #DFDBD3;
-    --color-text-heading: #222426;
-    --color-text-primary: #222426;
-    --color-text-body: #292B2D;
-    --color-text-secondary: #62666A;
-    --color-text-callout: #292B2D;
+    --color-ref-card-border: #E3E1DB;
+    --color-border-subtle: #E3E1DB;
+    --color-text-heading: #24282B;
+    --color-text-primary: #24282B;
+    --color-text-body: #24282B;
+    --color-text-secondary: #636A6F;
+    --color-text-callout: #24282B;
     --color-link-accent: #28537D;
-    --color-mint-soft: #E5F5EE;
-    --color-control-selected-bg: #28537D;
+    --color-mint-soft: #E5F3EC;
+    --color-control-selected-bg: #1B3D5F;
     --color-control-selected-text: #FFFFFF;
   }
 
   body {
     font-family: var(--font-sans);
-    background-color: var(--color-page-bg);
-    color: var(--color-text-body);
+    background-color: var(--color-editorial-canvas);
+    color: var(--color-ink-primary);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, .font-serif {
     font-family: var(--font-serif);
-    color: var(--color-text-heading);
+    color: var(--color-ink-primary);
+    letter-spacing: -0.015em;
   }
 
   .font-mono {
@@ -45,3 +60,4 @@
 .text-balance {
   text-wrap: balance;
 }
+

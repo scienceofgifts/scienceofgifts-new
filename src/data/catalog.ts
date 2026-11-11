@@ -141,9 +141,89 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#FFF4D6',
         alt: 'Warm golden beeswax candles glowing softly on a ceramic dish',
         caption: 'Wrapped in unbleached tissue and tied with cotton twine.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_yang_urminsky_2018'],
+    giftVerdict: {
+      editorialAssessment:
+        'A warm, unscented hosts-and-neighbors staple that brings natural candlelight and a included stoneware holder without imposing a heavy fragrance.',
+      standoutReason:
+        'Unlike standalone taper pairs that require the recipient to hunt down a matching candlestick, this set arrives with its own low-profile speckled stoneware pebble holder.',
+      recipientDelight:
+        'Raw beeswax burns with a steady, high-spectrum golden flame and releases only a faint trace of natural honey and meadow pollen rather than synthetic perfume.',
+      importantCaveat:
+        'Because beeswax tapers involve an open flame, skip this for households with curious toddlers or table-jumping cats unless used on a high mantel.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the neighbor, teacher, or dinner host who appreciates quiet evening atmosphere.',
+      narrative:
+        'Scented jar candles are notoriously risky gifts because fragrance preferences are intensely personal. Raw apiary beeswax solves that dilemma completely: it appeals to people who love warm evening light over dinner or beside a stack of library books, while remaining gentle enough for scent-sensitive dining tables.',
+      lifestyleNotes: [
+        'Lights a candle for ordinary weeknight dinners, not just formal holidays',
+        'Prefers natural materials like raw linen, stoneware, and beeswax over synthetic room sprays',
+        'Appreciates consumable gifts that leave behind only a compact ceramic holder',
+      ],
+      relationshipFit: ['Dinner Hosts', 'Neighbors & Teachers', 'Coworkers', 'Close Friends'],
+    },
+    extendedGiftRationale: [
+      'When you want to bring a small token under $20 to a dinner party or say thank you to a helpful neighbor, most low-cost options feel like an afterthought. A pair of hand-dipped tapers paired with a weighted stoneware pebble holder feels deliberate and complete right out of the tissue paper.',
+      'Because the wax is filtered rather than bleached or perfumed, the candles burn cleanly for roughly nine hours apiece without competing with the aroma of food on the table. Once the tapers are finished, the speckled stoneware pebble base fits standard 7/8-inch tapers from any local market.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Scent Sensitivity',
+        detail: 'Completely free of added essential oils or synthetic fragrance; carries only the natural, subtle scent of raw honeycomb.',
+      },
+      {
+        label: 'Holder Included',
+        detail: 'Includes one speckled stoneware pebble holder sized for standard 7/8-inch taper bases, so no extra hardware is required.',
+      },
+      {
+        label: 'Care & Trimming',
+        detail: 'Trim braided cotton wick to 1/4 inch before each lighting and keep out of direct drafts to prevent dripping.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'thank-you',
+        label: 'Thank-You Gesture',
+        note: 'Modest enough in price to avoid creating awkward obligation, yet tactile enough to feel genuinely personal.',
+      },
+      {
+        occasion: 'housewarming',
+        label: 'Housewarming',
+        note: 'Brings immediate warmth to a new dining table or kitchen counter without taking up permanent cabinet space.',
+      },
+      {
+        occasion: 'holidays',
+        label: 'Winter Holidays',
+        note: 'Natural golden candlelight fits winter evenings long after seasonal decorations are packed away.',
+      },
+    ],
+    specifications: [
+      { label: 'Materials', value: '100% raw filtered beeswax, braided cotton wick, speckled stoneware base' },
+      { label: 'Dimensions', value: 'Two 10" tapers (7/8" base diameter); 3.2" diameter stoneware pebble holder' },
+      { label: 'Burn Time', value: 'Approximately 9 hours per taper in draft-free conditions' },
+      { label: 'Origin & Format', value: 'Small-batch hand-dipped tapers (Sample catalog specification)' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_french_butter_crock_12',
+        comparisonAngle: 'More Permanent Kitchen Upgrade ($24)',
+        summary: 'If they spend more time baking sourdough and making morning toast than lighting evening candles, the stoneware butter crock offers a lasting daily countertop utility.',
+      },
+      {
+        productId: 'prod_chili_honey_flight_01',
+        comparisonAngle: 'Edible Host Alternative ($38)',
+        summary: 'For dinner hosts who love bold flavors and interactive tasting boards, step up to the three-jar chili crisp and infused honey flight.',
+      },
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        comparisonAngle: 'Higher-Budget Tabletop Piece ($48)',
+        summary: 'When the occasion calls for a more substantial housewarming or birthday gift, the hand-blown bedside carafe and tumbler delivers permanent glassware craft.',
+      },
+    ],
   },
   prod_letterpress_recipe_cards_11: {
     id: 'prod_letterpress_recipe_cards_11',
@@ -162,7 +242,7 @@ export const PRODUCTS: Record<string, Product> = {
     inStock: true,
     calloutTag: 'Personal Touch',
     whyToGiveIt:
-      'Write down two of your own favorite recipes on the top cards before tying the box back up—it turns a $22 stationery set into a deeply personal gesture.',
+      'Write down two of your own favorite recipes on the top cards before tying the box back up; it turns a $22 stationery set into a deeply personal gesture.',
     detailsAndCare:
       '24 cards on 300gsm 100% cotton paper (4" × 6") · Smudge-resistant surface for fountain and gel pens. Sample product for preview.',
     bestForSummary: 'Home cooks, newlyweds, parents, and close friends.',
@@ -178,9 +258,79 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#F3ECE1',
         alt: 'Thick cream letterpress cards and fountain pen resting on a wooden desk',
         caption: 'Printed on an antique platen press with plant-based inks.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_givi_galak_2017'],
+    giftVerdict: {
+      editorialAssessment:
+        'Tactile 300gsm cotton letterpress cards that transform family recipes and shared dishes into a physical keepsake under $25.',
+      standoutReason:
+        'Heavyweight 100% cotton rag paper takes fountain, rollerball, and archival ink without feathering and stands up against kitchen counter splashes far better than flimsy index cards.',
+      recipientDelight:
+        'Opening the box to find one or two cards already filled out in the giver’s handwriting creates an immediate emotional bond backed by relationship psychology research.',
+      importantCaveat:
+        'Best suited to cooks who enjoy analog kitchen notes; digital-only cooks who rely strictly on tablet apps may use them less often.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the home cook who treasures handwritten family recipes and shared meals.',
+      narrative:
+        'In an era of bookmarked recipe blogs covered in pop-up ads, a thick cotton card propped against a salt cellar feels wonderfully calm. This set is made for the friend who always asks how you made the salad dressing, or the parent whose holiday stuffing recipe only exists in memory.',
+      lifestyleNotes: [
+        'Keeps a wooden recipe box or props favorite cards on the kitchen backsplash',
+        'Values handwriting, paper texture, and culinary traditions passed between households',
+        'Appreciates a gift where the giver contributes a personal note or dish before wrapping',
+      ],
+      relationshipFit: ['Close Friends', 'Parents & Grandparents', 'Newlyweds & Partners', 'Dinner Hosts'],
+    },
+    extendedGiftRationale: [
+      'Behavioral research by Givi and Galak (2017) highlights that givers systematically underestimate how much recipients value sentimental, personally connected gifts. By transcribing a dish you have cooked together onto the top card before gifting the set, you bridge the gap between a practical kitchen supply and an irreplaceable keepsake.',
+      'Each 4-by-6-inch card is debossed on a platen press with subtle botanical herb motifs and generous horizontal ruling on both sides, giving plenty of room for ingredient notes, oven adjustments, and margin annotations over the years.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Card Dimensions',
+        detail: 'Standard 4" × 6" index format fits existing heirloom wooden or tin recipe boxes.',
+      },
+      {
+        label: 'Paper Stock & Ink',
+        detail: '300gsm 100% cotton rag paper handles gel pens, ballpoints, and fountain pens cleanly; let wet ink dry for 15 seconds.',
+      },
+      {
+        label: 'Personalization Tip',
+        detail: 'The box ribbon unties cleanly so you can write a favorite recipe on the first card without damaging the packaging.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'housewarming',
+        label: 'Housewarming & First Kitchen',
+        note: 'Pair with a favorite family dish written on the top card to help inaugurate a new kitchen.',
+      },
+      {
+        occasion: 'holidays',
+        label: 'Family Holidays',
+        note: 'Bring to holiday dinners so relatives can record signature dishes in their own handwriting.',
+      },
+    ],
+    specifications: [
+      { label: 'Quantity & Size', value: '24 double-sided cards, 4" × 6" (10.2 cm × 15.2 cm)' },
+      { label: 'Paper Weight', value: '300gsm archival 100% cotton rag stock' },
+      { label: 'Printing Process', value: 'Traditional letterpress debossing with plant-based inks' },
+      { label: 'Packaging', value: 'Keepsake kraft storage box tied with unbleached cotton twill' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_five_year_memory_book_08',
+        comparisonAngle: 'Daily Journaling Alternative ($28)',
+        summary: 'If they prefer recording brief evening memories rather than recipes, the Belgian Linen Five-Year Journal captures three lines a day across five years.',
+      },
+      {
+        productId: 'prod_french_butter_crock_12',
+        comparisonAngle: 'Countertop Utility Alternative ($24)',
+        summary: 'For a tactile kitchen gift at the same price point that requires zero writing, choose the Speckled Stoneware French Butter Keeper Crock.',
+      },
+    ],
   },
   prod_french_butter_crock_12: {
     id: 'prod_french_butter_crock_12',
@@ -215,9 +365,84 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#E8F8F0',
         alt: 'Artisan crusty sourdough bread and ceramic butter crock on a linen tablecloth',
         caption: 'A splash of cold water in the base creates a natural airtight seal.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_galak_2016', 'cit_yang_urminsky_2018'],
+    giftVerdict: {
+      editorialAssessment:
+        'Our favorite under-$25 kitchen upgrade: a classic French water-seal stoneware bell that keeps a full stick of butter spreadable at room temperature.',
+      standoutReason:
+        'Solves a universal daily annoyance (cold, tearing butter on warm toast) using a simple 19th-century water seal rather than countertop appliances or plastic tubs.',
+      recipientDelight:
+        'Every morning breakfast or evening bread basket becomes noticeably more enjoyable, turning a $24 ceramic vessel into one of the most-used objects on their counter.',
+      importantCaveat:
+        'Requires refreshing the shallow water in the base every two to three days and works best in kitchens kept below 78°F (25.5°C).',
+    },
+    idealRecipientProfile: {
+      headline: 'For the weekend sourdough baker, toast devotee, or practical cook who hates kitchen clutter.',
+      narrative:
+        'Most people tolerate rock-hard butter straight from the fridge simply because they have never owned a proper French beurrier. It is an ideal gift for someone who appreciates good bread and quiet mornings, because it earns its tiny 4-inch footprint on the counter from day one.',
+      lifestyleNotes: [
+        'Bakes bread, picks up weekend bakery loaves, or takes morning toast seriously',
+        'Appreciates functional ceramics that look calm sitting out beside the stove',
+        'Prefers practical everyday tools over single-purpose kitchen gadgets',
+      ],
+      relationshipFit: ['Hosts & Home Cooks', 'Parents', 'Friends & Neighbors', 'Coworkers'],
+    },
+    extendedGiftRationale: [
+      'Gift-giving studies by Galak et al. (2016) show that givers often overlook modest functional upgrades because they focus on the drama of unwrapping. Yet six months later, recipients rate daily problem-solvers like a French butter crock far higher than showier novelties.',
+      'To use it, you pack one softened stick (4 oz) of butter into the inverted ceramic bell and pour a splash of cold water into the base cup. When the bell is lowered, the water forms an airtight seal that protects the butter from air and light while keeping it velvety soft.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Capacity & Sizing',
+        detail: 'Sized for one standard 4 oz (113g) stick of salted or cultured butter; compact 4.1" diameter footprint.',
+      },
+      {
+        label: 'Care & Maintenance',
+        detail: 'Lead-free stoneware glaze is fully dishwasher safe; refresh the cold water in the base every 2 to 3 days.',
+      },
+      {
+        label: 'Ambient Temperature',
+        detail: 'Best for kitchens below 78°F; during peak summer heatwaves, add a single ice cube to the base water.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'housewarming',
+        label: 'Housewarming',
+        note: 'Pair with a fresh loaf of crusty bakery bread and a block of cultured salted butter for an instant welcome gift.',
+      },
+      {
+        occasion: 'thank-you',
+        label: 'Thank-You Gift',
+        note: 'At $24, it hits the sweet spot of feeling substantial and handmade without being extravagant.',
+      },
+    ],
+    specifications: [
+      { label: 'Material', value: 'High-fired speckled stoneware with lead-free oat and coastal blue glaze' },
+      { label: 'Capacity', value: '4 oz (113g), holds one standard stick or half-block of European butter' },
+      { label: 'Dimensions', value: '4.1" height × 4.0" diameter' },
+      { label: 'Care', value: 'Dishwasher and microwave safe' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_beeswax_taper_pair_10',
+        comparisonAngle: 'Lower-Budget Table Atmosphere ($18)',
+        summary: 'If you want an even simpler under-$20 gesture that requires zero kitchen maintenance, opt for the Hand-Dipped Beeswax Taper Pair & Pebble Holder.',
+      },
+      {
+        productId: 'prod_chili_honey_flight_01',
+        comparisonAngle: 'Zero-Footprint Consumable ($38)',
+        summary: 'If their kitchen counters are completely full, the Small-Batch Chili Crisp & Wildflower Honey Flight delivers pantry excitement that gets eaten up completely.',
+      },
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        comparisonAngle: 'Bedside & Study Companion ($48)',
+        summary: 'For a similar quiet-ritual upgrade designed for the nightstand or desk rather than the kitchen counter, see the Hand-Blown Bedside Water Carafe.',
+      },
+    ],
   },
   prod_chili_honey_flight_01: {
     id: 'prod_chili_honey_flight_01',
@@ -236,7 +461,7 @@ export const PRODUCTS: Record<string, Product> = {
     inStock: true,
     calloutTag: 'Host Favorite',
     whyToGiveIt:
-      'It solves the "what do I bring to dinner?" dilemma with something they can open immediately over pizza, cheese boards, or roasted vegetables—and nothing goes to clutter.',
+      'It solves the "what do I bring to dinner?" dilemma with something they can open immediately over pizza, cheese boards, or roasted vegetables, and nothing goes to clutter.',
     detailsAndCare:
       'Includes 3 × 6oz glass jars in a reusable letterpress gift box with tasting notes for afternoon tea, cheese boards, and pairing cards. Sample product for preview.',
     bestForSummary: 'Dinner hosts, home cooks, tea drinkers, and people who claim they have no room for more stuff.',
@@ -252,9 +477,79 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#F6E27F',
         alt: 'Golden jars of infused wildflower honey and artisan condiments on a sunlit wooden kitchen table',
         caption: 'Packaged in a warm letterpress tasting box with recipe suggestions.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_galak_2016', 'cit_chan_mogilner_2017'],
+    giftVerdict: {
+      editorialAssessment:
+        'A three-jar culinary tasting flight that brings immediate excitement to cheese boards, weeknight eggs, and pizza nights with zero permanent storage burden.',
+      standoutReason:
+        'Balances gentle heat and floral sweetness across three distinct jars (smoky heirloom chili crisp, Meyer lemon blossom honey, and warm spiced wildflower honey) so every palate at the table finds a favorite.',
+      recipientDelight:
+        'Hosts can crack the jars open the same evening with zero prep work, or keep them in the pantry to elevate ordinary lunches over the next month.',
+      importantCaveat:
+        'Contains toasted sesame seeds in the chili crisp jar and raw apiary honey (not suitable for infants under one year old or anyone with a sesame allergy).',
+    },
+    idealRecipientProfile: {
+      headline: 'For the effortless dinner host or the "I don’t need more things" parent.',
+      narrative:
+        'When someone genuinely has every mug, platter, and throw blanket they could ever want, high-craft pantry consumables are the most respectful gift you can give. This flight feels festive on arrival, sparks conversation around the table, and leaves zero clutter behind.',
+      lifestyleNotes: [
+        'Loves assembling impromptu cheese boards, flatbreads, or weekend brunch spreads',
+        'Lives in a compact apartment or actively avoids accumulating more household objects',
+        'Enjoys discovering small-batch condiments with balanced heat rather than novelty spice challenges',
+      ],
+      relationshipFit: ['Dinner Hosts', 'Parents & In-Laws', 'Food-Loving Friends', 'Coworkers'],
+    },
+    extendedGiftRationale: [
+      'Experiential gift research by Chan and Mogilner (2017) demonstrates that gifts fostering shared moments strengthen relationships even when the item itself is material. A tasting flight bridges both worlds: it is a physical box to unwrap, yet its real value happens around the table as people compare pairings.',
+      'Unlike single bottles of olive oil or wine that disappear into a rack, the included letterpress tasting guide offers specific, effortless suggestions, from drizzling spiced honey over aged cheddar to spooning crispy shallots and mild guajillo chili over morning avocado toast.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Allergen & Dietary Notes',
+        detail: 'Chili crisp contains toasted sesame seeds (nut-free facility); raw honey is not suitable for infants under 12 months.',
+      },
+      {
+        label: 'Shelf Stability',
+        detail: 'Unopened jars keep for 12 months in a cool pantry; no refrigeration needed after opening.',
+      },
+      {
+        label: 'Heat Level',
+        detail: 'Formulated for aromatic crunch and mild-to-medium warmth (3/10 heat scale) rather than overwhelming capsaicin.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'thank-you',
+        label: 'Dinner Party & Host Gift',
+        note: 'Requires no vase or immediate refrigeration from a busy host at the front door.',
+      },
+      {
+        occasion: 'holidays',
+        label: 'Holiday Entertaining',
+        note: 'Drops straight onto holiday charcuterie boards and baked brie appetizers.',
+      },
+    ],
+    specifications: [
+      { label: 'Contents', value: 'Three 6 oz (170g) glass jars: Heirloom Chili Crisp, Spiced Hot Honey, Lemon Blossom Honey' },
+      { label: 'Packaging', value: 'Compartmentalized letterpress tasting box with pairing cards' },
+      { label: 'Dietary Info', value: 'Vegetarian, gluten-free, nut-free (contains sesame)' },
+      { label: 'Shelf Life', value: '12 months ambient pantry storage' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_french_butter_crock_12',
+        comparisonAngle: 'Lasting Countertop Companion ($24)',
+        summary: 'If you prefer giving a permanent ceramic piece for their bread and toast ritual at a lower price, choose the Speckled Stoneware Butter Crock.',
+      },
+      {
+        productId: 'prod_kyoto_matcha_bowl_03',
+        comparisonAngle: 'Afternoon Tea Ritual Upgrade ($58)',
+        summary: 'For hosts who lean toward calm afternoon tea routines rather than savory condiments, the Hand-Thrown Matcha Bowl & Whisk Set offers a lasting ceramic keepsake.',
+      },
+    ],
   },
   prod_cloud_waffle_robe_02: {
     id: 'prod_cloud_waffle_robe_02',
@@ -289,9 +584,84 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#C3F3DF',
         alt: 'Soft folded waffle-weave cotton textiles and robe in warm morning light',
         caption: 'Pre-washed for immediate softness right out of the ribbon-tied linen bag.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_yang_urminsky_2018'],
+    giftVerdict: {
+      editorialAssessment:
+        'A breathable, garment-washed Turkish cotton waffle robe that delivers hotel-spa comfort without the heavy, overheating bulk of terrycloth.',
+      standoutReason:
+        'Pre-washed honeycomb pockets trap warmth right after a shower yet dry in half the time of traditional plush robes, making it comfortable year-round.',
+      recipientDelight:
+        'People almost never replace their own worn-out robe; putting on a cloud-soft, tailored waffle weave for morning coffee feels like an immediate daily indulgence.',
+      importantCaveat:
+        'Requires selecting an approximate size tier (S/M or L/XL); if you do not know their general clothing size, our merino reading throw offers the same warmth with zero sizing guesswork.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the partner, parent, or close friend who savors slow Sunday mornings at home.',
+      narrative:
+        'A truly great robe is the textbook definition of an everyday luxury: slightly too indulgent to buy on a routine Tuesday, yet used 365 days a year once received. Because this weave is mid-weight and breathable, it suits people who lounge with the morning paper without making them feel overheated.',
+      lifestyleNotes: [
+        'Loves slow mornings with coffee or tea before getting dressed for the day',
+        'Prefers breathable natural cotton textures over heavy synthetic fleece',
+        'Appreciates deep pockets that actually hold a phone or reading glasses securely',
+      ],
+      relationshipFit: ['Romantic Partners', 'Parents', 'Best Friends'],
+    },
+    extendedGiftRationale: [
+      'In their study on gift-giving errors, Yang and Urminsky (2018) note that givers often bypass quiet comfort staples in favor of dramatic novelty items. Yet personal textiles that touch the skin every morning build cumulative appreciation every week of the year.',
+      'Loomed from 100% long-staple Turkish cotton and garment-washed before packaging, this robe skips the stiff break-in period common to waffle weaves. It arrives in a reusable linen drawstring bag ready for gifting.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Relaxed Dual Sizing',
+        detail: 'Cut with dropped shoulders and an adjustable waist tie in two forgiving spans (S/M fits US 2-8; L/XL fits US 10-16) to minimize fit risk.',
+      },
+      {
+        label: 'Fabric Weight & Feel',
+        detail: '380gsm dimensional honeycomb waffle weave: absorbent and airy rather than thick plush terry.',
+      },
+      {
+        label: 'Laundering',
+        detail: 'Machine wash cold on gentle cycle and tumble dry low; avoid fabric softeners to preserve natural cotton absorbency.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'birthday',
+        label: 'Milestone Birthday',
+        note: 'Feels personal, restorative, and noticeably higher quality than standard department-store loungewear.',
+      },
+      {
+        occasion: 'anniversary',
+        label: 'Anniversary & Partner Gift',
+        note: 'An intimate, everyday comfort upgrade that elevates weekend mornings together.',
+      },
+      {
+        occasion: 'holidays',
+        label: 'Winter Holidays',
+        note: 'One of the most rewarding big-box gifts to unwrap on a chilly holiday morning.',
+      },
+    ],
+    specifications: [
+      { label: 'Material', value: '100% Oeko-Tex certified long-staple Turkish cotton (380gsm)' },
+      { label: 'Fit & Features', value: 'Mid-calf length, kimono collar, sewn-in hanger loop, two deep patch pockets' },
+      { label: 'Care', value: 'Machine wash cold, tumble dry low' },
+      { label: 'Packaging', value: 'Reusable matching cotton-linen drawstring storage bag' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_wool_picnic_throw_13',
+        comparisonAngle: 'Size-Free Cozy Upgrade ($115)',
+        summary: 'If you are unsure of their clothing size or buying for a couple to share on the sofa, choose the Brushed Merino Lambswool Reading Throw.',
+      },
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        comparisonAngle: 'Under-$50 Bedside Companion ($48)',
+        summary: 'For a calmer morning-and-evening ritual gift at half the budget, the Hand-Blown Bedside Water Carafe & Tumbler pairs beautifully with a slow routine.',
+      },
+    ],
   },
   prod_kyoto_matcha_bowl_03: {
     id: 'prod_kyoto_matcha_bowl_03',
@@ -326,9 +696,79 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#C3F3DF',
         alt: 'Freshly whisked vibrant green matcha in a handmade ceramic bowl with bamboo whisk',
         caption: 'Includes a 30g tin of shade-grown matcha so they can whisk a cup on day one.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_chan_mogilner_2017', 'cit_yang_urminsky_2018'],
+    giftVerdict: {
+      editorialAssessment:
+        'A complete, studio-grade matcha preparation set featuring a spouted stoneware bowl, 100-prong bamboo whisk, scoop, and first-harvest tea tin.',
+      standoutReason:
+        'Includes the ceremonial matcha tin right in the box so the recipient can whisk their first cup immediately, rather than receiving an empty bowl that requires an extra shopping trip.',
+      recipientDelight:
+        'The wide, flat-bottomed ceramic chawan and integrated pouring lip make it effortless to whisk smooth microfoam and pour straight into a mug or iced glass without drips.',
+      importantCaveat:
+        'The bamboo whisk (chasen) must be rinsed by hand in warm water and air-dried upright; it cannot go into the dishwasher.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the tea drinker, remote creative, or design-minded friend who loves tactile rituals.',
+      narrative:
+        'Many people enjoy matcha lattes at neighborhood cafes but feel intimidated making them at home with a regular mug and fork. This set provides the proper wide-bottomed geometry for whisking clumpless tea while doubling as a piece of handmade pottery on an open kitchen shelf.',
+      lifestyleNotes: [
+        'Enjoys afternoon tea breaks, café culture, or stepping away from screens mid-afternoon',
+        'Appreciates wheel-thrown ceramics with visible clay speckles and organic glaze variations',
+        'Likes hands-on culinary rituals that take three minutes from start to finish',
+      ],
+      relationshipFit: ['Close Friends', 'Partners', 'Design-Minded Coworkers', 'Parents'],
+    },
+    extendedGiftRationale: [
+      'According to Chan and Mogilner (2017), material gifts that anchor a recurring personal experience create stronger relationship warmth than static decorative objects. Every time the recipient sifts bright green tea into the warm stoneware bowl and whisks it to a froth, the object invites a calm, sensory pause.',
+      'Unlike traditional deep tea bowls designed only for drinking directly from the rim, this studio chawan features a hand-pinched pouring spout, making it equally practical for pouring whisked matcha over ice or steamed oat milk.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Complete Day-One Kit',
+        detail: 'Includes stoneware spouted bowl (450ml), 100-prong bamboo whisk, bamboo chashaku scoop, and a sealed 30g tin of shade-grown matcha.',
+      },
+      {
+        label: 'Care Requirements',
+        detail: 'The stoneware bowl is dishwasher safe, but the bamboo whisk and scoop must be rinsed gently with warm water and air-dried.',
+      },
+      {
+        label: 'Caffeine Note',
+        detail: 'Matcha contains natural caffeine paired with L-theanine; best suited to tea or coffee drinkers.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'birthday',
+        label: 'Birthday Gift',
+        note: 'Feels like a thoughtful studio discovery tailored to their daily routine.',
+      },
+      {
+        occasion: 'housewarming',
+        label: 'Home Office or Kitchen Upgrade',
+        note: 'Brings a calm afternoon break to anyone working from a new apartment or study.',
+      },
+    ],
+    specifications: [
+      { label: 'Bowl Material & Capacity', value: 'Wheel-thrown lead-free speckled stoneware, 450ml (15 oz) with pouring spout' },
+      { label: 'Accessories Included', value: '100-prong natural bamboo chasen whisk and curved bamboo chashaku scoop' },
+      { label: 'Included Tea', value: '30g sealed tin of first-harvest shade-grown green tea powder (~15 servings)' },
+      { label: 'Care', value: 'Bowl is top-rack dishwasher safe; hand-rinse bamboo tools only' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        comparisonAngle: 'Caffeine-Free Hydration Ritual ($48)',
+        summary: 'If they avoid caffeine or prefer glassware over ceramics, the Hand-Blown Two-Tone Bedside Water Carafe & Tumbler offers an equally refined daily vessel.',
+      },
+      {
+        productId: 'prod_chili_honey_flight_01',
+        comparisonAngle: 'Savory & Sweet Pantry Alternative ($38)',
+        summary: 'For someone who prefers bold cooking flavors over tea rituals, the Small-Batch Chili Crisp & Wildflower Honey Flight is ready to open immediately.',
+      },
+    ],
   },
   prod_custom_star_map_04: {
     id: 'prod_custom_star_map_04',
@@ -363,9 +803,79 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#1B3D5F',
         alt: 'Deep blue starry night sky over mountains evoking a framed constellation keepsake',
         caption: 'Custom-printed with your chosen location coordinates and a personal dedication line.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_givi_galak_2017'],
+    giftVerdict: {
+      editorialAssessment:
+        'An archival midnight-blue astronomical star chart custom-plotted for a meaningful date and location, delivered ready to hang in a solid white oak frame.',
+      standoutReason:
+        'Uses understated typographic coordinates and fine linework on textured cotton rag paper so it reads like a serene gallery print rather than loud novelty wall decor.',
+      recipientDelight:
+        'Commemorates a shared milestone (an anniversary, a child’s birth, or the night two friends met) in a subtle visual language that only people in the know immediately recognize.',
+      importantCaveat:
+        'Requires knowing the specific date and city of the milestone beforehand and allowing extra lead time for custom printing and framing.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the partner, parent, or lifelong friend marking a milestone worth remembering.',
+      narrative:
+        'Sentimental gifts can easily veer into clutter if they look overly ornate. Because this chart uses deep navy pigment ink, restrained serif typography, and a clean milled white oak frame, it fits naturally into a bookshelf vignette or hallway wall while holding deep personal meaning.',
+      lifestyleNotes: [
+        'Values personal history, shared milestones, and meaningful dates',
+        'Prefers understated, architectural framing over flashy engraved plaques',
+        'Appreciates gifts that arrive completely framed and ready to hang or lean on a shelf',
+      ],
+      relationshipFit: ['Romantic Partners', 'Parents & New Parents', 'Lifelong Friends'],
+    },
+    extendedGiftRationale: [
+      'Givi and Galak (2017) demonstrated across multiple experiments that gift-givers routinely avoid sentimental choices because they fear missing the mark, even though recipients strongly prefer sentimental keepsakes over generic store-bought items of equal price.',
+      'Each chart is calculated from astronomical catalog data for the exact latitude, longitude, and calendar date you specify, then printed with archival pigment inks on 310gsm museum-grade cotton rag paper and fitted into a solid North American white oak frame.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Personalization Details Required',
+        detail: 'You will need the calendar date, city/location, and a brief 1-to-2 line custom dedication caption when ordering.',
+      },
+      {
+        label: 'Framing & Wall Footprint',
+        detail: 'Measures 11" × 14" outside frame dimensions; compact enough to lean on a bookcase or hang in a study without dominating a room.',
+      },
+      {
+        label: 'Glazing & Care',
+        detail: 'Fitted with UV-filtering matte acrylic glazing that resists glare and will not shatter during shipping.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'anniversary',
+        label: 'Anniversary & Wedding Milestone',
+        note: 'Plot the night sky from the evening of a wedding, first date, or move into a first home.',
+      },
+      {
+        occasion: 'birthday',
+        label: 'Milestone Birthday or New Baby',
+        note: 'A lasting keepsake for new parents marking the night their child was born.',
+      },
+    ],
+    specifications: [
+      { label: 'Dimensions', value: '11" × 14" framed print (3/4" solid white oak moulding)' },
+      { label: 'Paper & Ink', value: '310gsm archival 100% cotton rag paper with pigment-based midnight navy and warm silver ink' },
+      { label: 'Glazing & Hardware', value: 'Matte UV-protective acrylic with pre-installed wire hanging hardware' },
+      { label: 'Format', value: 'Made-to-order personalized astronomical print (Sample catalog specification)' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_five_year_memory_book_08',
+        comparisonAngle: 'Unframed Personal Keepsake ($28)',
+        summary: 'If you do not have a single milestone date to plot or prefer something they can write in themselves, choose the Belgian Linen Five-Year Journal.',
+      },
+      {
+        productId: 'prod_letterpress_recipe_cards_11',
+        comparisonAngle: 'Under-$25 Sentimental Alternative ($22)',
+        summary: 'For a warm, personal gesture at a lower price point, write a favorite shared dish on the Heirloom Botanical Letterpress Recipe Cards.',
+      },
+    ],
   },
   prod_olivewood_board_game_05: {
     id: 'prod_olivewood_board_game_05',
@@ -400,9 +910,79 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#99BFF9',
         alt: 'Tactile wooden tabletop board game pieces arranged for an evening game night',
         caption: 'Rolls into a compact cylinder that fits inside a coat pocket or tote bag.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_chan_mogilner_2017'],
+    giftVerdict: {
+      editorialAssessment:
+        'A tactile, travel-ready flax linen and walnut backgammon set with weighted stone checkers that invites unhurried evening games at home or on weekend trips.',
+      standoutReason:
+        'Replaces bulky cardboard game boxes with a water-resistant Belgian linen playing field that rolls around a zippered walnut-trimmed pouch.',
+      recipientDelight:
+        'The satisfying weight of the tumbled alabaster and navy playing stones and the soft thud of dice on thick linen make every match feel like a vacation ritual.',
+      importantCaveat:
+        'Contains small playing stones and dice, so keep out of reach of children under 4 years old.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the couple, cabin host, or friend who loves screen-free evenings and weekend travel.',
+      narrative:
+        'Full-sized wooden backgammon briefcases are beautiful, but they often sit in a closet because they are too heavy to pack and too large for small coffee tables. This roll-up linen edition bridges that gap: it lays flat on a bistro table, patio bench, or living room rug, then rolls up to the size of a wine bottle.',
+      lifestyleNotes: [
+        'Enjoys playing a quick 20-minute game over evening tea, wine, or coffee',
+        'Travels to cabins, parks, or beach weekends and packs light',
+        'Appreciates natural materials like flax linen, walnut, brass, and tumbled stone',
+      ],
+      relationshipFit: ['Couples & Partners', 'Cabin & Weekend Hosts', 'Parents & Families', 'Close Friends'],
+    },
+    extendedGiftRationale: [
+      'Research by Chan and Mogilner (2017) underscores that gifts facilitating shared face-to-face experiences foster deeper relationship satisfaction than solo possessions. A classic two-player game gives couples, friends, or parents and adult children an effortless reason to put phones away for half an hour.',
+      'The dual-sided screen-printed linen board accommodates both backgammon and standard checkers, and the integrated zippered cylinder stores all 30 weighted stones, doubling cube, and brass-rimmed dice cups without rattling.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Storage Footprint',
+        detail: 'Unrolls to 14" × 18" for full-size play, then rolls into a 14" × 3.2" cylinder secured with a vegetable-tanned leather tie.',
+      },
+      {
+        label: 'Two Games in One',
+        detail: 'Includes printed rules and playing layout for both classic Backgammon and Checkers.',
+      },
+      {
+        label: 'Surface Care',
+        detail: 'Belgian flax linen is treated with a light water-repellent finish; spot clean spills with a damp cloth.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'holidays',
+        label: 'Family & Couple Holidays',
+        note: 'Ready to unroll immediately after holiday dinner for a friendly tournament.',
+      },
+      {
+        occasion: 'housewarming',
+        label: 'Housewarming or Cabin Gift',
+        note: 'A lasting thank-you gift when staying at a friend’s guest room or weekend house.',
+      },
+    ],
+    specifications: [
+      { label: 'Materials', value: 'Water-resistant Belgian flax linen, oiled American walnut trim, tumbled stone pips, brass dice cups' },
+      { label: 'Dimensions', value: '14" × 18" open playing surface; 14" × 3.2" rolled cylinder' },
+      { label: 'Included Components', value: '30 weighted playing stones, 4 dice, 1 doubling cube, 2 dice cups, rules booklet' },
+      { label: 'Players & Age', value: '2 players; recommended for ages 8 and up' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_cyanotype_explorer_kit_07',
+        comparisonAngle: 'All-Ages Creative Activity ($34)',
+        summary: 'If you are shopping for younger kids or someone who prefers hands-on art over strategy games, the Sunlight Botanical Cyanotype Kit is a $34 standout.',
+      },
+      {
+        productId: 'prod_wool_picnic_throw_13',
+        comparisonAngle: 'Heirloom Cabin Textile ($115)',
+        summary: 'For a cozy housewarming or couple’s gift that requires zero game rules, step up to the Brushed Merino Lambswool Reading Throw.',
+      },
+    ],
   },
   prod_terracotta_herb_kit_06: {
     id: 'prod_terracotta_herb_kit_06',
@@ -437,9 +1017,25 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#C3F3DF',
         alt: 'Fresh green culinary herbs sprouting in warm terracotta pots on a sunny windowsill',
         caption: 'Includes organic seed packets, coconut coir disks, and brass plant markers.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_galak_2016'],
+    giftVerdict: {
+      editorialAssessment:
+        'A low-maintenance trio of passive self-watering terracotta and glazed ceramic planters that outlasts a florist bouquet by years.',
+      standoutReason:
+        'The unglazed terracotta inner pot naturally wicks moisture from the outer glazed reservoir at the exact pace roots require, preventing both dry-outs and soggy soil.',
+      recipientDelight:
+        'Brings living greenery and fresh culinary herbs right to an apartment kitchen windowsill without requiring a green thumb or daily watering schedule.',
+      importantCaveat:
+        'Requires a windowsill that receives at least 4 to 5 hours of bright natural light each day for culinary herbs to thrive.',
+    },
+    specifications: [
+      { label: 'Materials', value: 'Unglazed porous terracotta inner vessels nested in glazed stoneware reservoirs' },
+      { label: 'Dimensions', value: 'Three pots (3.8" diameter × 4.5" height each) on a 12.5" bamboo drip tray' },
+      { label: 'Included Supplies', value: 'Organic basil, thyme, and spearmint seeds, coconut coir soil pucks, 3 solid brass markers' },
+    ],
   },
   prod_cyanotype_explorer_kit_07: {
     id: 'prod_cyanotype_explorer_kit_07',
@@ -473,10 +1069,26 @@ export const PRODUCTS: Record<string, Product> = {
         url: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=900&q=80',
         fallbackColor: '#99BFF9',
         alt: 'Botanical art prints and creative studio tools arranged on a bright table',
-        caption: 'Requires only sunlight and tap water—safe, mess-free, and endlessly rewarding.',
+        caption: 'Requires only sunlight and tap water; safe, mess-free, and endlessly rewarding.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_chan_mogilner_2017'],
+    giftVerdict: {
+      editorialAssessment:
+        'An archival botanical sun-printing kit and pocket maple flower press that turns an afternoon walk into striking Prussian-blue artwork using only sunlight and tap water.',
+      standoutReason:
+        'Uses pre-coated heavy cotton rag paper rather than flimsy construction paper, so the finished prints look worthy of framing in a study or hallway.',
+      recipientDelight:
+        'Watching the paper transform from pale green to deep indigo in a tray of plain water feels like darkroom magic for both seven-year-olds and design-minded adults.',
+      importantCaveat:
+        'Works best on sunny or bright overcast days; indoor lamps will not expose the UV-sensitive emulsion.',
+    },
+    specifications: [
+      { label: 'Kit Contents', value: '24 pre-sensitized 5" × 7" cotton rag sheets, acrylic contact frame, pocket maple leaf press' },
+      { label: 'Development Process', value: '3 to 5 minutes outdoor sunlight exposure followed by a 1-minute plain tap water rinse' },
+      { label: 'Recommended Age', value: 'Ages 6 to adult (no liquid chemical mixing required)' },
+    ],
   },
   prod_five_year_memory_book_08: {
     id: 'prod_five_year_memory_book_08',
@@ -495,7 +1107,7 @@ export const PRODUCTS: Record<string, Product> = {
     inStock: true,
     calloutTag: 'Friend Favorite',
     whyToGiveIt:
-      'Blank notebooks can feel intimidating, but writing just two lines before bed takes 30 seconds—and by year two, you get to read what made you laugh on that exact date last year.',
+      'Blank notebooks can feel intimidating, but writing just two lines before bed takes 30 seconds, and by year two, you get to read what made you laugh on that exact date last year.',
     detailsAndCare:
       'Smyth-sewn lay-flat binding in cornflower blue linen · Gold foil edges · 100gsm fountain-pen friendly paper. Sample product for preview.',
     bestForSummary: 'Close friends, new parents, graduates, or anyone starting a new chapter.',
@@ -510,10 +1122,80 @@ export const PRODUCTS: Record<string, Product> = {
         url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80',
         fallbackColor: '#D6CDEA',
         alt: 'Open linen-bound journal with a warm cup of coffee and reading glasses on a wooden table',
-        caption: 'Start on any day of the year—no wasted pages if they begin in mid-November.',
+        caption: 'Start on any day of the year, with no wasted pages if they begin in mid-November.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_givi_galak_2017', 'cit_galak_2016'],
+    giftVerdict: {
+      editorialAssessment:
+        'A Smyth-sewn Belgian linen daily memory book that asks for only five lines per night while stacking five years of the same calendar date on a single page.',
+      standoutReason:
+        'Eliminates the guilt of blank journals: each daily box is intentionally small enough to fill out in 30 seconds before turning off the bedside lamp.',
+      recipientDelight:
+        'Starting in the second year, every evening entry automatically reveals where they were, what they cooked, or what their kids said on that exact calendar day a year earlier.',
+      importantCaveat:
+        'Designed for brief snapshot reflections rather than long-form morning pages or sketching.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the close friend, new parent, or reflective reader starting a new chapter.',
+      narrative:
+        'Many people love the idea of keeping a journal but abandon blank notebooks after two weeks because writing a full page feels like homework. By limiting each day to a five-line slot and pre-printing only the month and day (with open year fill-ins), this book makes memory-keeping effortless.',
+      lifestyleNotes: [
+        'Keeps a book on the nightstand and enjoys a quiet two-minute wind-down before sleep',
+        'Entering a milestone year: a new baby, a new city, a graduation, or a round-number birthday',
+        'Appreciates bookbinding details like woven linen covers, ribbon markers, and lay-flat stitching',
+      ],
+      relationshipFit: ['Close Friends', 'New Parents', 'Partners', 'Graduates & Mentors'],
+    },
+    extendedGiftRationale: [
+      'Gift-giving studies consistently show that objects whose value compounds over time (Galak et al., 2016) outperform flashier items whose novelty fades after the first week. A five-year journal literally grows more meaningful with every month of entries.',
+      'Bound in tactile cornflower-blue Belgian bookcloth with Smyth-sewn signatures that open completely flat on a nightstand or desk, the 100gsm acid-free paper accepts fountain pens, gel rollers, and pencils without bleed-through.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Start Any Day of the Year',
+        detail: 'Pages are headed by calendar date (January 1 through December 31, including February 29) with blank year lines, so a birthday gift in July wastes zero pages.',
+      },
+      {
+        label: 'Binding & Paper Quality',
+        detail: 'Smyth-sewn lay-flat binding, 100gsm smooth archival ivory paper, and a woven grosgrain ribbon bookmark.',
+      },
+      {
+        label: 'Nightstand Footprint',
+        detail: 'Compact 4.25" × 6.5" format sits neatly beside a bedside lamp or slips into a carry-on bag.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'birthday',
+        label: 'Birthday & New Chapter',
+        note: 'Because the year lines are blank, they can begin their five-year archive right on their birthday evening.',
+      },
+      {
+        occasion: 'holidays',
+        label: 'New Year & Holidays',
+        note: 'A thoughtful late-December gift for someone looking forward to the year ahead without heavy resolution pressure.',
+      },
+    ],
+    specifications: [
+      { label: 'Format & Page Count', value: '366 calendar-dated pages (5 yearly entry blocks per page), 372 pages total' },
+      { label: 'Dimensions', value: '4.25" × 6.5" × 1.1" (10.8 cm × 16.5 cm)' },
+      { label: 'Materials', value: 'Woven Belgian linen hardcover, Smyth-sewn binding, 100gsm acid-free ivory paper' },
+      { label: 'Details', value: 'Matte gold foil edge gilding and sewn ribbon marker' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_letterpress_recipe_cards_11',
+        comparisonAngle: 'Culinary Memory Alternative ($22)',
+        summary: 'If they express themselves through cooking rather than nightly reflection, the Heirloom Botanical Letterpress Recipe Cards capture kitchen memories instead.',
+      },
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        comparisonAngle: 'Tactile Nightstand Companion ($48)',
+        summary: 'For a bedside upgrade that requires zero writing, pair or swap with the Hand-Blown Two-Tone Bedside Water Carafe & Tumbler.',
+      },
+    ],
   },
   prod_fluted_bedside_carafe_09: {
     id: 'prod_fluted_bedside_carafe_09',
@@ -544,13 +1226,99 @@ export const PRODUCTS: Record<string, Product> = {
     images: [
       {
         id: 'img_carafe_09',
-        url: 'https://images.unsplash.com/photo-1546173159-315724a31696?auto=format&fit=crop&w=900&q=80',
+        url: 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?auto=format&fit=crop&w=900&q=80',
         fallbackColor: '#99BFF9',
-        alt: 'Hand-blown glass carafe and matching tumbler catching warm morning light on a wooden table',
+        alt: 'Clear glass water carafe and tumbler filled with fresh water on a sunlit table',
         caption: 'The inverted tumbler keeps dust out overnight and nests smoothly without clinking.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_yang_urminsky_2018'],
+    giftVerdict: {
+      editorialAssessment:
+        'Our flagship Editor’s Pick under $50: a hand-blown borosilicate bedside carafe and nesting tumbler that replaces stray nightstand mugs with quiet, functional craft.',
+      standoutReason:
+        'The tumbler sits upside down over the neck of the carafe to act as a dust cover overnight, and the optical vertical fluting gives wet hands a secure, comfortable grip in the dark.',
+      recipientDelight:
+        'Catches morning window light like translucent sea glass and makes keeping fresh water on a nightstand, study desk, or guest-room dresser feel intentional.',
+      importantCaveat:
+        'Although made of thermal-shock-resistant borosilicate glass, it is still hand-blown glassware and may not suit bedside tables shared with energetic cats or toddlers.',
+    },
+    idealRecipientProfile: {
+      headline: 'For the observant friend, host, or partner who notices the small details of daily living.',
+      narrative:
+        'Almost everyone brings a glass of water to bed or keeps one beside their keyboard, usually in an old promotional mug or plastic bottle. Gifting a dedicated, beautifully proportioned glass carafe elevates a habit they already do twice a day without asking them to adopt a new hobby or find extra closet space.',
+      lifestyleNotes: [
+        'Keeps a tidy nightstand or home office desk with a lamp, current book, and glass of water',
+        'Loves preparing a welcoming guest room for visiting friends or family',
+        'Appreciates subtle translucent color (coastal blue and soft mint) that blends into calm interiors',
+      ],
+      relationshipFit: ['Close Friends', 'Partners', 'Weekend Hosts', 'Parents', 'Design-Minded Coworkers'],
+    },
+    extendedGiftRationale: [
+      'In their landmark study on the "Smile-Seeking Hypothesis," Yang and Urminsky (2018) found that givers often pass over quiet, everyday upgrades because they chase a theatrical gasp at the moment of unwrapping. Yet recipients report their highest long-term gratitude for objects that quietly improve an existing daily routine.',
+      'Mouth-blown from lightweight yet resilient borosilicate glass, this two-piece set holds 700ml in the lower vessel (enough for two full pours overnight and first thing in the morning) while occupying less than four inches of surface diameter. The fire-polished rim pours cleanly without dripping down the fluted sides.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Surface Footprint & Height',
+        detail: 'Base diameter is just 3.8 inches (7.8 inches total height with tumbler nested), fitting easily on narrow bedside shelves or window ledges.',
+      },
+      {
+        label: 'Material & Durability',
+        detail: 'Hand-blown from thermal borosilicate glass, which is lighter and more resistant to temperature changes than standard soda-lime glass, though still breakable if knocked onto hard tile.',
+      },
+      {
+        label: 'Cleaning & Maintenance',
+        detail: 'Wide neck opening allows easy rinsing and fits on the top rack of standard dishwashers without trapping water spots.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'housewarming',
+        label: 'Housewarming & Guest Room',
+        note: 'Equally thoughtful for the homeowner’s own nightstand or for outfitting their guest bedroom.',
+      },
+      {
+        occasion: 'birthday',
+        label: 'Birthday & Just Because',
+        note: 'Feels like an independent design-shop discovery at a comfortable $48 price point.',
+      },
+      {
+        occasion: 'thank-you',
+        label: 'Weekend Host Thank-You',
+        note: 'A memorable thank-you after staying with friends or family for a weekend visit.',
+      },
+    ],
+    specifications: [
+      { label: 'Material', value: 'Hand-blown optical-fluted thermal borosilicate glass' },
+      { label: 'Capacity', value: '700ml (23.6 oz) carafe + 220ml (7.4 oz) nesting tumbler lid' },
+      { label: 'Dimensions', value: '7.8" total nested height × 3.8" base diameter' },
+      { label: 'Colorway', value: 'Translucent coastal blue carafe with soft seafoam-mint nesting tumbler' },
+      { label: 'Care', value: 'Dishwasher top-rack safe or hand wash with warm soapy water' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_french_butter_crock_12',
+        comparisonAngle: 'More Affordable Kitchen Ritual ($24)',
+        summary: 'If you love the idea of a daily countertop vessel but want to stay under $25, the Speckled Stoneware French Butter Keeper Crock brings the same practical charm to morning toast.',
+      },
+      {
+        productId: 'prod_kyoto_matcha_bowl_03',
+        comparisonAngle: 'Warm Ceramic Tea Alternative ($58)',
+        summary: 'If they prefer a hands-on afternoon tea ritual and earthy stoneware textures over glassware, choose the Hand-Thrown Matcha Bowl & Bamboo Whisk Set.',
+      },
+      {
+        productId: 'prod_five_year_memory_book_08',
+        comparisonAngle: 'Sentimental Nightstand Alternative ($28)',
+        summary: 'For a bedside companion centered on personal reflection and keepsake value rather than glassware, consider the Belgian Linen Five-Year Journal.',
+      },
+      {
+        productId: 'prod_cloud_waffle_robe_02',
+        comparisonAngle: 'Higher-Budget Morning Luxury ($98)',
+        summary: 'When shopping for a milestone birthday or partner gift where you want a larger-scale morning upgrade, step up to the Turkish Cotton Cloud-Waffle Bath Robe.',
+      },
+    ],
   },
   prod_wool_picnic_throw_13: {
     id: 'prod_wool_picnic_throw_13',
@@ -569,7 +1337,7 @@ export const PRODUCTS: Record<string, Product> = {
     inStock: true,
     calloutTag: 'Heirloom Comfort',
     whyToGiveIt:
-      'Equally at home draped over the arm of a reading chair or carried out to the porch on a crisp autumn evening—it feels substantial, soft, and built for decades.',
+      'Equally at home draped over the arm of a reading chair or carried out to the porch on a crisp autumn evening; it feels substantial, soft, and built for decades.',
     detailsAndCare:
       '100% pure new merino lambswool · 55" × 72" with contrast blanket-stitched edge · Dry clean or gentle wool wash. Sample product for preview.',
     bestForSummary: 'Parents, couples, milestone birthdays, and housewarmings.',
@@ -585,9 +1353,79 @@ export const PRODUCTS: Record<string, Product> = {
         fallbackColor: '#99BFF9',
         alt: 'Folded woven wool throw blanket draped over a sunlit armchair',
         caption: 'Woven in small batches using soft, non-scratch merino lambswool.',
+        isSampleAsset: true,
       },
     ],
     citationIds: ['cit_yang_urminsky_2018'],
+    giftVerdict: {
+      editorialAssessment:
+        'An heirloom-weight 100% merino lambswool throw blanket with a generous six-foot length that delivers size-free luxury for parents, couples, and milestone occasions.',
+      standoutReason:
+        'Brushed fine-micron merino fibers provide the loft and warmth of traditional wool without the scratchiness against bare forearms or necks.',
+      recipientDelight:
+        'At 55 by 72 inches, it is long enough to actually cover an adult’s feet on the sofa while looking calm and tailored draped over an armchair.',
+      importantCaveat:
+        'Made of 100% natural sheep’s wool, which requires airing out or gentle cold wool washing rather than hot dryer cycles.',
+    },
+    idealRecipientProfile: {
+      headline: 'For parents, couples, or close friends celebrating a housewarming or milestone occasion.',
+      narrative:
+        'When you want to give something substantial over $100 that feels both personal and enduring, apparel sizing can be a stumbling block. A generously proportioned merino throw fits every living room, reading nook, and porch chair while lasting for decades.',
+      lifestyleNotes: [
+        'Spends evenings reading on the sofa or sitting out on a cool porch or patio',
+        'Appreciates quiet, muted palettes (heather blue, seafoam, and warm oat) that work with existing wood and linen furniture',
+        'Values natural fibers that regulate temperature without static electricity',
+      ],
+      relationshipFit: ['Parents & In-Laws', 'Couples & Partners', 'Housewarming Hosts', 'Close Friends'],
+    },
+    extendedGiftRationale: [
+      'While givers sometimes worry that a throw blanket feels too familiar, behavioral studies (Yang & Urminsky, 2018) show that recipients judge higher-budget gifts by how seamlessly they integrate into daily comfort over years of ownership.',
+      'Woven in a classic broken-herringbone twill and finished with contrast blanket whipstitching rather than tangling fringe tufts, this throw keeps its clean edges through years of folding and draping.',
+    ],
+    buyingConsiderationsList: [
+      {
+        label: 'Generous Dimensions',
+        detail: 'Measures 55" × 72" (4.5 ft × 6 ft), noticeably larger than standard 50" × 60" decorative throws.',
+      },
+      {
+        label: 'Fiber & Softness',
+        detail: '100% pure new merino lambswool spun from fine first-shearing fibers and lightly brushed for a soft hand feel.',
+      },
+      {
+        label: 'Care Instructions',
+        detail: 'Naturally odor- and stain-resistant; refresh outdoors in fresh air, spot clean, or hand wash cold with wool detergent and lay flat to dry.',
+      },
+    ],
+    occasionContextNotes: [
+      {
+        occasion: 'housewarming',
+        label: 'Milestone Housewarming',
+        note: 'Anchors a new living room or study immediately without clashing with the homeowner’s art style.',
+      },
+      {
+        occasion: 'holidays',
+        label: 'Family & Couple Gift',
+        note: 'An effortless shared gift for parents or couples who insist they do not want individual gadgets.',
+      },
+    ],
+    specifications: [
+      { label: 'Material', value: '100% pure new merino lambswool (brushed herringbone twill)' },
+      { label: 'Dimensions', value: '55" × 72" (140 cm × 183 cm)' },
+      { label: 'Edge Finish', value: 'Contrast wool whipstitch binding (fringe-free)' },
+      { label: 'Care', value: 'Gentle cold wool wash, lay flat to dry, or professional dry clean' },
+    ],
+    similarGiftComparisons: [
+      {
+        productId: 'prod_cloud_waffle_robe_02',
+        comparisonAngle: 'Personal Wearable Alternative ($98)',
+        summary: 'If you are buying for one person rather than a household and know their general size tier, the Turkish Cotton Cloud-Waffle Bath Robe offers wearable morning comfort.',
+      },
+      {
+        productId: 'prod_olivewood_board_game_05',
+        comparisonAngle: 'Interactive Couple & Host Gift ($84)',
+        summary: 'For couples or cabin hosts who prefer an interactive evening activity over home textiles, choose the Inlaid Walnut & Linen Roll-Up Backgammon Set.',
+      },
+    ],
   },
 };
 

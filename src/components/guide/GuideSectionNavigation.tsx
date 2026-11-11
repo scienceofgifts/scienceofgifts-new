@@ -3,8 +3,8 @@ import { GiftGuide } from '../../types/content';
 import {
   Award,
   Bookmark,
+  CircleHelp,
   Compass,
-  HelpCircle,
   Layers,
   ListChecks,
   Scale,
@@ -36,19 +36,23 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
 }) => {
   return (
     <>
-      {/* Mobile / Tablet Non-Sticky Editorial Directory (preserves viewport height) */}
+      {/* Mobile / Tablet Non-Sticky Editorial Directory */}
       <nav
         aria-label="Guide chapter directory"
-        className="mb-8 rounded-2xl border border-[#D5CFC4] bg-[#F4EFE6] p-4 lg:hidden"
+        className="mb-8 rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-4 lg:hidden"
       >
-        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC4] pb-3">
-          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#28537D]">
-            In This Gift Guide
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E3E1DB] pb-2.5">
+          <span className="text-xs font-semibold text-[#24282B]">
+            In This Guide
           </span>
           {savedInGuideCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#28537D] tabular-nums">
-              <Bookmark className="h-3.5 w-3.5 fill-current" />
-              {savedInGuideCount} Saved
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-[#28537D] tabular-nums">
+              <Bookmark
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-3.5 w-3.5 fill-current"
+              />
+              {savedInGuideCount} saved
             </span>
           )}
         </div>
@@ -57,91 +61,121 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
           <button
             type="button"
             onClick={() => onJumpToSection('quick-picks')}
-            className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
           >
-            Quick Picks ({guide.quickPicks.length})
+            <ListChecks
+              aria-hidden="true"
+              strokeWidth={1.75}
+              className="h-3.5 w-3.5 shrink-0 text-[#636A6F]"
+            />
+            <span>Quick Picks</span>
           </button>
           <button
             type="button"
             onClick={() => onJumpToSection('find-the-right-gift')}
-            className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
           >
-            By Recipient
+            <Compass
+              aria-hidden="true"
+              strokeWidth={1.75}
+              className="h-3.5 w-3.5 shrink-0 text-[#636A6F]"
+            />
+            <span>By Recipient</span>
           </button>
           <button
             type="button"
             onClick={() => onJumpToSection('editors-pick')}
-            className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
           >
-            Editor’s Standout
+            <Award
+              aria-hidden="true"
+              strokeWidth={1.75}
+              className="h-3.5 w-3.5 shrink-0 text-[#636A6F]"
+            />
+            <span>Editor’s Pick</span>
           </button>
-          {guide.sections.map((sec, idx) => (
+          {guide.sections.map((sec) => (
             <button
               key={sec.id}
               type="button"
               onClick={() => onJumpToSection(sec.id)}
-              className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D] tabular-nums"
+              className="rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
             >
-              Ch. 0{idx + 1}: {sec.shortNavTitle} ({sec.recommendations.length})
+              {sec.shortNavTitle}
             </button>
           ))}
           {hasComparison && (
             <button
               type="button"
               onClick={() => onJumpToSection('gift-comparison')}
-              className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
             >
-              Comparison Ledger
+              <Scale
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-3.5 w-3.5 shrink-0 text-[#636A6F]"
+              />
+              <span>Compare the Gifts</span>
             </button>
           )}
           {guide.buyingAdvice.length > 0 && (
             <button
               type="button"
               onClick={() => onJumpToSection('buying-advice')}
-              className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
             >
-              How to Choose
+              <Sparkles
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-3.5 w-3.5 shrink-0 text-[#636A6F]"
+              />
+              <span>Buying Advice</span>
             </button>
           )}
           {hasFaqs && (
             <button
               type="button"
               onClick={() => onJumpToSection('guide-faq')}
-              className="rounded-lg border border-[#D5CFC4] bg-[#FAF7F2] px-3 py-1.5 text-xs font-semibold text-[#222426] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3 py-1.5 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
             >
-              FAQ
+              <CircleHelp
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-3.5 w-3.5 shrink-0 text-[#636A6F]"
+              />
+              <span>Questions</span>
             </button>
           )}
         </div>
 
         {activeRecipientFilterLabel && onClearRecipientFilter && (
-          <div className="mt-3 flex items-center justify-between rounded-lg border border-[#A7E3C5] bg-[#E8F8F0] px-3 py-2 text-xs text-[#222426]">
+          <div className="mt-3 flex items-center justify-between rounded-lg border border-[#C6E4D6] bg-[#E5F3EC] px-3 py-2 text-xs text-[#24282B]">
             <span>
-              Highlighting: <strong>{activeRecipientFilterLabel}</strong>
+              Filtered for: <strong>{activeRecipientFilterLabel}</strong>
             </span>
             <button
               type="button"
               onClick={onClearRecipientFilter}
-              className="font-bold text-[#28537D] underline underline-offset-2"
+              className="font-semibold text-[#28537D] underline underline-offset-2"
             >
-              Show All
+              Show all
             </button>
           </div>
         )}
       </nav>
 
-      {/* Desktop Sticky Left-Rail Table of Contents */}
+      {/* Desktop Sticky Left-Rail Editorial Index (Light, Restrained, No Heavy Box) */}
       <aside className="hidden lg:col-span-3 lg:block">
-        <div className="sticky top-24 space-y-5">
+        <div className="sticky top-24 space-y-6 pr-2">
           <nav
             aria-label="Guide sections"
-            className="rounded-2xl border border-[#D5CFC4] bg-[#F4EFE6] p-5"
+            className="border-t border-[#E3E1DB] pt-4"
           >
-            <div className="flex items-center justify-between border-b border-[#D5CFC4] pb-3">
-              <div className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#28537D]">
-                Editorial Index
-              </div>
-              <span className="font-mono text-[11px] text-[#62666A] tabular-nums">
+            <div className="flex items-center justify-between pb-3">
+              <span className="font-serif text-sm font-semibold text-[#24282B]">
+                In This Guide
+              </span>
+              <span className="text-xs text-[#636A6F] tabular-nums">
                 {guide.sections.reduce(
                   (acc, s) => acc + s.recommendations.length,
                   0
@@ -150,90 +184,104 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
               </span>
             </div>
 
-            {/* Part I: Overview & Shortlist */}
-            <div className="mt-4">
-              <div className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#62666A]">
-                I. Shortlist & Pathways
-              </div>
-              <ul className="mt-1.5 space-y-1">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onJumpToSection('quick-picks')}
-                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
-                      activeSectionId === 'quick-picks'
-                        ? 'bg-[#28537D] text-white'
-                        : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
-                    }`}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <ListChecks className="h-3.5 w-3.5 shrink-0" />
-                      Quick Picks Ledger
-                    </span>
-                    <span className="font-mono text-[11px] opacity-80 tabular-nums">
-                      {guide.quickPicks.length}
-                    </span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onJumpToSection('find-the-right-gift')}
-                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
-                      activeSectionId === 'find-the-right-gift'
-                        ? 'bg-[#28537D] text-white'
-                        : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
-                    }`}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Compass className="h-3.5 w-3.5 shrink-0" />
-                      Find the Right Gift
-                    </span>
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => onJumpToSection('editors-pick')}
-                    className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
-                      activeSectionId === 'editors-pick'
-                        ? 'bg-[#28537D] text-white'
-                        : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
-                    }`}
-                  >
-                    <span className="inline-flex items-center gap-2">
-                      <Award className="h-3.5 w-3.5 shrink-0" />
-                      Editor’s Standout Pick
-                    </span>
-                  </button>
-                </li>
-              </ul>
-            </div>
+            {/* Overview & Shortlist */}
+            <ul className="space-y-1 border-t border-[#E3E1DB] pt-3">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onJumpToSection('quick-picks')}
+                  className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
+                    activeSectionId === 'quick-picks'
+                      ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                      : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <ListChecks
+                      aria-hidden="true"
+                      strokeWidth={1.75}
+                      className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                        activeSectionId === 'quick-picks'
+                          ? 'text-[#1B3D5F]'
+                          : 'text-[#636A6F] group-hover:text-[#24282B]'
+                      }`}
+                    />
+                    <span>Quick Picks</span>
+                  </span>
+                  <span className="text-[11px] text-[#636A6F] tabular-nums">
+                    {guide.quickPicks.length}
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onJumpToSection('find-the-right-gift')}
+                  className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
+                    activeSectionId === 'find-the-right-gift'
+                      ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                      : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Compass
+                      aria-hidden="true"
+                      strokeWidth={1.75}
+                      className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                        activeSectionId === 'find-the-right-gift'
+                          ? 'text-[#1B3D5F]'
+                          : 'text-[#636A6F] group-hover:text-[#24282B]'
+                      }`}
+                    />
+                    <span>Find the Right Gift</span>
+                  </span>
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => onJumpToSection('editors-pick')}
+                  className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
+                    activeSectionId === 'editors-pick'
+                      ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                      : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                  }`}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    <Award
+                      aria-hidden="true"
+                      strokeWidth={1.75}
+                      className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                        activeSectionId === 'editors-pick'
+                          ? 'text-[#1B3D5F]'
+                          : 'text-[#636A6F] group-hover:text-[#24282B]'
+                      }`}
+                    />
+                    <span>Editor’s Pick</span>
+                  </span>
+                </button>
+              </li>
+            </ul>
 
-            {/* Part II: Budget Chapters */}
-            <div className="mt-5 border-t border-[#D5CFC4] pt-4">
-              <div className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#62666A]">
-                II. Curated Chapters
+            {/* Budget Chapters */}
+            <div className="mt-4 border-t border-[#E3E1DB] pt-3">
+              <div className="mb-1.5 text-[11px] font-medium text-[#636A6F]">
+                Recommendations by Budget
               </div>
-              <ul className="mt-1.5 space-y-1">
-                {guide.sections.map((sec, idx) => (
+              <ul className="space-y-1">
+                {guide.sections.map((sec) => (
                   <li key={sec.id}>
                     <button
                       type="button"
                       onClick={() => onJumpToSection(sec.id)}
-                      className={`flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
+                      className={`flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === sec.id
-                          ? 'bg-[#28537D] text-white'
-                          : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
+                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
-                      <span className="truncate pr-2">
-                        <span className="mr-1.5 font-mono text-[11px] opacity-75 tabular-nums">
-                          0{idx + 1}.
-                        </span>
-                        {sec.shortNavTitle}
-                      </span>
-                      <span className="font-mono text-[11px] opacity-80 tabular-nums">
+                      <span className="truncate pr-2">{sec.shortNavTitle}</span>
+                      <span className="text-[11px] text-[#636A6F] tabular-nums">
                         {sec.recommendations.length}
                       </span>
                     </button>
@@ -242,25 +290,35 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
               </ul>
             </div>
 
-            {/* Part III: Comparison, Buying Guide & FAQ */}
-            <div className="mt-5 border-t border-[#D5CFC4] pt-4">
-              <div className="px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#62666A]">
-                III. Evaluation & Advice
+            {/* Comparison, Buying Advice & FAQ */}
+            <div className="mt-4 border-t border-[#E3E1DB] pt-3">
+              <div className="mb-1.5 text-[11px] font-medium text-[#636A6F]">
+                Comparison & Advice
               </div>
-              <ul className="mt-1.5 space-y-1">
+              <ul className="space-y-1">
                 {hasComparison && (
                   <li>
                     <button
                       type="button"
                       onClick={() => onJumpToSection('gift-comparison')}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
+                      className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'gift-comparison'
-                          ? 'bg-[#28537D] text-white'
-                          : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
+                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
-                      <Scale className="h-3.5 w-3.5 shrink-0" />
-                      Gift Comparison Ledger
+                      <span className="inline-flex items-center gap-2">
+                        <Scale
+                          aria-hidden="true"
+                          strokeWidth={1.75}
+                          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                            activeSectionId === 'gift-comparison'
+                              ? 'text-[#1B3D5F]'
+                              : 'text-[#636A6F] group-hover:text-[#24282B]'
+                          }`}
+                        />
+                        <span>Compare the Gifts</span>
+                      </span>
                     </button>
                   </li>
                 )}
@@ -269,14 +327,24 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                     <button
                       type="button"
                       onClick={() => onJumpToSection('buying-advice')}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
+                      className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'buying-advice'
-                          ? 'bg-[#28537D] text-white'
-                          : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
+                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
-                      <Sparkles className="h-3.5 w-3.5 shrink-0" />
-                      How to Choose
+                      <span className="inline-flex items-center gap-2">
+                        <Sparkles
+                          aria-hidden="true"
+                          strokeWidth={1.75}
+                          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                            activeSectionId === 'buying-advice'
+                              ? 'text-[#1B3D5F]'
+                              : 'text-[#636A6F] group-hover:text-[#24282B]'
+                          }`}
+                        />
+                        <span>How to Choose</span>
+                      </span>
                     </button>
                   </li>
                 )}
@@ -285,14 +353,24 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                     <button
                       type="button"
                       onClick={() => onJumpToSection('guide-faq')}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
+                      className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'guide-faq'
-                          ? 'bg-[#28537D] text-white'
-                          : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
+                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
-                      <HelpCircle className="h-3.5 w-3.5 shrink-0" />
-                      Reader Questions (FAQ)
+                      <span className="inline-flex items-center gap-2">
+                        <CircleHelp
+                          aria-hidden="true"
+                          strokeWidth={1.75}
+                          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                            activeSectionId === 'guide-faq'
+                              ? 'text-[#1B3D5F]'
+                              : 'text-[#636A6F] group-hover:text-[#24282B]'
+                          }`}
+                        />
+                        <span>Common Questions</span>
+                      </span>
                     </button>
                   </li>
                 )}
@@ -301,14 +379,24 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                     <button
                       type="button"
                       onClick={() => onJumpToSection('related-discoveries')}
-                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-xs font-semibold transition-colors ${
+                      className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'related-discoveries'
-                          ? 'bg-[#28537D] text-white'
-                          : 'text-[#292B2D] hover:bg-[#EAE3D5] hover:text-[#222426]'
+                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
-                      <Layers className="h-3.5 w-3.5 shrink-0" />
-                      Related Guides & Research
+                      <span className="inline-flex items-center gap-2">
+                        <Layers
+                          aria-hidden="true"
+                          strokeWidth={1.75}
+                          className={`h-3.5 w-3.5 shrink-0 transition-colors ${
+                            activeSectionId === 'related-discoveries'
+                              ? 'text-[#1B3D5F]'
+                              : 'text-[#636A6F] group-hover:text-[#24282B]'
+                          }`}
+                        />
+                        <span>Related Reading</span>
+                      </span>
                     </button>
                   </li>
                 )}
@@ -317,51 +405,56 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
 
             {/* Active recipient pathway filter indicator */}
             {activeRecipientFilterLabel && onClearRecipientFilter && (
-              <div className="mt-4 rounded-xl border border-[#A7E3C5] bg-[#E8F8F0] p-3 text-xs text-[#222426]">
-                <div className="font-bold text-[#1B3D5F]">
-                  Active Recipient Filter
+              <div className="mt-4 rounded-xl border border-[#C6E4D6] bg-[#E5F3EC] p-3 text-xs text-[#24282B]">
+                <div className="font-semibold text-[#1B3D5F]">
+                  Filtered by Recipient
                 </div>
-                <div className="mt-0.5 text-[#292B2D]">
+                <div className="mt-0.5 text-[#24282B]">
                   {activeRecipientFilterLabel}
                 </div>
                 <button
                   type="button"
                   onClick={onClearRecipientFilter}
-                  className="mt-2 text-xs font-bold text-[#28537D] underline underline-offset-2 hover:text-[#1B3D5F]"
+                  className="mt-1.5 text-xs font-semibold text-[#28537D] underline underline-offset-2 hover:text-[#1B3D5F]"
                 >
-                  Reset to all recommendations
+                  Show all recommendations
                 </button>
               </div>
             )}
 
             {/* Saved in This Guide Counter */}
-            <div className="mt-5 border-t border-[#D5CFC4] pt-4">
-              <div className="flex items-center justify-between text-xs">
-                <span className="inline-flex items-center gap-1.5 font-semibold text-[#62666A]">
-                  <Bookmark className="h-3.5 w-3.5 text-[#28537D]" />
-                  Saved in This Guide
+            <div className="mt-4 border-t border-[#E3E1DB] pt-3">
+              <div className="flex items-center justify-between pl-3 text-xs text-[#636A6F]">
+                <span className="inline-flex items-center gap-2">
+                  <Bookmark
+                    aria-hidden="true"
+                    strokeWidth={1.75}
+                    className={`h-3.5 w-3.5 shrink-0 ${
+                      savedInGuideCount > 0
+                        ? 'text-[#1B3D5F]'
+                        : 'text-[#636A6F]'
+                    }`}
+                  />
+                  <span>Saved in this guide</span>
                 </span>
-                <span className="font-mono font-bold text-[#28537D] tabular-nums">
+                <span className="font-semibold text-[#24282B] tabular-nums">
                   {savedInGuideCount}
                 </span>
               </div>
             </div>
           </nav>
 
-          {/* Secondary Utility Card: Interactive Gift Finder */}
-          <div className="rounded-2xl border border-[#D5CFC4] bg-[#FAF7F2] p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#28537D]">
-              Need a Custom Shortlist?
+          {/* Restrained Discovery Note */}
+          <div className="border-t border-[#E3E1DB] pt-4 text-xs">
+            <p className="font-serif text-sm font-semibold text-[#24282B]">
+              Looking for a specific budget or occasion?
             </p>
-            <p className="mt-1.5 font-serif text-sm font-bold text-[#222426]">
-              Filter the Full Catalog by Recipient & Budget
-            </p>
-            <p className="mt-1 text-xs leading-relaxed text-[#62666A]">
-              Combine relationship, occasion, and exact price ceiling in the interactive Gift Finder.
+            <p className="mt-1 leading-relaxed text-[#636A6F]">
+              Filter the full catalog by recipient, relationship, and price ceiling in the Gift Finder.
             </p>
             <a
               href="/gift-finder/"
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-bold text-[#28537D] underline decoration-[#28537D]/30 underline-offset-4 hover:text-[#1B3D5F]"
+              className="mt-2 inline-block font-semibold text-[#28537D] underline decoration-[#28537D]/35 underline-offset-4 hover:text-[#1B3D5F]"
             >
               Open Gift Finder →
             </a>

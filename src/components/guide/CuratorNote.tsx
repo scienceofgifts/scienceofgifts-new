@@ -14,33 +14,33 @@ export const CuratorNote: React.FC<CuratorNoteProps> = ({
   return (
     <aside
       aria-label={note.title}
-      className={`rounded-2xl border border-[#D5CFC4] bg-[#F4EFE6] p-6 sm:p-7 ${className}`}
+      className={`rounded-2xl border border-[#C6E4D6] bg-[#E5F3EC]/65 p-6 sm:p-8 ${className}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#D5CFC4] pb-3">
-        <div className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#28537D]">
-          <Feather className="h-3.5 w-3.5" />
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#C6E4D6] pb-3">
+        <div className="inline-flex items-center gap-2 text-xs font-semibold text-[#1B3D5F]">
+          <Feather className="h-3.5 w-3.5 text-[#28537D]" />
           <span>{note.kicker}</span>
         </div>
         {note.authorAttribution && (
-          <span className="font-serif text-xs italic text-[#62666A]">
+          <span className="font-serif text-xs italic text-[#636A6F]">
             {note.authorAttribution}
           </span>
         )}
       </div>
 
-      <h3 className="mt-4 font-serif text-xl font-bold leading-snug text-[#222426] sm:text-2xl">
+      <h3 className="mt-4 font-serif text-xl font-semibold leading-snug text-[#24282B] sm:text-2xl">
         {note.title}
       </h3>
 
-      <p className="mt-3 text-sm leading-[1.75] text-[#292B2D] sm:text-base">
+      <p className="mt-3 max-w-[68ch] text-sm leading-[1.8] text-[#24282B] sm:text-base">
         {note.body}
       </p>
 
       {note.takeaway && (
-        <div className="mt-4 border-t border-[#D5CFC4] pt-3.5 text-xs leading-relaxed text-[#222426] sm:text-sm">
-          <span className="font-bold uppercase tracking-[0.12em] text-[#28537D]">
-            Curatorial Rule of Thumb:{' '}
-          </span>
+        <div className="mt-4 border-t border-[#C6E4D6] pt-3.5 text-xs leading-relaxed text-[#24282B] sm:text-sm">
+          <strong className="font-semibold text-[#1B3D5F]">
+            Rule of thumb:{' '}
+          </strong>
           <span className="font-serif italic">{note.takeaway}</span>
         </div>
       )}

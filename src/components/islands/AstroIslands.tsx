@@ -679,32 +679,42 @@ export const ProductDetailActionsIsland: React.FC<{
         type="button"
         onClick={() => toggleSaveProduct(product.id)}
         aria-pressed={isSaved}
-        className={`px-5 py-3 rounded-full text-xs font-semibold inline-flex items-center gap-2 transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+        className={`px-4 py-2.5 rounded-lg text-xs font-semibold inline-flex items-center gap-2 border transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
           isSaved
-            ? 'bg-[#F2846B] text-white'
-            : 'bg-white text-[#222426] hover:bg-[#1B3D5F]/8'
+            ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
+            : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]'
         }`}
       >
-        <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-        <span>{isSaved ? 'Saved in Your Gift List' : 'Save to Gift List'}</span>
+        <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-current' : ''}`} />
+        <span>{isSaved ? 'Saved in Gift List' : 'Save to Gift List'}</span>
       </button>
 
-      <a
-        href={product.purchaseUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="px-6 py-3 rounded-full bg-[#1B3D5F] text-[#FAF7F2] text-xs font-semibold inline-flex items-center gap-2 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
-      >
-        <span>
-          {product.isPlaceholderLink
-            ? 'Placeholder Purchase Link'
-            : `Shop at ${product.vendor}`}
-        </span>
-        <ExternalLink className="w-3.5 h-3.5" />
-      </a>
+      {product.isPlaceholderLink ? (
+        <a
+          href={product.purchaseUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Sample merchant preview link for ${product.title} (development placeholder)`}
+          className="px-4 py-2.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] text-[#24282B] text-xs font-semibold inline-flex items-center gap-2 hover:border-[#28537D] hover:text-[#28537D] transition-colors whitespace-nowrap shrink-0"
+        >
+          <span>Merchant Preview Link (Sample)</span>
+          <ExternalLink className="w-3.5 h-3.5 text-[#636A6F]" />
+        </a>
+      ) : (
+        <a
+          href={product.purchaseUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="px-5 py-2.5 rounded-lg bg-[#1B3D5F] text-[#FFFFFF] text-xs font-semibold inline-flex items-center gap-2 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
+        >
+          <span>View at {product.vendor.replace(/^Sample Maker:\s*/i, '')}</span>
+          <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
     </div>
   );
 };
 
 export { GiftFinderExperience as GiftFinderInteractiveIsland } from '../GiftFinderExperience';
+
 

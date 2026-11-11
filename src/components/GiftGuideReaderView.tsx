@@ -29,7 +29,6 @@ import { GiftBuyingGuide } from './guide/GiftBuyingGuide';
 import { GuideFAQ } from './guide/GuideFAQ';
 import { RelatedEditorialContent } from './guide/RelatedEditorialContent';
 
-// Export re-usable subcomponents for external consumers or tests
 export {
   EditorialGuideHero,
   GuideSectionNavigation,
@@ -57,8 +56,8 @@ export interface GuideBudgetSectionProps {
 
 /**
  * Reusable Editorial Chapter / Budget Section component.
- * Combines full-width featured/editorial-feature recommendations with
- * balanced two-column grids for standard recommendations, plus optional Curator's Notes.
+ * Uses an open editorial chapter layout separated by a top hairline rule rather than
+ * wrapping recommendation cards in a nested beige container.
  */
 export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
   section,
@@ -70,14 +69,6 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
   onSelectProduct,
   onToggleSaveProduct,
 }) => {
-  const surfaceBg =
-    section.accentSurface === 'mint'
-      ? 'bg-[#E8F8F0]/45 border-[#BDE8D2]'
-      : section.accentSurface === 'sand'
-      ? 'bg-[#F4EFE6] border-[#D5CFC4]'
-      : 'bg-[#FAF7F2] border-[#D5CFC4]';
-
-  // Filter valid recommendations (and optionally filter by active recipient pathway)
   const validRecommendations = section.recommendations
     .map((rec, idx) => ({
       rec,
@@ -108,8 +99,6 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
     return null;
   }
 
-  // Group consecutive 'standard' items so they can sit in a balanced 2-column editorial grid,
-  // while 'featured', 'editorial-feature', and 'compact' span the full chapter width.
   type RenderGroup =
     | {
         kind: 'single';
@@ -152,38 +141,38 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
     <section
       id={section.id}
       aria-labelledby={`heading-${section.id}`}
-      className={`scroll-mt-24 rounded-3xl border p-6 sm:p-8 lg:p-10 ${surfaceBg}`}
+      className="scroll-mt-24 border-t border-[#E3E1DB] pt-10"
     >
-      {/* Chapter Header */}
-      <div className="border-b border-[#D5CFC4] pb-6">
+      {/* Open Chapter Header */}
+      <div className="border-b border-[#E3E1DB] pb-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#28537D]">
+          <p className="text-xs font-semibold text-[#28537D]">
             {section.editorialKicker ||
               `Chapter 0${chapterIndex + 1} · ${section.priceRangeLabel}`}
           </p>
-          <span className="font-mono text-xs font-semibold text-[#62666A] tabular-nums">
+          <span className="text-xs font-medium text-[#636A6F] tabular-nums">
             {validRecommendations.length}{' '}
             {validRecommendations.length === 1
-              ? 'Curated Pick'
-              : 'Curated Picks'}{' '}
+              ? 'recommendation'
+              : 'recommendations'}{' '}
             · {section.priceRangeLabel}
           </span>
         </div>
 
         <h2
           id={`heading-${section.id}`}
-          className="mt-2 font-serif text-2xl font-bold leading-tight text-[#222426] sm:text-3xl lg:text-[2.1rem]"
+          className="mt-1.5 font-serif text-2xl font-semibold leading-tight text-[#24282B] sm:text-3xl"
         >
           {section.title}
         </h2>
 
-        <p className="mt-2.5 max-w-3xl text-sm leading-[1.7] text-[#292B2D] sm:text-base">
+        <p className="mt-2.5 max-w-3xl text-sm leading-[1.75] text-[#636A6F] sm:text-base">
           {section.summary}
         </p>
       </div>
 
       {/* Recommendations with Mixed Editorial Rhythm */}
-      <div className="mt-8 space-y-7">
+      <div className="mt-7 space-y-7">
         {renderGroups.map((group, gIdx) => {
           if (group.kind === 'single') {
             const { rec, product, globalRank } = group.item;
@@ -223,7 +212,7 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
         })}
       </div>
 
-      {/* Section-level Curator's Note (if present) */}
+      {/* Section-level Curator's Note */}
       {section.curatorNote && (
         <div className="mt-8">
           <CuratorNote note={section.curatorNote} />
@@ -277,7 +266,6 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
   const [activePathway, setActivePathway] =
     useState<GuideRecipientPathway | null>(null);
 
-  // Calculate total recommendations and price range summary from canonical products
   const { totalRecommendationsCount, priceRangeSummary, allGuideProductIds } =
     useMemo(() => {
       const ids = new Set<string>();
@@ -329,7 +317,6 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
     return count;
   }, [allGuideProductIds, savedProductIds]);
 
-  // Track active section while scrolling
   useEffect(() => {
     const trackedIds = [
       'quick-picks',
@@ -369,7 +356,6 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
   };
 
   const scrollToRecommendation = (productId: string, sectionId?: string) => {
-    // If recipient pathway filter is hiding this product, clear the filter first
     if (
       activePathway &&
       !(activePathway.recommendedProductIds ?? []).includes(productId)
@@ -415,7 +401,6 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
     relatedArticles.length > 0 ||
     guideCitations.length > 0;
 
-  // Compute cumulative starting rank index for each section
   const sectionStartRanks = useMemo(() => {
     const starts: number[] = [];
     let running = 0;
@@ -427,8 +412,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
   }, [guide.sections]);
 
   return (
-    <div className="min-h-screen bg-[#FAF7F2] pb-20 text-[#292B2D]">
-      {/* A. Premium Editorial Hero */}
+    <div className="min-h-screen bg-[#FAF9F6] pb-24 text-[#24282B]">
+      {/* A. Editorial Guide Hero */}
       <EditorialGuideHero
         guide={guide}
         author={author}
@@ -437,10 +422,10 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
         onJumpToSection={scrollToElement}
       />
 
-      {/* Main Editorial Layout: Left Sticky Rail + Right Curated Content */}
-      <div className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-6 sm:pt-12 lg:px-8">
-        <div className="lg:grid lg:grid-cols-12 lg:gap-10">
-          {/* B. Editorial Navigation (Mobile Directory + Desktop Sticky Rail) */}
+      {/* Main Editorial Layout: Left Restrained Index + Right Curated Content */}
+      <div className="mx-auto max-w-[1360px] px-4 pt-10 sm:px-6 sm:pt-14 lg:px-8">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-12">
+          {/* B. Editorial Index */}
           <GuideSectionNavigation
             guide={guide}
             activeSectionId={activeSectionId}
@@ -454,8 +439,8 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
           />
 
           {/* Primary Editorial Column */}
-          <div className="space-y-12 lg:col-span-9">
-            {/* C. Quick Picks Executive Ledger */}
+          <div className="space-y-14 lg:col-span-9">
+            {/* C. Quick Picks */}
             <QuickPicks
               quickPicks={guide.quickPicks}
               productsMap={productsMap}
@@ -464,7 +449,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
               onJumpToRecommendation={scrollToRecommendation}
             />
 
-            {/* D. Find the Right Gift (Recipient Matchmaker & Pathway Filter) */}
+            {/* D. Find the Right Gift */}
             <RecipientDiscovery
               guide={guide}
               productsMap={productsMap}
@@ -473,7 +458,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
               onJumpToRecommendation={scrollToRecommendation}
             />
 
-            {/* E. Featured Editorial Recommendation (Editor's Standout Pick) */}
+            {/* E. Featured Recommendation */}
             {editorsPickProduct && (
               <FeaturedGiftRecommendation
                 editorsPick={guide.editorsPick}
@@ -485,17 +470,17 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
               />
             )}
 
-            {/* G1. First Standalone Curator's Field Note (Editorial Rhythm Interlude) */}
+            {/* G1. First Standalone Curator's Field Note */}
             {guide.curatorNotes && guide.curatorNotes[0] && (
               <CuratorNote note={guide.curatorNotes[0]} />
             )}
 
-            {/* Active Pathway Filter Banner (if reader filtered the main guide) */}
+            {/* Active Pathway Filter Banner */}
             {activePathway && (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#A7E3C5] bg-[#E8F8F0] px-5 py-4 text-sm text-[#222426]">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#C6E4D6] bg-[#E5F3EC] px-5 py-3.5 text-sm text-[#24282B]">
                 <div>
-                  <span className="font-bold text-[#1B3D5F]">
-                    Recipient Filter Active:
+                  <span className="font-semibold text-[#1B3D5F]">
+                    Filtered by recipient:
                   </span>{' '}
                   Showing chapters with gifts matched to{' '}
                   <strong>{activePathway.label}</strong>.
@@ -503,7 +488,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setActivePathway(null)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#28537D] px-3.5 py-2 text-xs font-bold text-white hover:bg-[#1E4164]"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1B3D5F] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#28537D]"
                 >
                   <RotateCcw className="h-3.5 w-3.5" />
                   Show All {totalRecommendationsCount} Recommendations
@@ -512,7 +497,7 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
             )}
 
             {/* F. Main Recommendations Organized by Chapter / Budget Tier */}
-            <div className="space-y-12">
+            <div className="space-y-14">
               {guide.sections.map((section, idx) => (
                 <React.Fragment key={section.id}>
                   <GuideBudgetSection
@@ -536,14 +521,14 @@ export const GiftGuideReaderView: React.FC<GiftGuideReaderViewProps> = ({
               ))}
             </div>
 
-            {/* H. Qualitative Gift Comparison Ledger */}
+            {/* H. Qualitative Gift Comparison */}
             <GiftComparison
               guide={guide}
               productsMap={productsMap}
               onJumpToRecommendation={scrollToRecommendation}
             />
 
-            {/* I. How to Choose the Right Gift (Buying Guide) */}
+            {/* I. How to Choose the Right Gift */}
             <GiftBuyingGuide
               guideTitle={guide.title}
               buyingAdviceIntro={guide.buyingAdviceIntro}

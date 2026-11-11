@@ -16,6 +16,7 @@ import {
   RichTextWithCitations,
 } from '../components/ArticleReaderView';
 import { GiftGuideReaderView } from '../components/GiftGuideReaderView';
+import { EditorialProductProfile } from '../components/product/EditorialProductProfile';
 import { SANITY_SCHEMA_TYPES, GROQ_QUERIES } from '../cms/sanitySchemas';
 import { LocalCMSContentStore } from '../cms/cmsContentStore';
 import { contentRepository } from '../cms/contentRepository';
@@ -2169,5 +2170,106 @@ test('32. Flagship Editorial Gift Guide Redesign renders all 11 modular editoria
     !html.includes('—'),
     'Flagship Gift Guide copy and UI must not contain em dashes (—)'
   );
+
+  // 5. Verify refined Phase 1 editorial palette (#FAF9F6 canvas, #FFFFFF paper surfaces, #E3E1DB hairlines, natural index labels, and restored Lucide outline icons)
+  assert.match(html, /bg-\[#FAF9F6\]/);
+  assert.match(html, /bg-\[#FFFFFF\]/);
+  assert.match(html, /border-\[#E3E1DB\]/);
+  assert.match(html, />Quick Picks</);
+  assert.match(html, />Compare the Gifts</);
+  assert.match(html, />Common Questions</);
+  assert.match(html, /lucide-list-checks/);
+  assert.match(html, /lucide-compass/);
+  assert.match(html, /lucide-award/);
+  assert.match(html, /lucide-scale/);
+  assert.match(html, /lucide-sparkles/);
+  assert.match(
+    html,
+    /lucide-circle-help|lucide-circle-question-mark|lucide-help-circle/
+  );
+  assert.match(html, /lucide-layers/);
+  assert.match(html, /lucide-bookmark/);
 });
+
+test('33. Editorial Product Profile Redesign renders all 10 editorial sections, accurate carafe photography, honest placeholder disclosure, and graceful fallback when optional fields are omitted', () => {
+  const carafe = contentRepository.getProductBySlug(
+    'hand-blown-two-tone-bedside-water-carafe-and-glass'
+  );
+  assert.ok(carafe, 'Carafe product must exist in contentRepository');
+
+  // 1. Verify mismatched orange cocktail image is replaced with accurate clear glass carafe photo
+  assert.ok(
+    !carafe.images[0].url.includes('1546173159-315724a31696'),
+    'Mismatched orange beverage image URL must be removed'
+  );
+  assert.match(carafe.images[0].url, /1548839140-29a749e1cf4d/);
+
+  const carafeHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={carafe}
+      guideAppearances={contentRepository.getProductGuideAppearances(carafe.id)}
+      similarComparisons={contentRepository.getSimilarProductComparisons(carafe)}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 2)}
+      citations={[CITATIONS.cit_yang_urminsky_2018]}
+    />
+  );
+
+  // 2. Verify all required Editorial Gift Profile sections exist
+  assert.match(carafeHtml, /id="product-hero"/);
+  assert.match(carafeHtml, /id="gift-verdict"/);
+  assert.match(carafeHtml, /id="ideal-recipient"/);
+  assert.match(carafeHtml, /id="why-it-works"/);
+  assert.match(carafeHtml, /id="buying-considerations"/);
+  assert.match(carafeHtml, /id="specifications"/);
+  assert.match(carafeHtml, /id="gift-occasions"/);
+  assert.match(carafeHtml, /id="compare-similar-gifts"/);
+  assert.match(carafeHtml, /id="featured-gift-guide"/);
+  assert.match(carafeHtml, /id="related-editorial"/);
+
+  // 3. Verify editorial content depth, sample preview photography note, and honest placeholder purchase disclosure
+  assert.match(carafeHtml, /Sample preview photography/);
+  assert.match(carafeHtml, /Merchant Preview Link \(Sample\)/);
+  assert.match(carafeHtml, /Sample Catalog Note:/);
+  assert.match(
+    carafeHtml,
+    /Our flagship Editor’s Pick under \$50: a hand-blown borosilicate bedside carafe/
+  );
+  assert.match(carafeHtml, /More Affordable Kitchen Ritual \(\$24\)/);
+  assert.match(
+    carafeHtml,
+    /Thoughtful Gifts for People Who Appreciate the Little Things/
+  );
+  assert.ok(
+    !carafeHtml.includes('—'),
+    'Editorial Product Profile must not contain em dashes (—)'
+  );
+
+  // 4. Test a second product (prod_terracotta_herb_kit_06) with omitted optional profile fields to verify graceful fallback
+  const herbKit = contentRepository.getProductBySlug(
+    'self-watering-terracotta-windowsill-herb-garden-trio'
+  );
+  assert.ok(herbKit, 'Herb kit product must exist in contentRepository');
+  assert.equal(herbKit.idealRecipientProfile, undefined);
+  assert.equal(herbKit.similarGiftComparisons, undefined);
+
+  const herbHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={herbKit}
+      guideAppearances={contentRepository.getProductGuideAppearances(herbKit.id)}
+      similarComparisons={contentRepository.getSimilarProductComparisons(herbKit)}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 2)}
+      citations={[CITATIONS.cit_galak_2016]}
+    />
+  );
+
+  assert.match(herbHtml, /id="gift-verdict"/);
+  assert.match(herbHtml, /id="ideal-recipient"/);
+  assert.match(herbHtml, /id="compare-similar-gifts"/);
+  assert.match(
+    herbHtml,
+    /Best suited for New homeowners, apartment cooks, and plant lovers\./
+  );
+  assert.ok(!herbHtml.includes('—'));
+});
+
 
