@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { resolveSanityEnvironmentConfig } from '../../cms/studio/sanityCore';
+import { SanityStudioWorkspace } from '../../components/studio/SanityStudioWorkspace';
+
+const envConfig = resolveSanityEnvironmentConfig();
+---
+
+<BaseLayout
+  title="Science of Gifts — Sanity Editorial Studio"
+  description="Science of Gifts Sanity Studio editorial interface for managing canonical products, gift guides, stories, discovery hubs, and publication settings."
+  canonicalPath="/studio/"
+  noindex={true}
+>
+  <SanityStudioWorkspace client:load envConfig={envConfig} />
+</BaseLayout>
+

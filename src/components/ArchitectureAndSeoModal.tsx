@@ -90,7 +90,7 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
     >
       <div className="bg-[#FAF7F2] border border-[#DFDBD3] rounded-2xl max-w-5xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#DFDBD3] bg-[#F5F4F0]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-4 border-b border-[#DFDBD3] bg-[#F5F4F0]">
           <div>
             <span className="text-xs font-mono uppercase tracking-widest text-[#62666A]">
               CMS Evaluation, Content Model & SEO Blueprint
@@ -102,14 +102,22 @@ export const ArchitectureAndSeoModal: React.FC<ArchitectureModalProps> = ({
               Science of Gifts — Sanity CMS Architecture & Product Workflow
             </h2>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 rounded-lg text-[#222426] hover:bg-[#1B3D5F]/10 transition-colors"
-            aria-label="Close technical blueprint modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <a
+              href="/studio/"
+              className="px-3.5 py-2 rounded-lg bg-[#1B3D5F] text-white text-xs font-semibold hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
+            >
+              Open Sanity Editorial Studio (/studio/) →
+            </a>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-lg text-[#222426] hover:bg-[#1B3D5F]/10 transition-colors"
+              aria-label="Close technical blueprint modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Interactive Tab Bar */}

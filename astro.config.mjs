@@ -2,6 +2,7 @@ import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
+import { sanityStudioApiPlugin } from './src/cms/studio/sanityStudioApiPlugin';
 
 export default defineConfig({
   site: 'https://www.scienceofgifts.com',
@@ -16,7 +17,8 @@ export default defineConfig({
   },
   integrations: [react()],
   vite: {
-    plugins: [tailwindcss()],
+    envPrefix: ['PUBLIC_', 'SANITY_STUDIO_'],
+    plugins: [tailwindcss(), sanityStudioApiPlugin()],
     resolve: {
       alias: {
         '@': path.resolve('.'),

@@ -19,7 +19,38 @@ import {
 } from '../components/ArticleReaderView';
 import { GiftGuideReaderView } from '../components/GiftGuideReaderView';
 import { EditorialProductProfile } from '../components/product/EditorialProductProfile';
-import { SANITY_SCHEMA_TYPES, GROQ_QUERIES } from '../cms/sanitySchemas';
+import {
+  ALL_SANITY_STUDIO_TYPES,
+  GROQ_QUERIES,
+  SANITY_DOCUMENT_SCHEMAS,
+  SANITY_OBJECT_SCHEMAS,
+  SANITY_SCHEMA_TYPES,
+  verifySchemaRegistryIntegrity,
+} from '../cms/sanitySchemas';
+import sanityStudioConfig, {
+  isSanityStudioEnvConfigured,
+  parseStrictBooleanEnv,
+  resolveSanityEnvironmentConfig,
+} from '../../sanity.config';
+import {
+  evaluateDocumentPreview,
+  validateDocumentWithSchema,
+} from '../cms/studio/sanityCore';
+import { buildScienceOfGiftsDeskStructure } from '../cms/studio/deskStructure';
+import {
+  evaluateEditorialDocumentLifecycle,
+  evaluateProductPublicationLifecycle,
+} from '../cms/studio/publicationWorkflow';
+import {
+  convertParagraphsToPortableTextBlocks,
+  serializePortableTextToParagraphs,
+} from '../cms/studio/portableTextSerializer';
+import {
+  ARTICLE_TOPIC_OPTIONS,
+  OCCASION_OPTIONS,
+  PERSONALITY_TRAIT_OPTIONS,
+  RECIPIENT_OPTIONS,
+} from '../cms/studio/taxonomyRegistry';
 import { LocalCMSContentStore } from '../cms/cmsContentStore';
 import {
   createContentRepository,
@@ -551,14 +582,17 @@ test('11. Citation section foreground/background and control boundary combinatio
 });
 
 test('12. Sanity CMS schemas and AI-assisted product draft validator enforce canonical references and non-hallucinated fields', () => {
-  // Verify the 6 consolidated Sanity document schemas exist
+  // Verify all 9 canonical Sanity document schemas exist
   const schemaNames = SANITY_SCHEMA_TYPES.map((s) => s.name);
   assert.deepEqual(schemaNames, [
     'product',
     'giftGuide',
     'article',
-    'researchCitation',
+    'editorialHub',
+    'taxonomyArchive',
     'author',
+    'researchCitation',
+    'publicationInfoPage',
     'siteSettings',
   ]);
   assert.ok(GROQ_QUERIES.giftGuideBySlug.includes('product->'));
@@ -4300,6 +4334,315 @@ test('40. Premium Global Navigation (Desktop & Mobile 3-group structure, For Him
     `Search across 1,200+ items must complete rapidly (took ${elapsedMs.toFixed(2)}ms)`
   );
 });
+
+test('41. Phase 1 Sanity CMS Schema & Studio Implementation: 9 document types, 42 reusable objects, 3-group desk structure, taxonomy consistency, product safeguards, and Portable Text citation compatibility', () => {
+  // 1. Verify schema registry integrity (zero undefined types, zero duplicates, valid groups/fieldsets)
+  const integrity = verifySchemaRegistryIntegrity(ALL_SANITY_STUDIO_TYPES);
+  assert.equal(integrity.valid, true, JSON.stringify(integrity, null, 2));
+  assert.equal(integrity.documentCount, 9);
+  assert.equal(integrity.objectCount, 42);
+  assert.equal(integrity.totalTypesCount, 51);
+  assert.equal(integrity.duplicateTypeNames.length, 0);
+  assert.equal(integrity.undefinedReferencedTypes.length, 0);
+  assert.equal(integrity.invalidGroupReferences.length, 0);
+  assert.equal(integrity.invalidFieldsetReferences.length, 0);
+
+  // 2. Verify all 20 required editorial object models (+ 14 nested sub-objects) are registered
+  const objectNames = new Set(SANITY_OBJECT_SCHEMAS.map((o) => o.name));
+  const requiredCoreObjects = [
+    'seoMetadata',
+    'productImage',
+    'editorialImage',
+    'productGiftVerdict',
+    'productRecipientProfile',
+    'productBuyingConsideration',
+    'productOccasionNote',
+    'productSpecificationItem',
+    'productSimilarComparison',
+    'guideEditorsPick',
+    'guideQuickPick',
+    'guideRecipientPathway',
+    'guideSection',
+    'guideProductRecommendation',
+    'guideCuratorNote',
+    'guideComparison',
+    'guideBuyingAdvice',
+    'guideFaq',
+    'articleContentSection',
+    'articleComparisonTable',
+  ];
+  for (const objName of requiredCoreObjects) {
+    assert.ok(
+      objectNames.has(objName),
+      `Expected reusable object schema "${objName}" to be registered`
+    );
+  }
+
+  // 3. Verify Studio 3-group desk navigation structure
+  const desk = buildScienceOfGiftsDeskStructure();
+  assert.equal(desk.items?.length, 3);
+  assert.deepEqual(
+    desk.items?.map((i) => i.title),
+    ['Editorial Content', 'Discovery & Organization', 'Publication Settings']
+  );
+  const editorialGroupTitles = desk.items?.[0]?.items?.map((i) => i.title) ?? [];
+  assert.deepEqual(editorialGroupTitles, [
+    'Gift Guides',
+    'Products',
+    'Stories & Articles',
+    'Authors',
+    'Research Citations',
+  ]);
+  const discoveryGroupTitles = desk.items?.[1]?.items?.map((i) => i.title) ?? [];
+  assert.deepEqual(discoveryGroupTitles, [
+    'Gifts for Him and Gifts for Her',
+    'Recipient Categories',
+    'Interests',
+    'Occasions',
+    'Article Topics',
+  ]);
+  const settingsGroupTitles = desk.items?.[2]?.items?.map((i) => i.title) ?? [];
+  assert.deepEqual(settingsGroupTitles, [
+    'Global Site Settings',
+    'Homepage Features',
+    'Directory SEO',
+    'About and Contact',
+    'Editorial Policy',
+    'Affiliate Disclosure',
+    'Other Publication Information Pages',
+  ]);
+
+  // 4. Verify taxonomy consistency (article topics match ArticleTopicId in content.ts & contentRepository.ts)
+  assert.deepEqual(
+    ARTICLE_TOPIC_OPTIONS.map((o) => o.value),
+    [
+      'gift-giving-psychology',
+      'relationships',
+      'decision-making',
+      'gift-etiquette',
+      'practical-gifting-advice',
+      'culture',
+    ]
+  );
+  assert.deepEqual(
+    RECIPIENT_OPTIONS.map((o) => o.value),
+    ['partner', 'parent', 'friend', 'host', 'kids', 'coworker']
+  );
+  assert.deepEqual(
+    OCCASION_OPTIONS.map((o) => o.value),
+    [
+      'birthday',
+      'housewarming',
+      'anniversary',
+      'thank-you',
+      'holidays',
+      'just-because',
+    ]
+  );
+  assert.deepEqual(
+    PERSONALITY_TRAIT_OPTIONS.map((o) => o.value),
+    [
+      'foodie-host',
+      'cozy-homebody',
+      'curious-creative',
+      'outdoors-nature',
+      'nostalgic-sentimental',
+      'everyday-ritual',
+    ]
+  );
+
+  // 5. Verify Product schema groups, canonical ID read-only lock, optional ratings/testing, and publication safeguards
+  const productSchema = SANITY_DOCUMENT_SCHEMAS.find((d) => d.name === 'product')!;
+  assert.deepEqual(
+    productSchema.groups?.map((g) => g.name),
+    [
+      'identity',
+      'editorialProfile',
+      'commerce',
+      'discovery',
+      'images',
+      'seoPublishing',
+    ]
+  );
+  const productIdField = productSchema.fields.find((f) => f.name === 'productId')!;
+  assert.equal(typeof productIdField.readOnly, 'function');
+  if (typeof productIdField.readOnly === 'function') {
+    assert.equal(
+      productIdField.readOnly({
+        value: 'prod_fluted_bedside_carafe_09',
+        document: { _createdAt: '2026-11-12T00:00:00Z' },
+      }),
+      true,
+      'Canonical productId must lock once saved'
+    );
+    assert.equal(
+      productIdField.readOnly({
+        value: '',
+        document: {},
+      }),
+      false,
+      'Canonical productId is editable during initial creation'
+    );
+  }
+
+  // Sample product cannot be published
+  const samplePublishAttempt = validateDocumentWithSchema(productSchema, {
+    productId: 'prod_sample_carafe_01',
+    title: 'Sample Bedside Carafe',
+    slug: { _type: 'slug', current: 'sample-bedside-carafe' },
+    vendor: 'Sample Maker: Studio Test',
+    productType: 'Tabletop & Glassware',
+    subtitle: 'Hand-blown bedside carafe and tumbler.',
+    whyToGiveIt: 'Turns bedside hydration into a clean, dust-free nightly ritual.',
+    bestForSummary: 'Partners and close friends.',
+    detailsAndCare: 'Borosilicate glass; dishwasher safe.',
+    commerceProvider: 'affiliate',
+    fulfillmentClassification: 'affiliate-partner',
+    purchaseUrl: 'https://www.example.com/dev-placeholder/carafe',
+    price: 48,
+    currency: 'USD',
+    budgetTier: 'under-50',
+    guidePriceBucket: '25-to-75',
+    inStock: true,
+    isSampleProduct: true,
+    isPlaceholderLink: true,
+    recipients: ['partner'],
+    interests: ['Home Decor'],
+    occasions: ['birthday'],
+    personalityTraits: ['everyday-ritual'],
+    ageRanges: ['adult'],
+    images: [{ alt: 'Rippled glass carafe on wooden nightstand', url: 'https://images.unsplash.com/photo-1' }],
+    status: 'published',
+  });
+  assert.equal(samplePublishAttempt.valid, false);
+  assert.ok(
+    samplePublishAttempt.errors.some((e) => e.message.includes('Sample products'))
+  );
+
+  // Price verification without evidence is blocked
+  const blindCheckboxAttempt = evaluateProductPublicationLifecycle({
+    productId: 'prod_real_mug_01',
+    title: 'Hasami Porcelain Mug',
+    vendor: 'Kinto Japan',
+    purchaseUrl: 'https://kinto-usa.com/products/hasami-mug',
+    price: 34,
+    priceVerified: true,
+    priceVerificationSource: 'unverified',
+    status: 'published',
+  });
+  assert.equal(blindCheckboxAttempt.hasVerifiedCommerce, false);
+  assert.ok(blindCheckboxAttempt.blockingErrors.length > 0);
+
+  // Verified price + missing inventory verification keeps editorial product valid and indexable while suppressing availability claims
+  const validProductWithoutInventoryCheck = evaluateProductPublicationLifecycle({
+    _id: 'prod_real_mug_01',
+    productId: 'prod_real_mug_01',
+    title: 'Hasami Porcelain Mug',
+    vendor: 'Kinto Japan',
+    purchaseUrl: 'https://kinto-usa.com/products/hasami-mug',
+    price: 34,
+    priceVerified: true,
+    priceVerificationSource: 'merchant-json-ld',
+    inventoryVerified: false,
+    inStock: true,
+    status: 'published',
+  });
+  assert.equal(validProductWithoutInventoryCheck.isApprovedForPublicWebsite, true);
+  assert.equal(validProductWithoutInventoryCheck.hasVerifiedCommerce, true);
+  assert.equal(validProductWithoutInventoryCheck.hasVerifiedInventory, false);
+  assert.equal(validProductWithoutInventoryCheck.isIndexablePublicPage, true);
+  assert.ok(
+    validProductWithoutInventoryCheck.warnings.some((w) =>
+      w.includes('Inventory verification')
+    )
+  );
+
+  // 6. Verify Gift Guide recommendation ordering & product reference configuration
+  const guideSectionSchema = SANITY_OBJECT_SCHEMAS.find(
+    (o) => o.name === 'guideSection'
+  )!;
+  const recsField = guideSectionSchema.fields.find(
+    (f) => f.name === 'recommendations'
+  )!;
+  assert.equal(recsField.options?.sortable, true);
+
+  const guideRecSchema = SANITY_OBJECT_SCHEMAS.find(
+    (o) => o.name === 'guideProductRecommendation'
+  )!;
+  const prodRefField = guideRecSchema.fields.find((f) => f.name === 'product')!;
+  assert.equal(prodRefField.type, 'reference');
+  assert.deepEqual(prodRefField.to, [{ type: 'product' }]);
+
+  const recPreview = evaluateDocumentPreview(guideRecSchema, {
+    product: {
+      title: 'Kyoto Matcha Bowl & Whisk',
+      vendor: 'Uji Craft Studio',
+      price: 58,
+    },
+    awardLabel: 'Best Ritual Set',
+    presentationStyle: 'featured',
+    customEditorialNote: 'Complete ceremonial chawan and 100-prong bamboo whisk.',
+  });
+  assert.match(recPreview.title ?? '', /\[Best Ritual Set\] Kyoto Matcha Bowl & Whisk/);
+  assert.match(recPreview.subtitle ?? '', /\$58/);
+
+  // 7. Verify Portable Text citationAnnotation round-trip compatibility with [cite:cit_id]
+  const sampleParagraphs = [
+    'Givers often focus on the moment of unwrapping, whereas recipients care about long-term utility [cite:cit_yang_urminsky_2018].',
+    'Experiential and ritual gifts strengthen relationship closeness over time [cite:cit_chan_mogilner_2017].',
+  ];
+  const ptBlocks = convertParagraphsToPortableTextBlocks(sampleParagraphs);
+  assert.equal(ptBlocks.length, 2);
+  const serializedBack = serializePortableTextToParagraphs(ptBlocks);
+  assert.deepEqual(serializedBack, sampleParagraphs);
+
+  // 8. Verify Studio singleton protection on Site Settings
+  const filteredTemplates = sanityStudioConfig.schema.templates?.([
+    { id: 'product', schemaType: 'product' },
+    { id: 'siteSettings', schemaType: 'siteSettings' },
+  ]);
+  assert.deepEqual(filteredTemplates, [{ id: 'product', schemaType: 'product' }]);
+
+  // 9. Verify SANITY_API_READ_TOKEN is optional, SANITY_USE_PREVIEW_DRAFTS parses strictly as boolean (default false), and Astro website stays on local catalog
+  assert.equal(parseStrictBooleanEnv(undefined), false);
+  assert.equal(parseStrictBooleanEnv(''), false);
+  assert.equal(parseStrictBooleanEnv('false'), false, 'String "false" must never evaluate to true');
+  assert.equal(parseStrictBooleanEnv('FALSE'), false);
+  assert.equal(parseStrictBooleanEnv('0'), false);
+  assert.equal(parseStrictBooleanEnv('no'), false);
+  assert.equal(parseStrictBooleanEnv('true'), true);
+  assert.equal(parseStrictBooleanEnv('TRUE'), true);
+  assert.equal(parseStrictBooleanEnv('1'), true);
+
+  const publicStudioEnv = resolveSanityEnvironmentConfig({
+    SANITY_STUDIO_PROJECT_ID: 'sog_project_id',
+    SANITY_STUDIO_DATASET: 'production',
+    SANITY_USE_PREVIEW_DRAFTS: 'false',
+    // SANITY_API_READ_TOKEN intentionally omitted
+  });
+  assert.equal(isSanityStudioEnvConfigured(publicStudioEnv), true);
+  assert.equal(publicStudioEnv.apiReadToken, undefined);
+  assert.equal(publicStudioEnv.usePreviewDrafts, false);
+  assert.equal(publicStudioEnv.perspective, 'published');
+  assert.equal(publicStudioEnv.frontendDataSource, 'local-catalog');
+
+  // Even if SANITY_USE_PREVIEW_DRAFTS is 'true', without a read token perspective safely stays 'published'
+  const previewFlagWithoutTokenEnv = resolveSanityEnvironmentConfig({
+    SANITY_STUDIO_PROJECT_ID: 'sog_project_id',
+    SANITY_STUDIO_DATASET: 'production',
+    SANITY_USE_PREVIEW_DRAFTS: 'true',
+  });
+  assert.equal(previewFlagWithoutTokenEnv.usePreviewDrafts, true);
+  assert.equal(previewFlagWithoutTokenEnv.apiReadToken, undefined);
+  assert.equal(previewFlagWithoutTokenEnv.perspective, 'published');
+  assert.equal(previewFlagWithoutTokenEnv.frontendDataSource, 'local-catalog');
+
+  // Confirm Astro contentRepository continues operating on its local catalog
+  assert.ok(contentRepository.getAllProducts().length > 0);
+  assert.ok(contentRepository.getAllGiftGuides().length > 0);
+  assert.ok(contentRepository.getAllArticles().length > 0);
+});
+
 
 
 
