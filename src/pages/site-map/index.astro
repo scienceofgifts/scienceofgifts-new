@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import { SiteMapView } from '../../components/SiteMapView';
+
+const guidesDir = contentRepository.getGiftGuidesDirectoryData();
+const articlesDir = contentRepository.getArticlesDirectoryData();
+const products = contentRepository.getAllProducts();
+---
+
+<BaseLayout
+  title="Site Map — Complete Directory of Guides, Stories & Categories | Science of Gifts"
+  description="Browse the complete human-readable index of Science of Gifts, including all published gift guides, recipient and interest archives, stories, and product profiles."
+  canonicalPath="/site-map/"
+  ogType="website"
+>
+  <SiteMapView
+    guides={guidesDir.allGuides}
+    recipientCategories={guidesDir.recipientDiscovery}
+    interestCategories={guidesDir.interestDiscovery}
+    occasionCategories={guidesDir.occasionDiscovery}
+    budgetBrackets={guidesDir.budgetDiscovery}
+    articles={articlesDir.allArticles}
+    storyTopics={articlesDir.topicDiscovery}
+    products={products}
+  />
+</BaseLayout>

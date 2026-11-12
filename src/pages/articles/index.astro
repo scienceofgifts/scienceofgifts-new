@@ -1,0 +1,53 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import {
+  buildArticlesDirectoryJsonLd,
+  resolvePageSeoMetadata,
+} from '../../utils/seoAndValidation';
+import { ArticlesDirectoryView } from '../../components/ArticlesDirectoryView';
+
+const directoryData = contentRepository.getArticlesDirectoryData();
+const allArticles = contentRepository.getAllArticles();
+const dirSeoEntry = contentRepository.getDirectorySeoEntry('/articles/');
+const defaultOgImage =
+  directoryData.featuredArticle?.article.heroImageUrl ??
+  'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80';
+
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: dirSeoEntry?.title ?? 'Stories',
+  subtitleOrSummary:
+    dirSeoEntry?.subtitle ??
+    'Essays, research-informed ideas, and practical reflections on how people choose, give, and remember gifts.',
+  seo: dirSeoEntry?.seo,
+  defaultCanonicalPath: '/articles/',
+  defaultOgType: 'website',
+  defaultOgImage,
+  contentType: 'directory',
+  status: dirSeoEntry?.status,
+});
+const jsonLd = buildArticlesDirectoryJsonLd(allArticles, dirSeoEntry?.seo);
+---
+
+<BaseLayout
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
+  jsonLd={jsonLd}
+  activeSection="articles"
+>
+  <ArticlesDirectoryView
+    allArticles={directoryData.allArticles}
+    featuredArticle={directoryData.featuredArticle}
+    recentArticles={directoryData.recentArticles}
+    topicDiscovery={directoryData.topicDiscovery}
+    relatedGuides={directoryData.relatedGuides}
+  />
+</BaseLayout>

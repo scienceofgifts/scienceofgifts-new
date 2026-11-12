@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /dev/
+Disallow: /api/
 
-Sitemap: https://scienceofgifts.com/sitemap.xml
+Sitemap: https://www.scienceofgifts.com/sitemap.xml

@@ -1,0 +1,59 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import {
+  buildGiftGuidesDirectoryJsonLd,
+  resolvePageSeoMetadata,
+} from '../../utils/seoAndValidation';
+import { GiftGuidesDirectoryView } from '../../components/GiftGuidesDirectoryView';
+
+const directoryData = contentRepository.getGiftGuidesDirectoryData();
+const rawGuides = contentRepository.getAllGiftGuides();
+const dirSeoEntry = contentRepository.getDirectorySeoEntry('/gift-guides/');
+const defaultOgImage =
+  directoryData.primaryFeaturedGuide?.guide.heroImageUrl ??
+  'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80';
+
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: dirSeoEntry?.title ?? 'Gift Guides',
+  subtitleOrSummary:
+    dirSeoEntry?.subtitle ??
+    'Thoughtful ideas for the people in your life, organized by what they love, who they are, and the occasions worth celebrating.',
+  seo: dirSeoEntry?.seo,
+  defaultCanonicalPath: '/gift-guides/',
+  defaultOgType: 'website',
+  defaultOgImage,
+  contentType: 'directory',
+  status: dirSeoEntry?.status,
+});
+const directoryJsonLd = buildGiftGuidesDirectoryJsonLd(
+  rawGuides,
+  dirSeoEntry?.seo
+);
+---
+
+<BaseLayout
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
+  jsonLd={directoryJsonLd}
+  activeSection="guides"
+>
+  <GiftGuidesDirectoryView
+    allGuides={directoryData.allGuides}
+    primaryFeaturedGuide={directoryData.primaryFeaturedGuide}
+    supportingFeaturedGuides={directoryData.supportingFeaturedGuides}
+    recipientDiscovery={directoryData.recipientDiscovery}
+    interestDiscovery={directoryData.interestDiscovery}
+    occasionDiscovery={directoryData.occasionDiscovery}
+    budgetDiscovery={directoryData.budgetDiscovery}
+    totalCanonicalProductsCount={directoryData.totalCanonicalProductsCount}
+  />
+</BaseLayout>

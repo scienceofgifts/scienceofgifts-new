@@ -1,6 +1,7 @@
 import React from 'react';
 import { GuideEditorsPick, Product } from '../../types/content';
 import { ArrowDownRight, Award, Bookmark, ExternalLink } from 'lucide-react';
+import { PhotoImage } from '../ObjectIllustrations';
 
 export interface FeaturedGiftRecommendationProps {
   editorsPick: GuideEditorsPick;
@@ -70,12 +71,12 @@ export const FeaturedGiftRecommendation: React.FC<
                 href={`/products/${product.slug}/`}
                 className="block aspect-[4/3] w-full overflow-hidden bg-[#F6F4EF]"
               >
-                <img
-                  src={primaryImage.url}
-                  alt={primaryImage.alt}
+                <PhotoImage
+                  image={primaryImage}
+                  preset="feature-landscape"
+                  aspectRatio="4:3"
                   width={760}
                   height={570}
-                  loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
                 />
               </a>
@@ -91,13 +92,13 @@ export const FeaturedGiftRecommendation: React.FC<
 
         {/* Right: Open Editorial Feature Essay & Hairline Details */}
         <div className="lg:col-span-6">
-          <p className="text-xs font-medium text-[#636A6F]">
+          <p className="theme-metadata text-xs font-medium text-[#636A6F]">
             {product.vendor} · {product.productType}
           </p>
 
           <h2
             id="featured-pick-heading"
-            className="mt-1.5 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-3xl"
+            className="theme-product-title-featured mt-1.5 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-3xl"
           >
             <a
               href={`/products/${product.slug}/`}
@@ -111,7 +112,7 @@ export const FeaturedGiftRecommendation: React.FC<
             {headline}
           </p>
 
-          <p className="mt-4 text-base leading-[1.8] text-[#24282B]">
+          <p className="theme-body-text mt-4 text-base leading-[1.8] text-[#24282B]">
             {rationale}
           </p>
 
@@ -119,10 +120,10 @@ export const FeaturedGiftRecommendation: React.FC<
           <dl className="mt-6 divide-y divide-[#E3E1DB] border-y border-[#E3E1DB] text-sm">
             {intendedRecipient && (
               <div className="py-3.5">
-                <dt className="text-xs font-semibold text-[#1B3D5F]">
+                <dt className="theme-info-label text-xs font-semibold text-[#1B3D5F]">
                   Best suited for
                 </dt>
-                <dd className="mt-1 leading-relaxed text-[#24282B]">
+                <dd className="theme-body-sm mt-1 leading-relaxed text-[#24282B]">
                   {intendedRecipient}
                 </dd>
               </div>
@@ -130,10 +131,10 @@ export const FeaturedGiftRecommendation: React.FC<
 
             {considerations && (
               <div className="py-3.5">
-                <dt className="text-xs font-semibold text-[#636A6F]">
+                <dt className="theme-info-label text-xs font-semibold text-[#636A6F]">
                   What to keep in mind
                 </dt>
-                <dd className="mt-1 leading-relaxed text-[#24282B]">
+                <dd className="theme-body-sm mt-1 leading-relaxed text-[#24282B]">
                   {considerations}
                 </dd>
               </div>
@@ -141,10 +142,10 @@ export const FeaturedGiftRecommendation: React.FC<
 
             {product.detailsAndCare && (
               <div className="py-3.5">
-                <dt className="text-xs font-semibold text-[#636A6F]">
+                <dt className="theme-info-label text-xs font-semibold text-[#636A6F]">
                   Details & specifications
                 </dt>
-                <dd className="mt-1 text-xs leading-relaxed text-[#636A6F]">
+                <dd className="theme-caption mt-1 text-xs leading-relaxed text-[#636A6F]">
                   {product.detailsAndCare.replace(/\s*—\s*/g, ', ')}
                 </dd>
               </div>
@@ -155,7 +156,7 @@ export const FeaturedGiftRecommendation: React.FC<
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <a
               href={`/products/${product.slug}/`}
-              className="inline-flex items-center gap-2 rounded-lg bg-[#1B3D5F] px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
+              className="theme-button-text inline-flex items-center gap-2 rounded-lg bg-[#1B3D5F] px-5 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
             >
               Read Gift Profile · ${product.price}
               <ExternalLink className="h-3.5 w-3.5" />
@@ -170,7 +171,7 @@ export const FeaturedGiftRecommendation: React.FC<
                     editorsPick.targetSectionId!
                   )
                 }
-                className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-4 py-2.5 text-xs font-semibold text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+                className="theme-button-text inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-4 py-2.5 text-xs font-semibold text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
               >
                 See in Budget Chapter
                 <ArrowDownRight className="h-3.5 w-3.5 text-[#28537D]" />
@@ -181,7 +182,7 @@ export const FeaturedGiftRecommendation: React.FC<
               <button
                 type="button"
                 onClick={() => onSelectProduct(product)}
-                className="rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3.5 py-2.5 text-xs font-medium text-[#636A6F] transition-colors hover:border-[#28537D] hover:text-[#24282B]"
+                className="theme-button-text rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3.5 py-2.5 text-xs font-medium text-[#636A6F] transition-colors hover:border-[#28537D] hover:text-[#24282B]"
               >
                 Quick View
               </button>
@@ -195,7 +196,7 @@ export const FeaturedGiftRecommendation: React.FC<
                   ? `Remove ${product.title} from saved gifts`
                   : `Save ${product.title}`
               }
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition-colors ${
+              className={`theme-button-text inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2.5 text-xs font-semibold transition-colors ${
                 isSaved
                   ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
                   : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]'

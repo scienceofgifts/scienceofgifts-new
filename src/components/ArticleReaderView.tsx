@@ -430,14 +430,14 @@ export const ArticleCalloutBlock: React.FC<{ callout: ArticleCallout }> = ({
       className={`my-8 p-6 md:p-7 rounded-3xl ${bgClass} space-y-2`}
     >
       {callout.kicker && (
-        <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+        <div className="theme-kicker text-xs font-semibold uppercase tracking-widest text-[#28537D]">
           {callout.kicker}
         </div>
       )}
-      <h3 className="text-xl font-serif font-semibold text-[#222426]">
+      <h3 className="theme-subsection-heading text-xl font-serif font-semibold text-[#222426]">
         {callout.title}
       </h3>
-      <p className="text-sm md:text-base text-[#292B2D] leading-relaxed">
+      <p className="theme-body-text text-sm md:text-base text-[#292B2D] leading-relaxed">
         {callout.body}
       </p>
     </aside>
@@ -471,14 +471,14 @@ export const ArticleExpandableAdviceBlock: React.FC<{
     <div className="my-8 rounded-3xl bg-[#F5F4F0] border border-[#DFDBD3] p-6 md:p-7 transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+          <div className="theme-kicker inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-[#28537D]">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Practical Reader Guide</span>
           </div>
-          <h3 className="text-xl font-serif font-semibold text-[#222426]">
+          <h3 className="theme-subsection-heading text-xl font-serif font-semibold text-[#222426]">
             {advice.title}
           </h3>
-          <p className="text-xs md:text-sm text-[#292B2D] leading-relaxed">
+          <p className="theme-body-sm text-xs md:text-sm text-[#292B2D] leading-relaxed">
             {advice.summaryPreview}
           </p>
         </div>
@@ -488,7 +488,7 @@ export const ArticleExpandableAdviceBlock: React.FC<{
           onClick={onToggle}
           aria-expanded={isExpanded}
           aria-controls={panelId}
-          className="px-4 py-2.5 rounded-full bg-[#1B3D5F] text-[#FAF7F2] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0 self-start sm:self-center focus-visible:outline-2 focus-visible:outline-[#28537D]"
+          className="theme-button-text px-4 py-2.5 rounded-full bg-[#1B3D5F] text-[#FAF7F2] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0 self-start sm:self-center focus-visible:outline-2 focus-visible:outline-[#28537D]"
         >
           <span>{isExpanded ? 'Hide Practical Guide' : 'Explore Examples'}</span>
           {isExpanded ? (
@@ -511,10 +511,10 @@ export const ArticleExpandableAdviceBlock: React.FC<{
               key={idx}
               className="p-4 rounded-2xl bg-white border border-[#DFDBD3] space-y-1.5"
             >
-              <h4 className="text-sm font-serif font-semibold text-[#222426]">
+              <h4 className="theme-info-heading text-sm font-serif font-semibold text-[#222426]">
                 {item.label}
               </h4>
-              <p className="text-xs text-[#292B2D] leading-relaxed">
+              <p className="theme-body-sm text-xs text-[#292B2D] leading-relaxed">
                 <RichTextWithCitations
                   text={item.detail}
                   blockKey={`sec:${sectionId}:advice:${advice.id}:item:${idx}`}
@@ -558,13 +558,13 @@ export const ArticleContextualProductsBlock: React.FC<{
       className="my-10 p-6 md:p-8 rounded-3xl bg-[#EBF3FE]/65 space-y-5"
     >
       <div className="space-y-1">
-        <div className="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+        <div className="theme-kicker text-xs font-semibold uppercase tracking-widest text-[#28537D]">
           Related Gift Ideas From Our Catalog
         </div>
-        <h3 className="text-xl font-serif font-semibold text-[#222426]">
+        <h3 className="theme-subsection-heading text-xl font-serif font-semibold text-[#222426]">
           {block.heading}
         </h3>
-        <p className="text-xs text-[#292B2D] leading-relaxed">
+        <p className="theme-caption text-xs text-[#292B2D] leading-relaxed">
           {block.editorialContext}
         </p>
       </div>
@@ -585,9 +585,14 @@ export const ArticleContextualProductsBlock: React.FC<{
                   className="w-24 h-24 rounded-xl overflow-hidden bg-[#F3ECE1] shrink-0 cursor-pointer group"
                 >
                   <PhotoImage
+                    image={primaryImage}
                     src={primaryImage?.url}
                     alt={primaryImage?.alt || product.title}
                     fallbackColor={primaryImage?.fallbackColor}
+                    preset="thumbnail-sm"
+                    aspectRatio="1:1"
+                    width={96}
+                    height={96}
                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
                 </div>
@@ -904,7 +909,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             <li aria-hidden="true">/</li>
             <li>
               <a
-                href="/"
+                href="/articles/"
                 onClick={(e) => {
                   if (onBackHome) {
                     e.preventDefault();
@@ -921,7 +926,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
               aria-current="page"
               className="text-[#62666A] font-medium truncate max-w-xs"
             >
-              {article.category}
+              {article.title}
             </li>
           </ol>
 
@@ -963,11 +968,11 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
             )}
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
+          <h1 className="theme-page-title text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-[1.12] text-balance">
             {article.title}
           </h1>
 
-          <p className="text-lg md:text-xl text-[#292B2D] leading-relaxed">
+          <p className="theme-intro-text text-lg md:text-xl text-[#292B2D] leading-relaxed">
             {article.subtitle}
           </p>
 
@@ -986,7 +991,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   <span aria-hidden="true"> · </span>
                   <span>{author.role}</span>
                 </div>
-                <div className="text-[#62666A] mt-0.5">
+                <div className="theme-metadata text-[#62666A] mt-0.5">
                   {calculatedReadMinutes} minute read · {article.citationIds.length} peer-reviewed studies cited
                 </div>
               </div>
@@ -1003,7 +1008,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
               className="w-full h-full object-cover"
             />
           </div>
-          <figcaption className="text-xs font-serif italic text-[#62666A] mt-3 px-1">
+          <figcaption className="theme-caption text-xs font-serif italic text-[#62666A] mt-3 px-1">
             {article.heroCaption}
           </figcaption>
         </figure>
@@ -1164,7 +1169,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                 <div className="max-w-2xl space-y-5">
                   <h2
                     id={`h2-${section.id}`}
-                    className="text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug"
+                    className="theme-section-heading text-2xl md:text-3xl font-serif font-semibold text-[#222426] leading-snug"
                   >
                     {section.heading}
                   </h2>
@@ -1172,7 +1177,7 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   {section.paragraphs.map((p, pIdx) => (
                     <p
                       key={pIdx}
-                      className={`text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8] ${
+                      className={`theme-body-text text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8] ${
                         sIdx === 0 && pIdx === 0
                           ? 'first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-[#222426]'
                           : ''
@@ -1194,13 +1199,13 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                   {section.subSections &&
                     section.subSections.map((sub) => (
                       <div key={sub.id} id={sub.id} className="pt-3 space-y-4">
-                        <h3 className="text-xl font-serif font-semibold text-[#222426]">
+                        <h3 className="theme-subsection-heading text-xl font-serif font-semibold text-[#222426]">
                           {sub.subheading}
                         </h3>
                         {sub.paragraphs.map((sp, spIdx) => (
                           <p
                             key={spIdx}
-                            className="text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8]"
+                            className="theme-body-text text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8]"
                           >
                             <RichTextWithCitations
                               text={sp}

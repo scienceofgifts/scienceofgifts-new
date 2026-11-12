@@ -1,0 +1,69 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../cms/contentRepository';
+import {
+  PublicationInfoPageView,
+  type PublicationInfoSection,
+} from '../../components/PublicationInfoPageView';
+
+const products = contentRepository.getAllProducts();
+const guides = contentRepository.getAllGiftGuides();
+const articles = contentRepository.getAllArticles();
+const citations = Object.values(contentRepository.getCitationsMap());
+
+const sections: PublicationInfoSection[] = [
+  {
+    id: 'purpose',
+    heading: 'The Purpose of Science of Gifts',
+    paragraphs: [
+      'Science of Gifts is an editorial gift publication and interactive discovery platform dedicated to helping people choose gifts that feel personal, useful, and enduring.',
+      'Most gift shopping fails for a predictable reason: givers focus on the theatrical moment of unwrapping, while recipients care far more about how an object fits into their ordinary days afterward. Our publication bridges that gap by pairing calm editorial curation with research-informed frameworks on how people actually receive, use, and remember gifts.',
+    ],
+  },
+  {
+    id: 'editorial-approach',
+    heading: 'Our Approach to Thoughtful Gift Recommendations',
+    paragraphs: [
+      `Every product in our canonical catalog (${products.length} curated items across ${guides.length} gift guides) is organized around recipient suitability rather than generic trend lists. Instead of grouping items only by price or product category, we evaluate each gift by who it serves best, the daily ritual it upgrades, and the practical caveats a giver should know before purchasing.`,
+      `Our Stories archive (${articles.length} long-form essays referencing ${citations.length} academic studies in behavioral psychology and consumer research) explores the human dynamics of giving: why sentimental value outweighs price tags, how to navigate host etiquette, and how shared rituals strengthen relationships.`,
+    ],
+    bullets: [
+      'Recipient suitability profiles detailing who will appreciate an object and who may not.',
+      'Clear budget brackets (Under $25, Under $50, $50 to $100, and $100+) so givers never have to overspend to be thoughtful.',
+      'Candid buying considerations covering storage footprint, care requirements, and occasion fit.',
+    ],
+  },
+  {
+    id: 'editorial-and-shop-relationship',
+    heading: 'Editorial Recommendations & First-Party Merchandise',
+    paragraphs: [
+      'Science of Gifts combines two distinct experiences: our editorial publication on scienceofgifts.com and our first-party merchandise store at shop.scienceofgifts.com.',
+      'Within our gift guides, product profiles, and Gift Finder, most recommendations point to third-party makers and retailers (some of which may include affiliate links). Where a recommendation is a first-party item offered through the Science of Gifts Shop or a digital keepsake, its fulfillment classification is explicitly labeled so readers always know whether they are buying from an external merchant or directly from the publication.',
+    ],
+  },
+  {
+    id: 'how-the-gift-finder-works',
+    heading: 'How the Interactive Gift Finder Complements Our Guides',
+    paragraphs: [
+      'While our Gift Guides read like curated magazine chapters organized around a specific theme or occasion, the Interactive Gift Finder lets visitors search across the entire canonical catalog at once.',
+      'Visitors can describe who they are shopping for in plain language, combine recipient, hobby, and occasion filters with strict maximum price caps, or use the five-step guided concierge quiz. Saved gifts can be organized into multiple named browser lists with personal recipient notes.',
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="About Science of Gifts — Editorial Gift Publication & Discovery Platform"
+  description="Learn how Science of Gifts combines behavioral research, recipient suitability analysis, curated gift guides, and an interactive Gift Finder."
+  canonicalPath="/about/"
+  ogType="website"
+>
+  <PublicationInfoPageView
+    currentPath="/about/"
+    kicker="About the Publication"
+    title="About Science of Gifts"
+    subtitle="An editorial gift publication and discovery platform built around recipient psychology, everyday rituals, and unhurried curation."
+    lastUpdated="November 2026"
+    sections={sections}
+  />
+</BaseLayout>

@@ -415,6 +415,48 @@ export const SANITY_SCHEMA_TYPES: SanitySchemaDefinition[] = [
         validationRule: 'Rule.unique()',
       },
       {
+        name: 'featured',
+        title: 'Featured in Gift Guides Directory',
+        type: 'boolean',
+        description:
+          'When enabled, highlights this guide in the Featured Gift Guides section of /gift-guides/.',
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'recipients',
+        title: 'Primary Recipients Covered',
+        type: 'array',
+        of: [{ type: 'string' }],
+        options: {
+          list: ['partner', 'parent', 'friend', 'host', 'kids', 'coworker'],
+        },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'occasions',
+        title: 'Primary Occasions Covered',
+        type: 'array',
+        of: [{ type: 'string' }],
+        options: {
+          list: [
+            'birthday',
+            'housewarming',
+            'anniversary',
+            'thank-you',
+            'holidays',
+            'just-because',
+          ],
+        },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'interests',
+        title: 'Interest Tags Covered',
+        type: 'array',
+        of: [{ type: 'string' }],
+        validationRule: 'Rule.optional()',
+      },
+      {
         name: 'citations',
         title: 'Referenced Research Citations',
         type: 'array',
@@ -535,6 +577,64 @@ export const SANITY_SCHEMA_TYPES: SanitySchemaDefinition[] = [
         type: 'array',
         of: [{ type: 'reference', to: [{ type: 'article' }] }],
         validationRule: 'Rule.unique()',
+      },
+      {
+        name: 'featured',
+        title: 'Featured in Stories Directory',
+        type: 'boolean',
+        description:
+          'When enabled, highlights this story in the Featured Story lead slot of /articles/.',
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'topics',
+        title: 'Editorial Topic Taxonomy',
+        type: 'array',
+        of: [{ type: 'string' }],
+        options: {
+          list: [
+            'psychology-of-gifting',
+            'hosting-and-gatherings',
+            'everyday-rituals',
+            'thoughtful-living',
+            'craft-and-design',
+          ],
+        },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'recipients',
+        title: 'Related Recipient Archetypes',
+        type: 'array',
+        of: [{ type: 'string' }],
+        options: {
+          list: ['partner', 'parent', 'friend', 'host', 'kids', 'coworker'],
+        },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'occasions',
+        title: 'Related Occasions',
+        type: 'array',
+        of: [{ type: 'string' }],
+        options: {
+          list: [
+            'birthday',
+            'housewarming',
+            'anniversary',
+            'thank-you',
+            'holidays',
+            'just-because',
+          ],
+        },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'interests',
+        title: 'Related Interest Tags',
+        type: 'array',
+        of: [{ type: 'string' }],
+        validationRule: 'Rule.optional()',
       },
       {
         name: 'seo',
@@ -722,6 +822,178 @@ export const SANITY_SCHEMA_TYPES: SanitySchemaDefinition[] = [
   },
 ];
 
+export const SANITY_OBJECT_SCHEMA_TYPES: SanitySchemaDefinition[] = [
+  {
+    name: 'productImage',
+    title: 'Product Master Image (2400×2400 Square Standard)',
+    type: 'object',
+    description:
+      'Standardized 1:1 square master product photograph (2400×2400px recommended) with Sanity hotspot focal-point cropping, optional fitMode ("cover" or "contain"), and optional manual landscape/portrait override URLs.',
+    fields: [
+      {
+        name: 'asset',
+        title: 'Master Square Image Asset (2400×2400px 1:1)',
+        type: 'image',
+        options: { hotspot: true },
+        validationRule: 'Rule.required()',
+      },
+      {
+        name: 'alt',
+        title: 'Accessible Alt Text',
+        type: 'string',
+        description:
+          'Descriptive alt text required for screen readers and SEO.',
+        validationRule: 'Rule.required().min(10).max(220)',
+      },
+      {
+        name: 'caption',
+        title: 'Editorial Caption (Optional)',
+        type: 'string',
+        validationRule: 'Rule.optional().max(200)',
+      },
+      {
+        name: 'fallbackColor',
+        title: 'Warm Surface Fallback Color (Hex)',
+        type: 'string',
+        description:
+          'Used as background placeholder while loading or when fitMode is "contain" (defaults to #F6F4EF).',
+        validationRule: 'Rule.optional().regex(/^#[0-9A-Fa-f]{6}$/)',
+      },
+      {
+        name: 'fitMode',
+        title: 'Image Fit Mode',
+        type: 'string',
+        description:
+          'Defaults to "cover" (fills frame using hotspot focal point). Choose "contain" for tall bottles, lamps, or irregular objects that must not be cropped.',
+        options: { list: ['cover', 'contain'] },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'landscapeOverrideUrl',
+        title: 'Landscape Override URL (Optional 4:3 / 16:10 Composition)',
+        type: 'url',
+        description:
+          'Optional manually composed landscape photograph used for 4:3 product page heroes and featured guide cards instead of auto-cropping the 1:1 master.',
+        validationRule: 'Rule.optional().uri({ scheme: ["https"] })',
+      },
+      {
+        name: 'portraitOverrideUrl',
+        title: 'Portrait Override URL (Optional 4:5 Composition)',
+        type: 'url',
+        description:
+          'Optional manually composed portrait photograph used for 4:5 Gift Finder cards and Quick View modals instead of auto-cropping the 1:1 master.',
+        validationRule: 'Rule.optional().uri({ scheme: ["https"] })',
+      },
+      {
+        name: 'isSampleAsset',
+        title: 'Sample / Preview Asset Flag',
+        type: 'boolean',
+        description:
+          'Set to true only for temporary development sample photographs.',
+        validationRule: 'Rule.optional()',
+      },
+    ],
+  },
+  {
+    name: 'seoMetadata',
+    title: 'SEO, Canonical URL, Social Sharing & Indexing Controls',
+    type: 'object',
+    description:
+      'Reusable SEO configuration object shared across Gift Guides, Editorial Articles, Product Profiles, Category Archives, and Editorial Hubs. Decouples the search <title> from the visible on-page H1 and uses non-blocking length warnings rather than hard character caps.',
+    fields: [
+      {
+        name: 'seoTitle',
+        title: 'SEO Title (HTML <title> Tag)',
+        type: 'string',
+        description:
+          'Custom search engine title tag. Leave blank to auto-generate a clean default from the visible on-page H1 title and site name. Changing this never modifies the visible H1.',
+        validationRule:
+          'Rule.optional().max(70).warning("Recommended 35–65 characters for optimal search display; longer titles may be truncated in search results.")',
+      },
+      {
+        name: 'metaDescription',
+        title: 'Meta Description',
+        type: 'text',
+        description:
+          'Custom search result snippet description. Leave blank to derive a clean whole-sentence summary from the subtitle or editorial intro.',
+        validationRule:
+          'Rule.optional().max(165).warning("Recommended 110–160 characters for search snippets; longer descriptions may be truncated.")',
+      },
+      {
+        name: 'canonicalPath',
+        title: 'Canonical Path or URL Override',
+        type: 'string',
+        description:
+          'Normalized path starting and ending with "/" (e.g. "/gift-guides/thoughtful-host-and-gathering-gifts-under-100/"). Cross-domain URLs (such as shop.scienceofgifts.com or external merchants) are rejected automatically.',
+        validationRule: 'Rule.optional().regex(/^\\/.*\\/$|^\\/$/)',
+      },
+      {
+        name: 'ogTitle',
+        title: 'Social Sharing Title (og:title / twitter:title)',
+        type: 'string',
+        description:
+          'Optional social card headline override. Defaults to seoTitle when left blank.',
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'ogDescription',
+        title: 'Social Sharing Description (og:description / twitter:description)',
+        type: 'text',
+        description:
+          'Optional social card description override. Defaults to metaDescription when left blank.',
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'ogImage',
+        title: 'Social Sharing Image URL (og:image / twitter:image)',
+        type: 'url',
+        description:
+          'Optional social preview image override. Defaults to the guide/article hero image or primary product image.',
+        validationRule: 'Rule.optional().uri({ scheme: ["https"] })',
+      },
+      {
+        name: 'ogType',
+        title: 'OpenGraph Type',
+        type: 'string',
+        options: { list: ['website', 'article', 'product'] },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'schemaType',
+        title: 'Primary Structured Data Schema Type',
+        type: 'string',
+        options: {
+          list: [
+            'WebSite',
+            'Article',
+            'ItemList',
+            'Product',
+            'CollectionPage',
+          ],
+        },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'indexing',
+        title: 'Search Engine Indexing Directive',
+        type: 'string',
+        description:
+          'Defaults to "index,follow" for published pages. Choose "noindex,follow" to exclude a specific page from search indexing and XML sitemaps.',
+        options: { list: ['index,follow', 'noindex,follow'] },
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'noindex',
+        title: 'Exclude From Search Indexing (noindex)',
+        type: 'boolean',
+        description:
+          'When enabled, renders <meta name="robots" content="noindex, follow"> and excludes the page from /sitemap.xml.',
+        validationRule: 'Rule.optional()',
+      },
+    ],
+  },
+];
+
 /**
  * Reference GROQ projections demonstrating how Gift Guides and Articles join
  * canonical `product` and `researchCitation` documents without duplicating records.
@@ -760,7 +1032,19 @@ export const GROQ_QUERIES = {
         inStock,
         whyToGiveIt,
         detailsAndCare,
-        images[]{ "id": _key, "url": asset->url, alt, caption, fallbackColor }
+        images[]{
+          "id": _key,
+          "url": asset->url,
+          alt,
+          caption,
+          fallbackColor,
+          fitMode,
+          landscapeOverrideUrl,
+          portraitOverrideUrl,
+          isSampleAsset,
+          "focalPoint": select(defined(hotspot) => { "x": hotspot.x, "y": hotspot.y }, { "x": 0.5, "y": 0.5 }),
+          crop
+        }
       }
     },
     sections[]{
@@ -789,7 +1073,19 @@ export const GROQ_QUERIES = {
           inStock,
           whyToGiveIt,
           detailsAndCare,
-          images[]{ "id": _key, "url": asset->url, alt, caption, fallbackColor }
+          images[]{
+            "id": _key,
+            "url": asset->url,
+            alt,
+            caption,
+            fallbackColor,
+            fitMode,
+            landscapeOverrideUrl,
+            portraitOverrideUrl,
+            isSampleAsset,
+            "focalPoint": select(defined(hotspot) => { "x": hotspot.x, "y": hotspot.y }, { "x": 0.5, "y": 0.5 }),
+            crop
+          }
         }
       }
     },
@@ -839,7 +1135,18 @@ export const GROQ_QUERIES = {
           currency,
           purchaseUrl,
           whyToGiveIt,
-          images[]{ "id": _key, "url": asset->url, alt, fallbackColor }
+          images[]{
+            "id": _key,
+            "url": asset->url,
+            alt,
+            fallbackColor,
+            fitMode,
+            landscapeOverrideUrl,
+            portraitOverrideUrl,
+            isSampleAsset,
+            "focalPoint": select(defined(hotspot) => { "x": hotspot.x, "y": hotspot.y }, { "x": 0.5, "y": 0.5 }),
+            crop
+          }
         }
       }
     },

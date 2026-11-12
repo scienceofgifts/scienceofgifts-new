@@ -100,16 +100,16 @@ export const GiftComparison: React.FC<GiftComparisonProps> = ({
     >
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
         <div>
-          <p className="text-xs font-semibold text-[#28537D]">
+          <p className="theme-kicker text-xs font-semibold text-[#28537D]">
             Side-by-Side Comparison
           </p>
           <h2
             id="gift-comparison-heading"
-            className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+            className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
           >
             {title}
           </h2>
-          <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-[#636A6F] sm:text-sm">
+          <p className="theme-caption mt-1.5 max-w-2xl text-xs leading-relaxed text-[#636A6F] sm:text-sm">
             {subtitle}
           </p>
         </div>
@@ -132,7 +132,7 @@ export const GiftComparison: React.FC<GiftComparisonProps> = ({
               key={tab.id}
               type="button"
               onClick={() => setPriceFilter(tab.id)}
-              className={`rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors tabular-nums ${
+              className={`theme-button-text rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors tabular-nums ${
                 priceFilter === tab.id
                   ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
                   : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D]'
@@ -181,11 +181,11 @@ export const GiftComparison: React.FC<GiftComparisonProps> = ({
                   <td className="py-4 pl-5 pr-3 align-top">
                     <a
                       href={`/products/${product.slug}/`}
-                      className="font-serif text-sm font-semibold text-[#24282B] hover:text-[#28537D]"
+                      className="theme-product-title font-serif text-sm font-semibold text-[#24282B] hover:text-[#28537D]"
                     >
                       {product.title}
                     </a>
-                    <div className="mt-0.5 text-[11px] text-[#636A6F]">
+                    <div className="theme-metadata mt-0.5 text-[11px] text-[#636A6F]">
                       {product.vendor}
                     </div>
                   </td>
@@ -252,7 +252,7 @@ export const GiftComparison: React.FC<GiftComparisonProps> = ({
             >
               <div className="flex items-start justify-between gap-2 border-b border-[#E3E1DB] pb-2.5">
                 <div>
-                  <h3 className="font-serif text-base font-semibold text-[#24282B]">
+                  <h3 className="theme-product-title font-serif text-base font-semibold text-[#24282B]">
                     <a
                       href={`/products/${product.slug}/`}
                       className="hover:text-[#28537D]"
@@ -260,7 +260,7 @@ export const GiftComparison: React.FC<GiftComparisonProps> = ({
                       {product.title}
                     </a>
                   </h3>
-                  <p className="text-[11px] text-[#636A6F]">
+                  <p className="theme-metadata text-[11px] text-[#636A6F]">
                     {product.vendor} · {styleLabel}
                   </p>
                 </div>

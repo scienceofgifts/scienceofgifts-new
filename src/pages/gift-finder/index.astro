@@ -1,17 +1,34 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { contentRepository } from '../../cms/contentRepository';
+import {
+  SITE_ORIGIN,
+  evaluateProductCommerceReadiness,
+  resolvePageSeoMetadata,
+} from '../../utils/seoAndValidation';
 import { GiftFinderInteractiveIsland } from '../../components/islands/AstroIslands';
 
 const products = contentRepository.getAllProducts();
+const indexableProducts = products.filter(
+  (product) => evaluateProductCommerceReadiness(product).canIndexProductPage
+);
 const guides = contentRepository.getAllGiftGuides();
 const articles = contentRepository.getAllArticles();
+const dirSeoEntry = contentRepository.getDirectorySeoEntry('/gift-finder/');
 
-const pageTitle =
-  'Interactive Gift Finder & Guided Concierge | Science of Gifts';
-const pageDescription =
-  'Search thoughtful, editor-tested gifts in plain language, filter by recipient, occasion, interest, and strict budget caps, or take our 5-step guided gift quiz.';
-const canonicalPath = '/gift-finder/';
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle:
+    dirSeoEntry?.title ?? 'Find a Thoughtful Gift They’ll Actually Use',
+  subtitleOrSummary:
+    dirSeoEntry?.subtitle ??
+    'Search thoughtful, editor-tested gifts in plain language, filter by recipient, occasion, interest, and strict budget caps, or take our 5-step guided gift quiz.',
+  seo: dirSeoEntry?.seo,
+  defaultCanonicalPath: '/gift-finder/',
+  defaultOgType: 'website',
+  defaultOgImage: guides[0]?.heroImageUrl,
+  contentType: 'directory',
+  status: dirSeoEntry?.status,
+});
 
 const finderJsonLd = {
   '@context': 'https://schema.org',
@@ -23,30 +40,30 @@ const finderJsonLd = {
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://scienceofgifts.com/',
+          item: `${SITE_ORIGIN}/`,
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Gift Finder',
-          item: 'https://scienceofgifts.com/gift-finder/',
+          item: resolvedSeo.canonicalUrl,
         },
       ],
     },
     {
       '@type': 'CollectionPage',
-      '@id': 'https://scienceofgifts.com/gift-finder/',
-      name: pageTitle,
-      description: pageDescription,
-      url: 'https://scienceofgifts.com/gift-finder/',
+      '@id': resolvedSeo.canonicalUrl,
+      name: resolvedSeo.seoTitle,
+      description: resolvedSeo.metaDescription,
+      url: resolvedSeo.canonicalUrl,
       mainEntity: {
         '@type': 'ItemList',
         name: 'Science of Gifts Canonical Product Collection',
-        numberOfItems: products.length,
-        itemListElement: products.map((product, index) => ({
+        numberOfItems: indexableProducts.length,
+        itemListElement: indexableProducts.map((product, index) => ({
           '@type': 'ListItem',
           position: index + 1,
-          url: `https://scienceofgifts.com/products/${product.slug}/`,
+          url: `${SITE_ORIGIN}/products/${product.slug}/`,
           name: product.title,
         })),
       },
@@ -56,11 +73,16 @@ const finderJsonLd = {
 ---
 
 <BaseLayout
-  title={pageTitle}
-  description={pageDescription}
-  canonicalPath={canonicalPath}
-  ogType="website"
-  ogImage={guides[0]?.heroImageUrl}
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
   jsonLd={finderJsonLd}
   activeSection="finder"
 >
@@ -79,13 +101,13 @@ const finderJsonLd = {
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-end">
           <div class="lg:col-span-8 space-y-2.5">
-            <div class="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+            <div class="theme-kicker text-xs font-semibold uppercase tracking-widest text-[#28537D]">
               Science of Gifts · Discovery & Recommendation Engine
             </div>
-            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-tight text-balance">
+            <h1 class="theme-page-title text-3xl sm:text-4xl lg:text-5xl font-serif font-semibold text-[#222426] leading-tight text-balance">
               Find a Thoughtful Gift They’ll Actually Use
             </h1>
-            <p class="text-base md:text-lg text-[#292B2D] leading-relaxed max-w-2xl">
+            <p class="theme-intro-text text-base md:text-lg text-[#292B2D] leading-relaxed max-w-2xl">
               Describe who you are shopping for in your own words, combine
               verified price caps with recipient and hobby filters, or take our
               five-question guided quiz.
@@ -93,10 +115,10 @@ const finderJsonLd = {
           </div>
 
           <div class="lg:col-span-4 p-4 rounded-2xl bg-[#F3ECE1] text-xs text-[#292B2D] space-y-1">
-            <div class="font-semibold text-[#222426]">
+            <div class="theme-info-heading font-semibold text-[#222426]">
               How Our Recommendations Work
             </div>
-            <p class="leading-relaxed">
+            <p class="theme-caption leading-relaxed">
               Every recommendation comes directly from our editor-tested
               canonical catalog ({products.length} verified gifts). Strict
               budget filters automatically exclude over-budget items.
@@ -117,12 +139,26 @@ const finderJsonLd = {
       <section class="pt-10 border-t border-[#DFDBD3] space-y-6">
         <div class="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <div class="text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+            <div class="theme-kicker text-xs font-semibold uppercase tracking-widest text-[#28537D]">
               Prefer Editorial Reading?
             </div>
-            <h2 class="text-2xl font-serif font-semibold text-[#222426]">
+            <h2 class="theme-section-heading text-2xl font-serif font-semibold text-[#222426]">
               Explore Curated Gift Guides & Giving Psychology
             </h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-4 text-xs font-semibold">
+            <a
+              href="/gift-guides/"
+              class="theme-link text-[#28537D] hover:text-[#1B3D5F] hover:underline"
+            >
+              All Gift Guides →
+            </a>
+            <a
+              href="/articles/"
+              class="theme-link text-[#28537D] hover:text-[#1B3D5F] hover:underline"
+            >
+              All Stories →
+            </a>
           </div>
         </div>
 
@@ -134,17 +170,17 @@ const finderJsonLd = {
                 class="p-6 rounded-3xl bg-[#F3ECE1] hover:bg-[#E8F8F0] transition-colors flex flex-col justify-between space-y-3"
               >
                 <div class="space-y-1.5">
-                  <div class="text-xs font-semibold uppercase tracking-wider text-[#28537D]">
+                  <div class="theme-kicker text-xs font-semibold uppercase tracking-wider text-[#28537D]">
                     Gift Guide · {guide.category}
                   </div>
-                  <h3 class="text-xl font-serif font-semibold text-[#222426]">
+                  <h3 class="theme-subsection-heading text-xl font-serif font-semibold text-[#222426]">
                     {guide.title}
                   </h3>
-                  <p class="text-xs text-[#292B2D] leading-relaxed line-clamp-2">
+                  <p class="theme-body-sm text-xs text-[#292B2D] leading-relaxed line-clamp-2">
                     {guide.subtitle}
                   </p>
                 </div>
-                <div class="text-xs font-semibold text-[#28537D]">
+                <div class="theme-link text-xs font-semibold text-[#28537D]">
                   Read full guide →
                 </div>
               </a>

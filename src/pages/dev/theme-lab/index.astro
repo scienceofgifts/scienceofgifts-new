@@ -1,0 +1,13 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { ThemeLabExperience } from '../../../components/ThemeLabExperience';
+---
+
+<BaseLayout
+  title="Theme & Typography Lab (Development Only) — Science of Gifts"
+  description="Development-only interactive visual design and typography laboratory for Science of Gifts."
+  canonicalPath="/dev/theme-lab/"
+  noindex={true}
+>
+  <ThemeLabExperience client:load />
+</BaseLayout>

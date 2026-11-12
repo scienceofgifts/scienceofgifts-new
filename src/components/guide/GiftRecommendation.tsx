@@ -5,6 +5,7 @@ import {
   Product,
 } from '../../types/content';
 import { ArrowUpRight, Award, Bookmark } from 'lucide-react';
+import { PhotoImage } from '../ObjectIllustrations';
 
 export interface GiftRecommendationProps {
   recommendation: GuideRecommendation;
@@ -92,12 +93,12 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                 href={`/products/${product.slug}/`}
                 className="block aspect-[4/3] w-full overflow-hidden rounded-xl border border-[#E3E1DB] bg-[#F6F4EF]"
               >
-                <img
-                  src={primaryImage.url}
-                  alt={primaryImage.alt}
+                <PhotoImage
+                  image={primaryImage}
+                  preset="feature-landscape"
+                  aspectRatio="4:3"
                   width={680}
                   height={510}
-                  loading="lazy"
                   className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
                 />
               </a>
@@ -115,11 +116,11 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
 
           {/* Editorial Content Column */}
           <div className="lg:col-span-7">
-            <p className="text-xs font-medium text-[#636A6F]">
+            <p className="theme-metadata text-xs font-medium text-[#636A6F]">
               {product.vendor} · {product.productType}
             </p>
 
-            <h3 className="mt-1 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-[1.65rem]">
+            <h3 className="theme-product-title-featured mt-1 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-[1.65rem]">
               <a
                 href={`/products/${product.slug}/`}
                 className="transition-colors hover:text-[#28537D]"
@@ -134,12 +135,12 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               </p>
             )}
 
-            <p className="mt-3.5 text-sm leading-[1.8] text-[#24282B] sm:text-base">
+            <p className="theme-body-text mt-3.5 text-sm leading-[1.8] text-[#24282B] sm:text-base">
               {mainReview}
             </p>
 
             {whyItWorks && whyItWorks !== mainReview && (
-              <p className="mt-3 text-sm leading-[1.75] text-[#24282B]">
+              <p className="theme-body-sm mt-3 text-sm leading-[1.75] text-[#24282B]">
                 <strong className="font-semibold text-[#1B3D5F]">
                   Why it works as a gift:{' '}
                 </strong>
@@ -151,8 +152,8 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             <dl className="mt-5 grid grid-cols-1 gap-4 border-t border-[#E3E1DB] pt-4 text-xs sm:grid-cols-2">
               {idealFor && (
                 <div>
-                  <dt className="font-semibold text-[#1B3D5F]">Best for</dt>
-                  <dd className="mt-1 leading-relaxed text-[#24282B]">
+                  <dt className="theme-info-label font-semibold text-[#1B3D5F]">Best for</dt>
+                  <dd className="theme-body-sm mt-1 leading-relaxed text-[#24282B]">
                     {idealFor}
                   </dd>
                 </div>
@@ -160,10 +161,10 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
 
               {considerations && (
                 <div>
-                  <dt className="font-semibold text-[#636A6F]">
+                  <dt className="theme-info-label font-semibold text-[#636A6F]">
                     What to consider
                   </dt>
-                  <dd className="mt-1 leading-relaxed text-[#24282B]">
+                  <dd className="theme-body-sm mt-1 leading-relaxed text-[#24282B]">
                     {considerations}
                   </dd>
                 </div>
@@ -171,7 +172,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             </dl>
 
             {recommendation.betterAlternativeNote && (
-              <p className="mt-3.5 border-t border-[#E3E1DB] pt-3 text-xs italic text-[#636A6F]">
+              <p className="theme-caption mt-3.5 border-t border-[#E3E1DB] pt-3 text-xs italic text-[#636A6F]">
                 {recommendation.betterAlternativeNote}
               </p>
             )}
@@ -181,7 +182,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               <div className="flex flex-wrap items-center gap-2.5">
                 <a
                   href={`/products/${product.slug}/`}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1B3D5F] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
+                  className="theme-button-text inline-flex items-center gap-1.5 rounded-lg bg-[#1B3D5F] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
                 >
                   Gift Profile · ${product.price}
                   <ArrowUpRight className="h-3.5 w-3.5" />
@@ -191,7 +192,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                   <button
                     type="button"
                     onClick={() => onSelectProduct(product)}
-                    className="rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3.5 py-2 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+                    className="theme-button-text rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3.5 py-2 text-xs font-medium text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
                   >
                     Quick View
                   </button>
@@ -206,7 +207,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                     ? `Remove ${product.title} from saved gifts`
                     : `Save ${product.title}`
                 }
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${
+                className={`theme-button-text inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${
                   isSaved
                     ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
                     : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]'
@@ -233,7 +234,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
         className="scroll-mt-28 overflow-hidden rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-6 sm:p-8"
       >
         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E3E1DB] pb-3.5">
-          <div className="text-xs font-semibold text-[#1B3D5F]">
+          <div className="theme-kicker text-xs font-semibold text-[#1B3D5F]">
             <span className="text-[#636A6F] tabular-nums">
               No. {rankNumber}
             </span>{' '}
@@ -246,10 +247,10 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
 
         <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-7">
-            <p className="text-xs font-medium text-[#636A6F]">
+            <p className="theme-metadata text-xs font-medium text-[#636A6F]">
               {product.vendor} · {product.productType}
             </p>
-            <h3 className="mt-1 font-serif text-2xl font-semibold text-[#24282B]">
+            <h3 className="theme-product-title-featured mt-1 font-serif text-2xl font-semibold text-[#24282B]">
               <a
                 href={`/products/${product.slug}/`}
                 className="transition-colors hover:text-[#28537D]"
@@ -263,12 +264,12 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               </p>
             )}
 
-            <p className="mt-3.5 text-sm leading-[1.8] text-[#24282B] sm:text-base">
+            <p className="theme-body-text mt-3.5 text-sm leading-[1.8] text-[#24282B] sm:text-base">
               {mainReview}
             </p>
 
             {whyItWorks && whyItWorks !== mainReview && (
-              <p className="mt-3 text-sm leading-relaxed text-[#24282B]">
+              <p className="theme-body-sm mt-3 text-sm leading-relaxed text-[#24282B]">
                 <strong className="font-semibold text-[#1B3D5F]">
                   Why it stands out:{' '}
                 </strong>
@@ -279,7 +280,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             <div className="mt-4 space-y-2 border-t border-[#E3E1DB] pt-3.5 text-xs text-[#24282B]">
               {idealFor && (
                 <div>
-                  <strong className="font-semibold text-[#1B3D5F]">
+                  <strong className="theme-info-label font-semibold text-[#1B3D5F]">
                     Ideal recipient:{' '}
                   </strong>
                   {idealFor}
@@ -287,14 +288,14 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               )}
               {considerations && (
                 <div>
-                  <strong className="font-semibold text-[#636A6F]">
+                  <strong className="theme-info-label font-semibold text-[#636A6F]">
                     Practical consideration:{' '}
                   </strong>
                   {considerations}
                 </div>
               )}
               {recommendation.betterAlternativeNote && (
-                <div className="italic text-[#636A6F]">
+                <div className="theme-caption italic text-[#636A6F]">
                   {recommendation.betterAlternativeNote}
                 </div>
               )}
@@ -303,7 +304,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             <div className="mt-5 flex flex-wrap items-center gap-2.5">
               <a
                 href={`/products/${product.slug}/`}
-                className="inline-flex items-center gap-1.5 rounded-lg bg-[#1B3D5F] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
+                className="theme-button-text inline-flex items-center gap-1.5 rounded-lg bg-[#1B3D5F] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
               >
                 Gift Profile · ${product.price}
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -312,7 +313,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                 <button
                   type="button"
                   onClick={() => onSelectProduct(product)}
-                  className="rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3.5 py-2 text-xs font-medium text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]"
+                  className="theme-button-text rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-3.5 py-2 text-xs font-medium text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]"
                 >
                   Quick View
                 </button>
@@ -320,7 +321,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               <button
                 type="button"
                 onClick={() => onToggleSaveProduct(product.id)}
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${
+                className={`theme-button-text inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-2 text-xs font-semibold transition-colors ${
                   isSaved
                     ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
                     : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]'
@@ -340,24 +341,24 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                 href={`/products/${product.slug}/`}
                 className="block aspect-[4/3] w-full overflow-hidden rounded-xl border border-[#E3E1DB] bg-[#F6F4EF]"
               >
-                <img
-                  src={primaryImage.url}
-                  alt={primaryImage.alt}
+                <PhotoImage
+                  image={primaryImage}
+                  preset="feature-landscape"
+                  aspectRatio="4:3"
                   width={600}
                   height={450}
-                  loading="lazy"
                   className="h-full w-full object-cover"
                 />
               </a>
             )}
             {secondaryImage && (
-              <div className="flex items-center gap-3 border-t border-[#E3E1DB] pt-2.5 text-xs text-[#636A6F]">
-                <img
-                  src={secondaryImage.url}
-                  alt={secondaryImage.alt}
+              <div className="theme-caption flex items-center gap-3 border-t border-[#E3E1DB] pt-2.5 text-xs text-[#636A6F]">
+                <PhotoImage
+                  image={secondaryImage}
+                  preset="thumbnail-xs"
+                  aspectRatio="1:1"
                   width={48}
                   height={48}
-                  loading="lazy"
                   className="h-12 w-12 shrink-0 rounded-lg object-cover"
                 />
                 <span className="line-clamp-2 leading-snug">
@@ -386,18 +387,18 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                 href={`/products/${product.slug}/`}
                 className="h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-[#E3E1DB] bg-[#F6F4EF]"
               >
-                <img
-                  src={primaryImage.url}
-                  alt={primaryImage.alt}
+                <PhotoImage
+                  image={primaryImage}
+                  preset="thumbnail-sm"
+                  aspectRatio="1:1"
                   width={120}
                   height={120}
-                  loading="lazy"
                   className="h-full w-full object-cover"
                 />
               </a>
             )}
             <div className="min-w-0 flex-1">
-              <div className="text-xs font-semibold text-[#28537D]">
+              <div className="theme-kicker text-xs font-semibold text-[#28537D]">
                 <span className="text-[#636A6F] tabular-nums">
                   No. {rankNumber}
                 </span>
@@ -405,7 +406,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                   ? ` · ${recommendation.awardLabel}`
                   : ''}
               </div>
-              <h3 className="mt-0.5 font-serif text-lg font-semibold text-[#24282B]">
+              <h3 className="theme-product-title mt-0.5 font-serif text-lg font-semibold text-[#24282B]">
                 <a
                   href={`/products/${product.slug}/`}
                   className="hover:text-[#28537D]"
@@ -413,14 +414,14 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
                   {product.title}
                 </a>
               </h3>
-              <p className="mt-1 text-xs leading-relaxed text-[#24282B] sm:text-sm">
+              <p className="theme-body-sm mt-1 text-xs leading-relaxed text-[#24282B] sm:text-sm">
                 {mainReview}
               </p>
               {(idealFor || considerations) && (
-                <p className="mt-2 text-xs text-[#636A6F]">
+                <p className="theme-caption mt-2 text-xs text-[#636A6F]">
                   {idealFor && (
                     <span>
-                      <strong className="font-semibold text-[#24282B]">
+                      <strong className="theme-info-label font-semibold text-[#24282B]">
                         Best for:
                       </strong>{' '}
                       {idealFor}
@@ -438,12 +439,12 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               <div className="text-base font-semibold text-[#24282B] tabular-nums">
                 ${product.price} {product.currency}
               </div>
-              <div className="text-xs text-[#636A6F]">{product.vendor}</div>
+              <div className="theme-metadata text-xs text-[#636A6F]">{product.vendor}</div>
             </div>
             <div className="flex items-center gap-2">
               <a
                 href={`/products/${product.slug}/`}
-                className="inline-flex items-center gap-1 rounded-lg bg-[#1B3D5F] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#28537D]"
+                className="theme-button-text inline-flex items-center gap-1 rounded-lg bg-[#1B3D5F] px-3.5 py-2 text-xs font-semibold text-white hover:bg-[#28537D]"
               >
                 Gift Profile
                 <ArrowUpRight className="h-3.5 w-3.5" />
@@ -484,14 +485,14 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
         {primaryImage && (
           <a
             href={`/products/${product.slug}/`}
-            className="block aspect-[16/10] w-full overflow-hidden border-b border-[#E3E1DB] bg-[#F6F4EF]"
+            className="block aspect-[4/3] w-full overflow-hidden border-b border-[#E3E1DB] bg-[#F6F4EF]"
           >
-            <img
-              src={primaryImage.url}
-              alt={primaryImage.alt}
+            <PhotoImage
+              image={primaryImage}
+              preset="card-landscape"
+              aspectRatio="4:3"
               width={560}
-              height={350}
-              loading="lazy"
+              height={420}
               className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
             />
           </a>
@@ -499,7 +500,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
 
         <div className="p-5 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-            <span className="font-semibold text-[#28537D]">
+            <span className="theme-kicker font-semibold text-[#28537D]">
               <span className="text-[#636A6F] tabular-nums">
                 No. {rankNumber}
               </span>
@@ -512,11 +513,11 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             </span>
           </div>
 
-          <p className="mt-1 text-xs text-[#636A6F]">
+          <p className="theme-metadata mt-1 text-xs text-[#636A6F]">
             {product.vendor} · {product.productType}
           </p>
 
-          <h3 className="mt-1 font-serif text-xl font-semibold leading-snug text-[#24282B]">
+          <h3 className="theme-product-title mt-1 font-serif text-xl font-semibold leading-snug text-[#24282B]">
             <a
               href={`/products/${product.slug}/`}
               className="transition-colors hover:text-[#28537D]"
@@ -531,7 +532,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             </p>
           )}
 
-          <p className="mt-3 text-sm leading-[1.75] text-[#24282B]">
+          <p className="theme-body-sm mt-3 text-sm leading-[1.75] text-[#24282B]">
             {mainReview}
           </p>
 
@@ -539,7 +540,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
           <dl className="mt-4 space-y-2 border-t border-[#E3E1DB] pt-3.5 text-xs">
             {idealFor && (
               <div className="flex items-start gap-2">
-                <dt className="shrink-0 font-semibold text-[#1B3D5F]">
+                <dt className="theme-info-label shrink-0 font-semibold text-[#1B3D5F]">
                   Best for:
                 </dt>
                 <dd className="text-[#24282B]">{idealFor}</dd>
@@ -547,7 +548,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             )}
             {considerations && (
               <div className="flex items-start gap-2">
-                <dt className="shrink-0 font-semibold text-[#636A6F]">
+                <dt className="theme-info-label shrink-0 font-semibold text-[#636A6F]">
                   Keep in mind:
                 </dt>
                 <dd className="text-[#24282B]">{considerations}</dd>
@@ -562,7 +563,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
         <div className="flex items-center gap-2">
           <a
             href={`/products/${product.slug}/`}
-            className="inline-flex items-center gap-1 rounded-lg bg-[#1B3D5F] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
+            className="theme-button-text inline-flex items-center gap-1 rounded-lg bg-[#1B3D5F] px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#28537D] tabular-nums"
           >
             Gift Profile · ${product.price}
             <ArrowUpRight className="h-3.5 w-3.5" />
@@ -571,7 +572,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
             <button
               type="button"
               onClick={() => onSelectProduct(product)}
-              className="rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3 py-2 text-xs font-medium text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]"
+              className="theme-button-text rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3 py-2 text-xs font-medium text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]"
             >
               Quick View
             </button>
@@ -586,7 +587,7 @@ export const GiftRecommendation: React.FC<GiftRecommendationProps> = ({
               ? `Remove ${product.title} from saved gifts`
               : `Save ${product.title}`
           }
-          className={`inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
+          className={`theme-button-text inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${
             isSaved
               ? 'border-[#1B3D5F] bg-[#1B3D5F] text-white'
               : 'border-[#E3E1DB] bg-[#FFFFFF] text-[#636A6F] hover:border-[#28537D] hover:text-[#28537D]'

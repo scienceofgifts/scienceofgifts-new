@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   Heart,
@@ -7,7 +7,11 @@ import {
   RotateCcw,
   Gift,
   ExternalLink,
+  Menu,
+  ShoppingBag,
+  X,
 } from 'lucide-react';
+import { SHOP_EXTERNAL_URL } from '../../config/navigationConfig';
 import {
   Article,
   GiftGuide,
@@ -86,9 +90,9 @@ export const HeaderSavedButtonIsland: React.FC<{
       <button
         type="button"
         onClick={dispatchOpenSavedDrawer}
-        className="whitespace-nowrap shrink-0 hover:underline"
+        className="theme-nav-link whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
       >
-        Saved ({savedProductIds.length})
+        Saved Gifts ({savedProductIds.length})
       </button>
     );
   }
@@ -97,9 +101,162 @@ export const HeaderSavedButtonIsland: React.FC<{
     <button
       type="button"
       onClick={dispatchOpenSavedDrawer}
-      className="hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
+      className="theme-nav-link text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
     >
-      Saved List ({savedProductIds.length})
+      Saved Gifts ({savedProductIds.length})
+    </button>
+  );
+};
+
+export const MobileNavigationIsland: React.FC<{
+  activeSection?: 'home' | 'guides' | 'articles' | 'products' | 'finder';
+}> = ({ activeSection = 'home' }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { savedProductIds } = useSavedGiftsState();
+  const toggleBtnRef = useRef<HTMLButtonElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+        toggleBtnRef.current?.focus();
+      }
+    };
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className="md:hidden">
+      <div className="flex items-center gap-2">
+        <button
+          ref={toggleBtnRef}
+          type="button"
+          onClick={() => setIsOpen((prev) => !prev)}
+          aria-expanded={isOpen}
+          aria-controls="mobile-primary-navigation-panel"
+          aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3 py-2 text-xs font-semibold text-[#24282B] hover:border-[#28537D] hover:text-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+        >
+          {isOpen ? (
+            <X className="h-4 w-4" aria-hidden="true" />
+          ) : (
+            <Menu className="h-4 w-4" aria-hidden="true" />
+          )}
+          <span>Menu</span>
+        </button>
+      </div>
+
+      <nav
+        id="mobile-primary-navigation-panel"
+        aria-label="Mobile Primary Navigation"
+        className={`${
+          isOpen ? 'block' : 'hidden'
+        } absolute left-0 right-0 top-full border-b border-[#E3E1DB] bg-[#FAF9F6] px-6 py-5 shadow-lg`}
+      >
+        <ul className="space-y-3">
+          <li>
+            <a
+              href="/gift-guides/"
+              aria-current={activeSection === 'guides' ? 'page' : undefined}
+              onClick={() => setIsOpen(false)}
+              className={`theme-nav-link block rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'guides'
+                  ? 'theme-nav-link-active bg-[#E5F3EC] font-semibold text-[#1B3D5F]'
+                  : 'text-[#24282B] hover:bg-[#F6F4EF]'
+              }`}
+            >
+              Gift Guides
+            </a>
+          </li>
+          <li>
+            <a
+              href="/articles/"
+              aria-current={activeSection === 'articles' ? 'page' : undefined}
+              onClick={() => setIsOpen(false)}
+              className={`theme-nav-link block rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'articles'
+                  ? 'theme-nav-link-active bg-[#E5F3EC] font-semibold text-[#1B3D5F]'
+                  : 'text-[#24282B] hover:bg-[#F6F4EF]'
+              }`}
+            >
+              Stories
+            </a>
+          </li>
+          <li>
+            <a
+              href={SHOP_EXTERNAL_URL}
+              onClick={() => setIsOpen(false)}
+              className="theme-nav-link flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#24282B] transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+            >
+              <ShoppingBag
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+              />
+              <span>Shop</span>
+            </a>
+          </li>
+          <li>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                dispatchOpenSavedDrawer();
+              }}
+              className="theme-nav-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-[#24282B] transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+            >
+              <span>Saved Gifts</span>
+              <span className="rounded-full bg-[#E5F3EC] px-2.5 py-0.5 text-xs font-semibold text-[#1B3D5F] tabular-nums">
+                {savedProductIds.length}
+              </span>
+            </button>
+          </li>
+          <li className="pt-2 border-t border-[#E3E1DB]">
+            <a
+              href="/gift-finder/"
+              aria-current={activeSection === 'finder' ? 'page' : undefined}
+              onClick={() => setIsOpen(false)}
+              className="theme-btn-primary theme-button-text flex w-full items-center justify-center rounded-lg bg-[#1B3D5F] px-4 py-2.5 text-xs font-semibold text-[#FFFFFF] transition-colors hover:bg-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
+            >
+              Find a Gift
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  );
+};
+
+export const FooterSavedLinkIsland: React.FC = () => {
+  const { savedProductIds } = useSavedGiftsState();
+
+  return (
+    <button
+      type="button"
+      onClick={dispatchOpenSavedDrawer}
+      className="theme-link text-sm text-[#24282B] hover:text-[#28537D] hover:underline text-left cursor-pointer"
+    >
+      Saved Gifts ({savedProductIds.length})
     </button>
   );
 };
@@ -112,14 +269,14 @@ export const FooterSavedActionsIsland: React.FC = () => {
       <button
         type="button"
         onClick={dispatchOpenSavedDrawer}
-        className="px-4 py-2.5 rounded-full bg-[#1B3D5F] text-[#FAF7F2] font-semibold hover:bg-[#28537D] transition-colors"
+        className="px-4 py-2 rounded-lg bg-[#1B3D5F] text-xs text-[#FAF7F2] font-semibold hover:bg-[#28537D] transition-colors cursor-pointer"
       >
-        Open Saved List ({savedProductIds.length})
+        Open Saved Gifts ({savedProductIds.length})
       </button>
       <button
         type="button"
         onClick={dispatchOpenArchModal}
-        className="text-[#28537D] hover:text-[#1B3D5F] underline"
+        className="text-xs text-[#28537D] hover:text-[#1B3D5F] underline cursor-pointer"
       >
         Technical & SEO Spec
       </button>
@@ -210,8 +367,11 @@ export const HomeHeroSpotlightIsland: React.FC<{
       >
         <div className="sm:col-span-5 aspect-square rounded-2xl overflow-hidden bg-white">
           <PhotoImage
-            src={product.images[0].url}
-            alt={product.images[0].alt}
+            image={product.images[0]}
+            src={product.images[0]?.url}
+            alt={product.images[0]?.alt}
+            preset="spotlight-square"
+            aspectRatio="1:1"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         </div>

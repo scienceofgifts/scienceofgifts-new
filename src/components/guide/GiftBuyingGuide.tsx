@@ -29,30 +29,30 @@ export const GiftBuyingGuide: React.FC<GiftBuyingGuideProps> = ({
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start">
         {/* Left Column: Essay Header & Three Questions */}
         <div className="lg:col-span-5">
-          <p className="text-xs font-semibold text-[#28537D]">
+          <p className="theme-kicker text-xs font-semibold text-[#28537D]">
             Buying Advice
           </p>
 
           <h2
             id="buying-advice-heading"
-            className="mt-1.5 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-3xl"
+            className="theme-section-heading mt-1.5 font-serif text-2xl font-semibold leading-snug text-[#24282B] sm:text-3xl"
           >
             How to Choose the Right Gift From This Guide
           </h2>
 
           {buyingAdviceIntro ? (
-            <p className="mt-3 text-sm leading-[1.8] text-[#24282B] sm:text-base">
+            <p className="theme-body-text mt-3 text-sm leading-[1.8] text-[#24282B] sm:text-base">
               {buyingAdviceIntro}
             </p>
           ) : (
-            <p className="mt-3 text-sm leading-[1.8] text-[#24282B] sm:text-base">
+            <p className="theme-body-text mt-3 text-sm leading-[1.8] text-[#24282B] sm:text-base">
               Choosing a memorable gift is less about spending more and more about matching the object to how your recipient actually lives.
             </p>
           )}
 
           {/* Three Questions Before You Buy */}
           <div className="mt-6 rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-5">
-            <h3 className="font-serif text-base font-semibold text-[#24282B]">
+            <h3 className="theme-info-heading font-serif text-base font-semibold text-[#24282B]">
               Three Questions Before You Buy
             </h3>
             <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-[#24282B]">
@@ -93,15 +93,15 @@ export const GiftBuyingGuide: React.FC<GiftBuyingGuideProps> = ({
             return (
               <article key={tip.id} className="p-6">
                 <div className="flex items-baseline justify-between gap-2">
-                  <h3 className="font-serif text-lg font-semibold text-[#24282B] sm:text-xl">
+                  <h3 className="theme-subsection-heading font-serif text-lg font-semibold text-[#24282B] sm:text-xl">
                     {tip.heading}
                   </h3>
-                  <span className="text-xs font-medium text-[#636A6F] tabular-nums">
+                  <span className="theme-metadata text-xs font-medium text-[#636A6F] tabular-nums">
                     Principle 0{idx + 1}
                   </span>
                 </div>
 
-                <p className="mt-2.5 text-sm leading-[1.8] text-[#24282B] sm:text-base">
+                <p className="theme-body-text mt-2.5 text-sm leading-[1.8] text-[#24282B] sm:text-base">
                   {tip.body}
                 </p>
 
@@ -125,7 +125,7 @@ export const GiftBuyingGuide: React.FC<GiftBuyingGuideProps> = ({
                     {isExpanded && (
                       <div
                         id={panelId}
-                        className="mt-3 rounded-xl border border-[#E3E1DB] bg-[#FAF9F6] p-4 text-xs leading-relaxed text-[#24282B] sm:text-sm"
+                        className="theme-body-sm mt-3 rounded-xl border border-[#E3E1DB] bg-[#FAF9F6] p-4 text-xs leading-relaxed text-[#24282B] sm:text-sm"
                       >
                         {tip.expandableDetails}
                       </div>

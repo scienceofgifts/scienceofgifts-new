@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { ARTICLES, CITATIONS } from '../data/catalog';
@@ -19,17 +21,52 @@ import { GiftGuideReaderView } from '../components/GiftGuideReaderView';
 import { EditorialProductProfile } from '../components/product/EditorialProductProfile';
 import { SANITY_SCHEMA_TYPES, GROQ_QUERIES } from '../cms/sanitySchemas';
 import { LocalCMSContentStore } from '../cms/cmsContentStore';
-import { contentRepository } from '../cms/contentRepository';
+import {
+  createContentRepository,
+  contentRepository,
+} from '../cms/contentRepository';
 import {
   buildSuggestedProductDraftFromInput,
   runSafeProductImportPipeline,
   validateProductDraftForPublish,
 } from '../cms/productDraftValidator';
 import {
+  PLANNED_LAUNCH_REDIRECT_MAPPINGS,
+  SITE_ORIGIN,
   buildArticleJsonLd,
+  buildArticlesDirectoryJsonLd,
+  buildCategoryArchiveJsonLd,
+  buildDefaultMetaDescription,
+  buildDefaultSeoTitle,
   buildGiftGuideJsonLd,
+  buildGiftGuidesDirectoryJsonLd,
   buildProductJsonLd,
+  buildWebsiteJsonLd,
+  buildXmlSitemapEntries,
+  evaluateEditorialHubReadiness,
+  evaluateProductCommerceReadiness,
+  evaluateSeoLengthGuidance,
+  generateRobotsTxt,
+  generateXmlSitemap,
+  normalizeCanonicalPath,
+  resolveCanonicalUrl,
+  resolvePageSeoMetadata,
+  validateCatalogIntegrity,
+  validateSeoAndIndexingSafety,
 } from './seoAndValidation';
+import {
+  PRODUCT_PHOTOGRAPHY_STANDARD,
+  buildTransformedImageUrl,
+  detectImageCdnProvider,
+  normalizeFocalPoint,
+  resolveFocalPointObjectPosition,
+  resolveProductImageDelivery,
+  selectProductImageSourceUrl,
+  validateProductImagesCatalog,
+  validateProductImagesForProduct,
+} from './productImageDelivery';
+import { PhotoImage } from '../components/ObjectIllustrations';
+import { GiftRecommendation } from '../components/guide/GiftRecommendation';
 import {
   DEFAULT_FINDER_FILTERS,
   evaluateGiftFinder,
@@ -66,6 +103,33 @@ import {
 } from './savedGiftsStore';
 import { GiftFinderExperience } from '../components/GiftFinderExperience';
 import { GiftThinkingAnimation } from '../components/GiftThinkingAnimation';
+import { ThemeLabExperience } from '../components/ThemeLabExperience';
+import {
+  DEFAULT_THEME_SETTINGS,
+  generateSiteThemeCss,
+} from '../styles/themeConfig';
+import {
+  GiftGuidesDirectoryView,
+  MAX_CATEGORY_PREVIEW_ITEMS,
+} from '../components/GiftGuidesDirectoryView';
+import { ArticlesDirectoryView } from '../components/ArticlesDirectoryView';
+import {
+  HeaderSavedButtonIsland,
+  MobileNavigationIsland,
+  FooterSavedLinkIsland,
+  FooterSavedActionsIsland,
+} from '../components/islands/AstroIslands';
+import { CategoryIcon } from '../components/CategoryIcon';
+import { CategoryArchiveView } from '../components/CategoryArchiveView';
+import { PublicationInfoPageView } from '../components/PublicationInfoPageView';
+import { SiteMapView } from '../components/SiteMapView';
+import {
+  AFFILIATE_DISCLOSURE_CONFIG,
+  EDITORIAL_FOOTER_COLUMNS,
+  SHOP_EXTERNAL_URL,
+  SHOP_RETURNS_FAQ_URL,
+  resolveCategoryIconKey,
+} from '../config/navigationConfig';
 
 test('1. buildArticleCitationMap assigns unique markerIds and maps multiple occurrences to the same reference', () => {
   const article = ARTICLES[0];
@@ -876,7 +940,7 @@ test('13. Central CMS Workflow: Canonical product referenced in GiftGuide and Ar
   );
   assert.equal(
     articleJsonLd['@graph'][1].mainEntityOfPage,
-    'https://scienceofgifts.com/articles/why-daily-ritual-objects-build-closer-bonds'
+    'https://www.scienceofgifts.com/articles/why-daily-ritual-objects-build-closer-bonds'
   );
   assert.equal(articleJsonLd['@graph'][1].citation?.length, 1);
   assert.equal(
@@ -1087,14 +1151,36 @@ test('15. Astro contentRepository resolves routes for gift guides, articles, and
   assert.ok(guidesWithCarafe.length >= 1);
   assert.ok(articlesWithCarafe.length >= 1);
 
-  const productJsonLd = buildProductJsonLd(product);
-  assert.equal(productJsonLd['@graph'][1]['@type'], 'Product');
+  // Sample product from catalog.ts omits structured Offer and stock claims
+  const sampleProductJsonLd = buildProductJsonLd(product);
+  assert.equal(sampleProductJsonLd['@graph'][1]['@type'], 'Product');
   assert.equal(
-    productJsonLd['@graph'][1]['@id'],
-    'https://scienceofgifts.com/products/hand-blown-two-tone-bedside-water-carafe-and-glass/'
+    sampleProductJsonLd['@graph'][1]['@id'],
+    'https://www.scienceofgifts.com/products/hand-blown-two-tone-bedside-water-carafe-and-glass/'
   );
-  assert.equal(productJsonLd['@graph'][1].offers.price, 48);
-  assert.equal(productJsonLd['@graph'][1].offers.priceCurrency, 'USD');
+  assert.equal(
+    sampleProductJsonLd['@graph'][1].offers,
+    undefined,
+    'Development sample product with placeholder link must not emit structured Offer'
+  );
+
+  // Verified merchant product emits Offer with price and currency, and only emits availability when inventoryVerified is true
+  const verifiedProduct = {
+    ...product,
+    vendor: 'Atelier Verre',
+    purchaseUrl: 'https://atelierverre.com/products/bedside-water-carafe',
+    isPlaceholderLink: false,
+    isSampleProduct: false,
+    priceVerified: true,
+  };
+  const verifiedProductJsonLd = buildProductJsonLd(verifiedProduct);
+  assert.equal(verifiedProductJsonLd['@graph'][1].offers?.price, 48);
+  assert.equal(verifiedProductJsonLd['@graph'][1].offers?.priceCurrency, 'USD');
+  assert.equal(
+    verifiedProductJsonLd['@graph'][1].offers?.availability,
+    undefined,
+    'Must not assert InStock from sample catalog boolean when inventoryVerified is not true'
+  );
 });
 
 test('16. Natural-language query parser recognizes recipient synonyms, interests, occasions, gift styles, and explicit budget constraints', () => {
@@ -2272,4 +2358,1539 @@ test('33. Editorial Product Profile Redesign renders all 10 editorial sections, 
   assert.ok(!herbHtml.includes('—'));
 });
 
+test('34. Centralized visual design configuration (site-theme.css), semantic typography hierarchy, and development-only Theme Lab (/dev/theme-lab/)', () => {
+  const siteThemePath = path.resolve(process.cwd(), 'src/styles/site-theme.css');
+  const indexCssPath = path.resolve(process.cwd(), 'src/index.css');
+  const baseLayoutPath = path.resolve(process.cwd(), 'src/layouts/BaseLayout.astro');
+  const homePagePath = path.resolve(process.cwd(), 'src/pages/index.astro');
+  const themeLabAstroPath = path.resolve(
+    process.cwd(),
+    'src/pages/dev/theme-lab/index.astro'
+  );
+
+  assert.ok(fs.existsSync(siteThemePath), 'src/styles/site-theme.css must exist');
+  assert.ok(
+    fs.existsSync(themeLabAstroPath),
+    'src/pages/dev/theme-lab/index.astro must exist'
+  );
+
+  const siteThemeCss = fs.readFileSync(siteThemePath, 'utf-8');
+  const indexCss = fs.readFileSync(indexCssPath, 'utf-8');
+  const baseLayoutContent = fs.readFileSync(baseLayoutPath, 'utf-8');
+  const homePageContent = fs.readFileSync(homePagePath, 'utf-8');
+
+  // 1. Verify all 5 required configuration groups exist in site-theme.css
+  assert.match(siteThemeCss, /--theme-font-display:\s*'Fraunces'/);
+  assert.match(siteThemeCss, /--theme-font-body:\s*'Plus Jakarta Sans'/);
+  assert.match(siteThemeCss, /--theme-font-ui:\s*'Plus Jakarta Sans'/);
+  assert.match(siteThemeCss, /--theme-font-mono:\s*'JetBrains Mono'/);
+
+  assert.match(siteThemeCss, /--theme-size-display-heading:/);
+  assert.match(siteThemeCss, /--theme-size-page-title:/);
+  assert.match(siteThemeCss, /--theme-size-section-heading:/);
+  assert.match(siteThemeCss, /--theme-size-subsection-heading:/);
+  assert.match(siteThemeCss, /--theme-size-info-heading:/);
+  assert.match(siteThemeCss, /--theme-size-product-title:/);
+  assert.match(siteThemeCss, /--theme-size-product-title-featured:/);
+  assert.match(siteThemeCss, /--theme-size-body:\s*[^;]+;/);
+  assert.match(siteThemeCss, /--theme-size-intro:/);
+  assert.match(siteThemeCss, /--theme-size-caption:\s*[^;]+;/);
+  assert.match(siteThemeCss, /--theme-size-metadata:\s*[^;]+;/);
+  assert.match(siteThemeCss, /--theme-size-nav:\s*[^;]+;/);
+  assert.match(siteThemeCss, /--theme-size-button:\s*[^;]+;/);
+  assert.match(siteThemeCss, /--theme-size-sidebar-link:\s*[^;]+;/);
+
+  assert.match(siteThemeCss, /--theme-color-page-bg:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-color-surface:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-color-text-primary:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-color-text-secondary:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-color-brand-primary:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-color-link:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-color-border:\s*#[0-9A-Fa-f]{3,6}/);
+  assert.match(siteThemeCss, /--theme-width-reading-measure:\s*68ch/);
+
+  // 2. Verify index.css imports site-theme.css and avoids !important
+  assert.match(indexCss, /@import\s+"\.\/styles\/site-theme\.css";/);
+  assert.ok(
+    !indexCss.includes('!important'),
+    'src/index.css must not use !important declarations'
+  );
+  assert.ok(
+    !siteThemeCss.includes('!important'),
+    'src/styles/site-theme.css must not use !important declarations'
+  );
+
+  // 3. Verify GiftGuideReaderView, EditorialProductProfile, and ArticleReaderView emit semantic typography classes
+  const guide = contentRepository.getGiftGuideBySlug(
+    'thoughtful-gifts-for-people-who-appreciate-the-little-things'
+  )!;
+  const guideHtml = renderToStaticMarkup(
+    <GiftGuideReaderView guide={guide} savedProductIds={[]} />
+  );
+  assert.match(guideHtml, /theme-display-heading/);
+  assert.match(guideHtml, /theme-section-heading/);
+  assert.match(guideHtml, /theme-subsection-heading/);
+  assert.match(guideHtml, /theme-info-heading/);
+  assert.match(guideHtml, /theme-product-title-featured/);
+  assert.match(guideHtml, /theme-product-title/);
+  assert.match(guideHtml, /theme-body-text/);
+  assert.match(guideHtml, /theme-sidebar-link/);
+
+  const carafe = contentRepository.getProductBySlug(
+    'hand-blown-two-tone-bedside-water-carafe-and-glass'
+  )!;
+  const profileHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={carafe}
+      guideAppearances={contentRepository.getProductGuideAppearances(carafe.id)}
+      similarComparisons={contentRepository.getSimilarProductComparisons(carafe)}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 1)}
+      citations={[CITATIONS.cit_yang_urminsky_2018]}
+    />
+  );
+  assert.match(profileHtml, /theme-page-title/);
+  assert.match(profileHtml, /theme-section-heading/);
+  assert.match(profileHtml, /theme-subsection-heading/);
+  assert.match(profileHtml, /theme-info-heading/);
+  assert.match(profileHtml, /theme-info-label/);
+  assert.ok(
+    !profileHtml.includes('max-w-[230px]'),
+    'Purchase panel Best suited for must not be constrained to max-w-[230px]'
+  );
+
+  const articleHtml = renderToStaticMarkup(
+    <ArticleReaderView
+      article={ARTICLES[0]}
+      savedProductIds={[]}
+      onToggleSave={() => {}}
+      onSelectProduct={() => {}}
+    />
+  );
+  assert.match(articleHtml, /theme-page-title/);
+  assert.match(articleHtml, /theme-section-heading/);
+  assert.match(articleHtml, /theme-subsection-heading/);
+  assert.match(articleHtml, /theme-body-text/);
+
+  // 4. Verify ThemeLabExperience renders all 7 required specimens & controls, and is not linked from production pages
+  const themeLabHtml = renderToStaticMarkup(<ThemeLabExperience />);
+  assert.match(themeLabHtml, /Specimen 01 · Gift Guide Headline/);
+  assert.match(themeLabHtml, /Specimen 02 · Major Editorial Section/);
+  assert.match(themeLabHtml, /Specimen 03 · Information Heading/);
+  assert.match(themeLabHtml, /Specimen 04 · Product Recommendation/);
+  assert.match(themeLabHtml, /Specimen 05 · Product Profile Section/);
+  assert.match(themeLabHtml, /Specimen 06 &amp; 07 · Sidebar Navigation Items/);
+  assert.match(themeLabHtml, /Copy site-theme\.css/);
+  assert.match(themeLabHtml, /Reset to Source Defaults/);
+
+  const exportedCss = generateSiteThemeCss({
+    ...DEFAULT_THEME_SETTINGS,
+    colorBrandPrimary: '#14324E',
+    sizeSectionHeading: 'clamp(1.75rem, 1.45rem + 1.1vw, 2.25rem)',
+  });
+  assert.match(exportedCss, /--theme-color-brand-primary:\s*#14324E;/);
+  assert.match(
+    exportedCss,
+    /--theme-size-section-heading:\s*clamp\(1\.75rem, 1\.45rem \+ 1\.1vw, 2\.25rem\);/
+  );
+
+  // Verify production navigation/pages do not expose links to /dev/theme-lab/
+  assert.ok(
+    !baseLayoutContent.includes('/dev/theme-lab'),
+    'Production BaseLayout must not expose /dev/theme-lab/'
+  );
+  assert.ok(
+    !homePageContent.includes('/dev/theme-lab'),
+    'Production homepage must not expose /dev/theme-lab/'
+  );
+});
+
+test('35. Global Navigation Simplification, Gift Guides & Stories Directories, Taxonomy & Breadcrumbs', () => {
+  // 1. Verify simplified desktop and mobile navigation in BaseLayout.astro and AstroIslands.tsx
+  const baseLayoutPath = path.resolve(process.cwd(), 'src/layouts/BaseLayout.astro');
+  const baseLayoutContent = fs.readFileSync(baseLayoutPath, 'utf-8');
+
+  assert.match(baseLayoutContent, /href="\/gift-guides\/"/);
+  assert.match(baseLayoutContent, /href="\/articles\/"/);
+  assert.match(baseLayoutContent, /href="\/gift-finder\/"/);
+  assert.match(baseLayoutContent, /Find a Gift/);
+  assert.ok(
+    !baseLayoutContent.includes('href="/gift-finder/?maxPrice=50"'),
+    'Primary navigation must not include redundant Under $50 header link'
+  );
+
+  const savedBtnHtml = renderToStaticMarkup(<HeaderSavedButtonIsland />);
+  assert.match(savedBtnHtml, /Saved Gifts/);
+
+  const mobileNavHtml = renderToStaticMarkup(
+    <MobileNavigationIsland activeSection="guides" />
+  );
+  assert.match(mobileNavHtml, /aria-expanded="false"/);
+  assert.match(mobileNavHtml, /aria-controls="mobile-primary-navigation-panel"/);
+
+  // 2. Verify Gift Guides Directory (/gift-guides/) renders all 8 required sections from contentRepository
+  const guidesDirData = contentRepository.getGiftGuidesDirectoryData();
+  assert.equal(guidesDirData.allGuides.length, 2);
+  assert.ok(guidesDirData.primaryFeaturedGuide);
+  assert.equal(guidesDirData.supportingFeaturedGuides.length, 0);
+  assert.ok(guidesDirData.recipientDiscovery.length >= 6);
+  assert.ok(guidesDirData.interestDiscovery.length >= 6);
+  assert.ok(guidesDirData.occasionDiscovery.length >= 6);
+  assert.equal(guidesDirData.budgetDiscovery.length, 4);
+
+  const guidesDirHtml = renderToStaticMarkup(
+    <GiftGuidesDirectoryView {...guidesDirData} />
+  );
+  assert.match(guidesDirHtml, /Gift Guides/);
+  assert.match(guidesDirHtml, /Featured Gift Guide/);
+  assert.match(guidesDirHtml, /Browse Gift Guides/);
+  assert.match(guidesDirHtml, /Browse by Recipient/);
+  assert.match(guidesDirHtml, /Browse by Interest/);
+  assert.match(guidesDirHtml, /Browse by Occasion/);
+  assert.match(guidesDirHtml, /Browse by Budget/);
+  assert.match(
+    guidesDirHtml,
+    /Looking for a Specific Combination of Recipient, Interest, and Budget\?/
+  );
+  assert.match(guidesDirHtml, /href="\/gift-finder\/\?maxPrice=25"/);
+  assert.match(guidesDirHtml, /href="\/gift-finder\/\?maxPrice=50"/);
+  assert.match(guidesDirHtml, /href="\/gift-finder\/\?minPrice=50&amp;maxPrice=100"/);
+  assert.match(guidesDirHtml, /href="\/gift-finder\/\?minPrice=100"/);
+
+  const guidesDirJsonLd = buildGiftGuidesDirectoryJsonLd(
+    contentRepository.getAllGiftGuides()
+  );
+  assert.equal(guidesDirJsonLd['@graph'][1]['@type'], 'CollectionPage');
+
+  // 3. Verify Stories Directory (/articles/) renders Featured Story, Recent Stories without duplication, Browse by Topic, and Editorial Discovery
+  const articlesDirData = contentRepository.getArticlesDirectoryData();
+  assert.equal(articlesDirData.allArticles.length, 2);
+  assert.ok(articlesDirData.featuredArticle);
+  assert.equal(
+    articlesDirData.featuredArticle.article.id,
+    'art_thoughtful_over_expensive'
+  );
+  assert.equal(articlesDirData.recentArticles.length, 1);
+  assert.equal(articlesDirData.recentArticles[0].article.id, 'art_host_etiquette');
+  assert.ok(
+    !articlesDirData.recentArticles.some(
+      (a) => a.article.id === articlesDirData.featuredArticle?.article.id
+    ),
+    'Featured story must never be duplicated in Recent Stories'
+  );
+
+  const articlesDirHtml = renderToStaticMarkup(
+    <ArticlesDirectoryView {...articlesDirData} />
+  );
+  assert.match(articlesDirHtml, /Stories/);
+  assert.match(articlesDirHtml, /Featured Story/);
+  assert.match(articlesDirHtml, /Recent Stories/);
+  assert.match(articlesDirHtml, /Browse by Topic/);
+  assert.match(articlesDirHtml, /Gift-Giving Psychology/);
+  assert.match(articlesDirHtml, /Gift Etiquette/);
+  assert.match(articlesDirHtml, /Companion Gift Guides/);
+
+  const articlesDirJsonLd = buildArticlesDirectoryJsonLd(
+    contentRepository.getAllArticles()
+  );
+  assert.equal(articlesDirJsonLd['@graph'][1]['@type'], 'CollectionPage');
+
+  // 4. Verify dynamic repository scaling: adding a new guide or article updates directory data automatically without hardcoding
+  const isolatedStore = new LocalCMSContentStore(true);
+  const isolatedRepo = createContentRepository(isolatedStore);
+  const baseGuides = isolatedRepo.getAllGiftGuides();
+  isolatedStore.upsertGiftGuide({
+    ...baseGuides[0],
+    id: 'guide_creative_rituals_2026',
+    slug: 'gifts-for-curious-creatives-and-makers',
+    title: 'Gifts for Curious Creatives and Makers',
+    featured: true,
+    recipients: ['friend', 'partner'],
+    occasions: ['birthday', 'just-because'],
+  });
+  const baseArticles = isolatedRepo.getAllArticles();
+  isolatedStore.upsertArticle({
+    ...baseArticles[0],
+    id: 'art_ritual_longevity',
+    slug: 'how-daily-rituals-shape-gift-longevity',
+    title: 'How Daily Rituals Shape Gift Longevity',
+    featured: false,
+    topics: ['culture', 'gift-giving-psychology'],
+  });
+
+  const expandedGuidesDir = isolatedRepo.getGiftGuidesDirectoryData();
+  assert.equal(expandedGuidesDir.allGuides.length, 3);
+  assert.equal(expandedGuidesDir.supportingFeaturedGuides.length, 1);
+  const expandedGuidesHtml = renderToStaticMarkup(
+    <GiftGuidesDirectoryView {...expandedGuidesDir} />
+  );
+  assert.match(expandedGuidesHtml, /Gifts for Curious Creatives and Makers/);
+
+  const expandedArticlesDir = isolatedRepo.getArticlesDirectoryData();
+  assert.equal(expandedArticlesDir.allArticles.length, 3);
+  assert.equal(expandedArticlesDir.recentArticles.length, 2);
+  const expandedArticlesHtml = renderToStaticMarkup(
+    <ArticlesDirectoryView {...expandedArticlesDir} />
+  );
+  assert.match(expandedArticlesHtml, /How Daily Rituals Shape Gift Longevity/);
+
+  // 5. Verify budget URLs parse accurately in Gift Finder engine
+  const under25Parsed = parseFinderUrlSearchParams('?maxPrice=25');
+  assert.equal(under25Parsed.maxPrice, 25);
+  const under50Parsed = parseFinderUrlSearchParams('?maxPrice=50');
+  assert.equal(under50Parsed.maxPrice, 50);
+  const fiftyTo100Parsed = parseFinderUrlSearchParams('?minPrice=50&maxPrice=100');
+  assert.equal(fiftyTo100Parsed.minPrice, 50);
+  assert.equal(fiftyTo100Parsed.maxPrice, 100);
+  const hundredPlusParsed = parseFinderUrlSearchParams('?minPrice=100');
+  assert.equal(hundredPlusParsed.minPrice, 100);
+
+  // 6. Verify breadcrumb structures across Gift Guide, Article, and Product pages
+  const guide = contentRepository.getGiftGuideBySlug(
+    'thoughtful-gifts-for-people-who-appreciate-the-little-things'
+  )!;
+  const guideHtml = renderToStaticMarkup(
+    <GiftGuideReaderView guide={guide} savedProductIds={[]} />
+  );
+  assert.match(guideHtml, /href="\/gift-guides\/"/);
+  assert.match(
+    guideHtml,
+    /aria-current="page"[^>]*>Thoughtful Gifts for People Who Appreciate the Little Things<\/span>/
+  );
+
+  const articleHtml = renderToStaticMarkup(
+    <ArticleReaderView
+      article={ARTICLES[0]}
+      savedProductIds={[]}
+      onToggleSave={() => {}}
+      onSelectProduct={() => {}}
+    />
+  );
+  assert.match(articleHtml, /href="\/articles\/"[^>]*>Stories<\/a>/);
+  assert.match(
+    articleHtml,
+    /aria-current="page"[^>]*>Why Thoughtful Gifts Matter More Than Expensive Ones<\/li>/
+  );
+
+  // Product in single/Editor's Pick guide -> Home / Gift Guides / Relevant Guide / Product
+  const carafe = contentRepository.getProductBySlug(
+    'hand-blown-two-tone-bedside-water-carafe-and-glass'
+  )!;
+  const carafeAppearances = contentRepository.getProductGuideAppearances(carafe.id);
+  const carafeHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={carafe}
+      guideAppearances={carafeAppearances}
+      similarComparisons={contentRepository.getSimilarProductComparisons(carafe)}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 1)}
+      citations={[CITATIONS.cit_yang_urminsky_2018]}
+    />
+  );
+  assert.match(carafeHtml, /href="\/gift-guides\/"[^>]*>Gift Guides<\/a>/);
+  assert.match(
+    carafeHtml,
+    /href="\/gift-guides\/thoughtful-gifts-for-people-who-appreciate-the-little-things\/"/
+  );
+
+  // Product in multiple guides equally -> Home / Gift Guides / Product
+  const multiGuideProduct = contentRepository
+    .getAllProducts()
+    .find(
+      (p) =>
+        contentRepository.getProductGuideAppearances(p.id).length > 1 &&
+        contentRepository.resolvePrimaryGuideForProduct(p.id) === undefined
+    )!;
+  assert.ok(multiGuideProduct, 'At least one product appears in multiple guides equally');
+  const multiGuideAppearances = contentRepository.getProductGuideAppearances(
+    multiGuideProduct.id
+  );
+  const multiGuideHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={multiGuideProduct}
+      guideAppearances={multiGuideAppearances}
+      similarComparisons={contentRepository.getSimilarProductComparisons(
+        multiGuideProduct
+      )}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 1)}
+      citations={[]}
+    />
+  );
+  assert.match(multiGuideHtml, /href="\/gift-guides\/"[^>]*>Gift Guides<\/a>/);
+});
+
+test('36. Category icons, scalable category cards, category archive templates, Shop navigation, editorial footer, supporting pages, affiliate disclosures, and site map', () => {
+  // 1. Centralized category icon mappings & fallback behavior
+  assert.equal(resolveCategoryIconKey('topic', 'gift-giving-psychology'), 'brain');
+  assert.equal(resolveCategoryIconKey('topic', 'relationships'), 'heart-handshake');
+  assert.equal(resolveCategoryIconKey('topic', 'decision-making'), 'brain-circuit');
+  assert.equal(resolveCategoryIconKey('topic', 'gift-etiquette'), 'handshake');
+  assert.equal(resolveCategoryIconKey('topic', 'practical-gifting-advice'), 'clipboard-check');
+  assert.equal(resolveCategoryIconKey('topic', 'culture'), 'landmark');
+
+  assert.equal(resolveCategoryIconKey('recipient', 'parent'), 'users');
+  assert.equal(resolveCategoryIconKey('recipient', 'partner'), 'heart');
+  assert.equal(resolveCategoryIconKey('recipient', 'friend'), 'user-round');
+  assert.equal(resolveCategoryIconKey('recipient', 'host'), 'utensils');
+  assert.equal(resolveCategoryIconKey('recipient', 'coworker'), 'graduation-cap');
+  assert.equal(resolveCategoryIconKey('recipient', 'kids'), 'baby');
+
+  assert.equal(
+    resolveCategoryIconKey('interest', 'newly-added-future-category'),
+    'compass',
+    'Newly created categories must receive a clean default outline icon'
+  );
+
+  const iconMarkup = renderToStaticMarkup(
+    <CategoryIcon iconKey="brain" sizeClass="h-6 w-6" />
+  );
+  assert.match(iconMarkup, /aria-hidden="true"/, 'Decorative category icons must be hidden from screen readers');
+
+  // 2. Scalable category cards (MAX_CATEGORY_PREVIEW_ITEMS = 3) + accurate counts + "View all" link when > 3 items exist
+  assert.equal(MAX_CATEGORY_PREVIEW_ITEMS, 3);
+  const isolatedStore = new LocalCMSContentStore(true);
+  const isolatedRepo = createContentRepository(isolatedStore);
+  const seedGuide = isolatedRepo.getAllGiftGuides()[0];
+  for (let i = 1; i <= 4; i++) {
+    isolatedStore.upsertGiftGuide({
+      ...seedGuide,
+      id: `guide_scale_test_${i}`,
+      slug: `scale-test-guide-${i}`,
+      title: `Scale Test Guide ${i}`,
+      recipients: ['friend'],
+      occasions: ['birthday'],
+    });
+  }
+
+  const scaledGuidesDir = isolatedRepo.getGiftGuidesDirectoryData();
+  const friendCategory = scaledGuidesDir.recipientDiscovery.find(
+    (r) => r.recipient === 'friend'
+  )!;
+  assert.ok(
+    friendCategory.matchingGuides.length >= 5,
+    'Total guide count must reflect all matching guides in the category'
+  );
+  assert.ok(
+    friendCategory.matchingProducts.length > 0,
+    'Product count must remain distinct and tracked separately from guide count'
+  );
+  assert.equal(
+    friendCategory.archiveHref,
+    '/gift-guides/recipients/friend/'
+  );
+
+  const scaledGuidesHtml = renderToStaticMarkup(
+    <GiftGuidesDirectoryView {...scaledGuidesDir} />
+  );
+  const recipientSectionHtml =
+    scaledGuidesHtml.split('id="browse-by-recipient"')[1] || '';
+  assert.match(
+    recipientSectionHtml,
+    new RegExp(`View all ${friendCategory.matchingGuides.length} guides`),
+    'Category cards with > 3 guides must display a View all link to the category archive'
+  );
+  assert.ok(
+    !recipientSectionHtml.includes('Scale Test Guide 4'),
+    'Category card preview list must cap at 3 guides and not stretch vertically with the 4th+ guide'
+  );
+
+  // Also verify Stories topic card scaling when > 3 articles exist in a topic
+  const seedArticle = isolatedRepo.getAllArticles()[0];
+  for (let i = 1; i <= 4; i++) {
+    isolatedStore.upsertArticle({
+      ...seedArticle,
+      id: `art_scale_test_${i}`,
+      slug: `scale-test-article-${i}`,
+      title: `Scale Test Story ${i}`,
+      topics: ['gift-giving-psychology'],
+    });
+  }
+  const scaledArticlesDir = isolatedRepo.getArticlesDirectoryData();
+  const psychTopic = scaledArticlesDir.topicDiscovery.find(
+    (t) => t.id === 'gift-giving-psychology'
+  )!;
+  assert.ok(psychTopic.matchingArticles.length >= 5);
+  assert.equal(
+    psychTopic.archiveHref,
+    '/articles/topics/gift-giving-psychology/'
+  );
+  const scaledArticlesHtml = renderToStaticMarkup(
+    <ArticlesDirectoryView {...scaledArticlesDir} />
+  );
+  const topicSectionHtml =
+    scaledArticlesHtml.split('id="browse-by-topic"')[1] || '';
+  assert.match(
+    topicSectionHtml,
+    new RegExp(`View all ${psychTopic.matchingArticles.length} stories`)
+  );
+  assert.ok(
+    !topicSectionHtml.includes('Scale Test Story 4'),
+    'Topic card preview list must cap at 3 stories'
+  );
+
+  // 3. Full Category Archive pages (/articles/topics/[slug]/, /gift-guides/recipients/[slug]/, /gift-guides/interests/[slug]/, /gift-guides/occasions/[slug]/)
+  const recipientArchive = isolatedRepo.getRecipientCategoryArchive('friend')!;
+  assert.ok(recipientArchive);
+  assert.equal(recipientArchive.category.iconKey, 'user-round');
+  assert.ok(recipientArchive.category.matchingGuides.length >= 5);
+  assert.ok(recipientArchive.category.matchingProducts.length > 0);
+
+  const recipientArchiveHtml = renderToStaticMarkup(
+    <CategoryArchiveView
+      archiveType="guide-category"
+      dimensionLabel="Recipient Category"
+      parentDirectoryLabel="Gift Guides"
+      parentDirectoryHref="/gift-guides/"
+      categoryLabel={recipientArchive.category.label}
+      categoryDescription={recipientArchive.category.description}
+      iconKey={recipientArchive.category.iconKey}
+      matchingGuides={recipientArchive.category.matchingGuides}
+      matchingProducts={recipientArchive.category.matchingProducts}
+      finderHref={recipientArchive.category.finderHref}
+      relatedCategories={[]}
+      pageSize={3}
+    />
+  );
+  assert.match(recipientArchiveHtml, /Close Friends/);
+  assert.match(recipientArchiveHtml, /Featured Guide for Close Friends/);
+  assert.match(
+    recipientArchiveHtml,
+    /Page 1 of /,
+    'Archive view must render pagination controls when items exceed pageSize'
+  );
+  assert.match(
+    recipientArchiveHtml,
+    /href="\/affiliate-disclosure\/"/,
+    'Guide/product category archives must include affiliate disclosure link'
+  );
+
+  const topicArchive = isolatedRepo.getArticleTopicArchive('gift-giving-psychology')!;
+  assert.ok(topicArchive);
+  assert.equal(topicArchive.topic.iconKey, 'brain');
+  const topicArchiveHtml = renderToStaticMarkup(
+    <CategoryArchiveView
+      archiveType="article-topic"
+      dimensionLabel="Story Topic Archive"
+      parentDirectoryLabel="Stories"
+      parentDirectoryHref="/articles/"
+      categoryLabel={topicArchive.topic.label}
+      categoryDescription={topicArchive.topic.description}
+      iconKey={topicArchive.topic.iconKey}
+      matchingArticles={topicArchive.topic.matchingArticles}
+      companionGuides={topicArchive.companionGuides}
+      relatedCategories={[]}
+      pageSize={3}
+    />
+  );
+  assert.match(topicArchiveHtml, /Gift-Giving Psychology/);
+  assert.match(topicArchiveHtml, /Featured Story in Gift-Giving Psychology/);
+  assert.match(topicArchiveHtml, /Page 1 of /);
+
+  // 4. Shop link in desktop and mobile global navigation
+  assert.equal(SHOP_EXTERNAL_URL, 'https://shop.scienceofgifts.com/');
+  assert.equal(SHOP_RETURNS_FAQ_URL, 'https://shop.scienceofgifts.com/pages/returns-faq');
+  const baseLayoutSource = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/layouts/BaseLayout.astro'),
+    'utf8'
+  );
+  assert.ok(
+    baseLayoutSource.includes('href={SHOP_EXTERNAL_URL}') ||
+      baseLayoutSource.includes('https://shop.scienceofgifts.com/'),
+    'Desktop header must include Shop link'
+  );
+  const mobileMenuHtml = renderToStaticMarkup(
+    <MobileNavigationIsland activeSection="guides" />
+  );
+  assert.ok(mobileMenuHtml.includes('aria-controls="mobile-primary-navigation-panel"'));
+
+  // 5. Editorial Footer structure & Saved Gifts footer triggers
+  const footerSource = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/components/EditorialFooter.astro'),
+    'utf8'
+  );
+  assert.ok(footerSource.includes('EDITORIAL_FOOTER_COLUMNS'));
+  assert.ok(footerSource.includes('FooterSavedLinkIsland'));
+  assert.ok(footerSource.includes('FooterSavedActionsIsland'));
+  assert.equal(EDITORIAL_FOOTER_COLUMNS.length, 4);
+  assert.deepEqual(
+    EDITORIAL_FOOTER_COLUMNS.map((c) => c.heading),
+    ['Explore', 'Discover', 'The Publication', 'Information']
+  );
+
+  const footerSavedLinkHtml = renderToStaticMarkup(<FooterSavedLinkIsland />);
+  assert.match(footerSavedLinkHtml, /Saved Gifts/);
+  const footerSavedActionsHtml = renderToStaticMarkup(<FooterSavedActionsIsland />);
+  assert.match(footerSavedActionsHtml, /Saved Gifts/);
+
+  // 6. Supporting publication pages (/about/, /contact/, /editorial-policy/, /affiliate-disclosure/, /privacy-policy/, /terms-of-use/)
+  for (const routeFile of [
+    'src/pages/about/index.astro',
+    'src/pages/contact/index.astro',
+    'src/pages/editorial-policy/index.astro',
+    'src/pages/affiliate-disclosure/index.astro',
+    'src/pages/privacy-policy/index.astro',
+    'src/pages/terms-of-use/index.astro',
+  ]) {
+    const source = fs.readFileSync(path.resolve(process.cwd(), routeFile), 'utf8');
+    assert.ok(
+      source.includes('PublicationInfoPageView'),
+      `${routeFile} must render PublicationInfoPageView`
+    );
+  }
+  const contactSource = fs.readFileSync(
+    path.resolve(process.cwd(), 'src/pages/contact/index.astro'),
+    'utf8'
+  );
+  assert.ok(
+    contactSource.includes('SHOP_RETURNS_FAQ_URL'),
+    'Contact page must direct Shop & Merchandise order questions to the Fourthwall Returns & FAQ page'
+  );
+  assert.ok(
+    !contactSource.includes('<form'),
+    'Contact page must not display a nonfunctional contact form'
+  );
+
+  const infoViewHtml = renderToStaticMarkup(
+    <PublicationInfoPageView
+      currentPath="/about/"
+      kicker="The Publication"
+      title="About Science of Gifts"
+      subtitle="Research-informed gift journalism."
+      sections={[
+        {
+          id: 'mission',
+          heading: 'Editorial Purpose',
+          paragraphs: ['Helping readers give more thoughtful gifts.'],
+        },
+      ]}
+    />
+  );
+  assert.match(infoViewHtml, /About Science of Gifts/);
+
+  // 7. Affiliate disclosures on Gift Guide and Product pages
+  const sampleGuide = contentRepository.getAllGiftGuides()[0];
+  const guideHtml = renderToStaticMarkup(
+    <GiftGuideReaderView guide={sampleGuide} savedProductIds={[]} />
+  );
+  assert.match(guideHtml, /href="\/affiliate-disclosure\/"/);
+
+  const sampleProduct = contentRepository.getAllProducts()[0];
+  const productHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={sampleProduct}
+      guideAppearances={contentRepository.getProductGuideAppearances(sampleProduct.id)}
+      similarComparisons={contentRepository.getSimilarProductComparisons(sampleProduct)}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 1)}
+      citations={[]}
+    />
+  );
+  assert.match(productHtml, /href="\/affiliate-disclosure\/"/);
+  assert.ok(productHtml.includes(AFFILIATE_DISCLOSURE_CONFIG.shortInlineNotice));
+
+  // 8. Human-readable Site Map (/site-map/)
+  const guidesData = contentRepository.getGiftGuidesDirectoryData();
+  const articlesData = contentRepository.getArticlesDirectoryData();
+  const siteMapHtml = renderToStaticMarkup(
+    <SiteMapView
+      guides={guidesData.allGuides}
+      recipientCategories={guidesData.recipientDiscovery}
+      interestCategories={guidesData.interestDiscovery}
+      occasionCategories={guidesData.occasionDiscovery}
+      budgetBrackets={guidesData.budgetDiscovery}
+      articles={articlesData.allArticles}
+      storyTopics={articlesData.topicDiscovery}
+      products={contentRepository.getAllProducts()}
+    />
+  );
+  assert.match(siteMapHtml, /Main Website Sections/);
+  assert.match(siteMapHtml, /Gift Guides/);
+  assert.match(siteMapHtml, /Gift Guide Categories/);
+  assert.match(siteMapHtml, /Stories/);
+  assert.match(siteMapHtml, /Story Topics/);
+  assert.match(siteMapHtml, /Product Profiles/);
+  assert.match(siteMapHtml, /Publication Information/);
+  assert.ok(
+    !siteMapHtml.includes('/dev/theme-lab'),
+    'Human-readable site map must exclude internal developer tools such as /dev/theme-lab/'
+  );
+});
+
+test('37. Standardized product photography system: 4:3 aspect-ratio alignment, focalPoint cropping, fitMode contain, override URLs, responsive srcset/sizes, sample label fix, and image validation', () => {
+  // 1. Photography standard constants
+  assert.equal(PRODUCT_PHOTOGRAPHY_STANDARD.masterAspectRatio, '1:1');
+  assert.equal(PRODUCT_PHOTOGRAPHY_STANDARD.preferredMasterWidth, 2400);
+  assert.equal(PRODUCT_PHOTOGRAPHY_STANDARD.preferredMasterHeight, 2400);
+  assert.equal(PRODUCT_PHOTOGRAPHY_STANDARD.editorialHeroAspectRatio, '16:9');
+
+  // 2. Verify GiftRecommendation 'standard' card and EditorialProductProfile 'Compare With Similar Gifts' use aspect-[4/3] (and never aspect-[16/10])
+  const sampleProduct = contentRepository.getAllProducts()[0];
+  const standardRecHtml = renderToStaticMarkup(
+    <GiftRecommendation
+      recommendation={{
+        productId: sampleProduct.id,
+        presentationStyle: 'standard',
+        awardLabel: 'Best Daily Ritual',
+        customEditorialNote: sampleProduct.whyToGiveIt,
+        idealFor: sampleProduct.bestForSummary,
+        goodToKnow: sampleProduct.detailsAndCare,
+      }}
+      product={sampleProduct}
+      rankIndex={0}
+      isSaved={false}
+      onToggleSaveProduct={() => {}}
+    />
+  );
+  assert.match(
+    standardRecHtml,
+    /aspect-\[4\/3\]/,
+    'Standard GiftRecommendation card must use 4:3 aspect ratio'
+  );
+  assert.ok(
+    !standardRecHtml.includes('aspect-[16/10]'),
+    'Standard GiftRecommendation card must no longer use 16:10 aspect ratio'
+  );
+
+  const profileHtmlWithSimilar = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={sampleProduct}
+      guideAppearances={contentRepository.getProductGuideAppearances(
+        sampleProduct.id
+      )}
+      similarComparisons={contentRepository.getSimilarProductComparisons(
+        sampleProduct
+      )}
+      relatedArticles={contentRepository.getAllArticles().slice(0, 1)}
+      citations={[]}
+    />
+  );
+  assert.ok(
+    !profileHtmlWithSimilar.includes('aspect-[16/10]'),
+    'EditorialProductProfile Compare With Similar Gifts must use 4:3 and never 16:10'
+  );
+  assert.match(profileHtmlWithSimilar, /aspect-\[4\/3\]/);
+
+  // 3. Focal-point normalization and CSS object-position across 4:5, 4:3, and 1:1 containers
+  assert.deepEqual(normalizeFocalPoint(undefined), { x: 0.5, y: 0.5 });
+  assert.equal(resolveFocalPointObjectPosition(undefined), '50% 50%');
+  assert.equal(
+    resolveFocalPointObjectPosition({ x: 0.25, y: 0.8 }),
+    '25% 80%'
+  );
+  assert.deepEqual(
+    normalizeFocalPoint({ x: -0.4, y: 1.7 }),
+    { x: 0, y: 1 },
+    'Out-of-bounds focal point coordinates must be clamped safely to [0, 1]'
+  );
+
+  const customFocalImage = {
+    id: 'img_focal_test',
+    url: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=900&q=80',
+    fallbackColor: '#F6F4EF',
+    alt: 'Hand-thrown stoneware mug on linen table',
+    focalPoint: { x: 0.3, y: 0.7 },
+  };
+  const focalHtml = renderToStaticMarkup(
+    <PhotoImage
+      image={customFocalImage}
+      preset="card-portrait"
+      aspectRatio="4:5"
+    />
+  );
+  assert.match(
+    focalHtml,
+    /object-position:30% 70%/,
+    'PhotoImage must apply focalPoint as CSS object-position'
+  );
+
+  // 4. fitMode: 'contain' support for tall or irregular products
+  const containImage = {
+    ...customFocalImage,
+    fitMode: 'contain' as const,
+    fallbackColor: '#FAF7F2',
+  };
+  const containHtml = renderToStaticMarkup(
+    <PhotoImage
+      image={containImage}
+      preset="card-landscape"
+      aspectRatio="4:3"
+    />
+  );
+  assert.match(
+    containHtml,
+    /object-contain/,
+    'fitMode="contain" must render object-contain class'
+  );
+  assert.match(
+    containHtml,
+    /data-fit-mode="contain"/,
+    'fitMode="contain" must set data-fit-mode="contain"'
+  );
+  assert.ok(
+    !containHtml.includes('object-cover'),
+    'fitMode="contain" must not include object-cover'
+  );
+
+  // 5. Optional landscapeOverrideUrl and portraitOverrideUrl selection
+  const overrideImage = {
+    id: 'img_override_test',
+    url: 'https://cdn.sanity.io/images/proj/prod/master-square-2400x2400.jpg',
+    landscapeOverrideUrl:
+      'https://cdn.sanity.io/images/proj/prod/custom-landscape-4x3.jpg',
+    portraitOverrideUrl:
+      'https://cdn.sanity.io/images/proj/prod/custom-portrait-4x5.jpg',
+    fallbackColor: '#F6F4EF',
+    alt: 'Artisanal olive oil bottle',
+  };
+  assert.equal(
+    selectProductImageSourceUrl(overrideImage, '1:1'),
+    overrideImage.url
+  );
+  assert.equal(
+    selectProductImageSourceUrl(overrideImage, '4:3'),
+    overrideImage.landscapeOverrideUrl
+  );
+  assert.equal(
+    selectProductImageSourceUrl(overrideImage, '4:5'),
+    overrideImage.portraitOverrideUrl
+  );
+
+  const resolvedLandscape = resolveProductImageDelivery(overrideImage, {
+    preset: 'hero-landscape',
+    aspectRatio: '4:3',
+  });
+  assert.equal(resolvedLandscape.usedOverrideUrl, 'landscape');
+  assert.ok(resolvedLandscape.src.includes('custom-landscape-4x3.jpg'));
+
+  const resolvedPortrait = resolveProductImageDelivery(overrideImage, {
+    preset: 'card-portrait',
+    aspectRatio: '4:5',
+  });
+  assert.equal(resolvedPortrait.usedOverrideUrl, 'portrait');
+  assert.ok(resolvedPortrait.src.includes('custom-portrait-4x5.jpg'));
+
+  // 6. Responsive derivative URLs & srcset/sizes (thumbnails request small derivatives, unknown hosts are untouched)
+  assert.equal(
+    detectImageCdnProvider(customFocalImage.url),
+    'unsplash'
+  );
+  assert.equal(
+    detectImageCdnProvider(overrideImage.url),
+    'sanity'
+  );
+  assert.equal(
+    detectImageCdnProvider('https://merchant.example.org/assets/vase.jpg'),
+    'generic'
+  );
+
+  const thumbDelivery = resolveProductImageDelivery(customFocalImage, {
+    preset: 'thumbnail-xs',
+    aspectRatio: '1:1',
+  });
+  assert.ok(
+    thumbDelivery.src.includes('w=120'),
+    'Thumbnail preset must request a compact 120px derivative instead of w=900'
+  );
+  assert.ok(
+    thumbDelivery.srcSet &&
+      thumbDelivery.srcSet.includes('96w') &&
+      thumbDelivery.srcSet.includes('160w'),
+    'Thumbnail preset must generate 1x/2x srcset entries'
+  );
+  assert.equal(thumbDelivery.sizes, '64px');
+
+  const cardDelivery = resolveProductImageDelivery(customFocalImage, {
+    preset: 'card-portrait',
+    aspectRatio: '4:5',
+  });
+  assert.ok(cardDelivery.src.includes('w=540'));
+  assert.ok(
+    cardDelivery.srcSet &&
+      cardDelivery.srcSet.includes('360w') &&
+      cardDelivery.srcSet.includes('720w')
+  );
+
+  const genericUrl = 'https://merchant.example.org/assets/teapot-2400.jpg';
+  const genericDelivery = resolveProductImageDelivery(
+    {
+      id: 'img_generic',
+      url: genericUrl,
+      fallbackColor: '#F6F4EF',
+      alt: 'Cast iron teapot',
+    },
+    { preset: 'card-landscape', aspectRatio: '4:3' }
+  );
+  assert.equal(
+    genericDelivery.src,
+    genericUrl,
+    'Unknown image host URLs must never have fabricated query parameters appended'
+  );
+  assert.equal(genericDelivery.srcSet, undefined);
+
+  // 7. Sample image handling fix in EditorialProductProfile
+  const realPhotoProduct = {
+    ...sampleProduct,
+    images: [
+      {
+        ...sampleProduct.images[0],
+        isSampleAsset: undefined,
+      },
+    ],
+  };
+  const realPhotoHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={realPhotoProduct}
+      guideAppearances={[]}
+      similarComparisons={[]}
+      relatedArticles={[]}
+      citations={[]}
+    />
+  );
+  assert.ok(
+    !realPhotoHtml.includes('Sample preview photography'),
+    'Real product photographs with isSampleAsset undefined or false must not be labeled Sample preview photography'
+  );
+
+  const sampleFlaggedProduct = {
+    ...sampleProduct,
+    images: [
+      {
+        ...sampleProduct.images[0],
+        isSampleAsset: true,
+      },
+    ],
+  };
+  const sampleFlaggedHtml = renderToStaticMarkup(
+    <EditorialProductProfile
+      product={sampleFlaggedProduct}
+      guideAppearances={[]}
+      similarComparisons={[]}
+      relatedArticles={[]}
+      citations={[]}
+    />
+  );
+  assert.ok(
+    sampleFlaggedHtml.includes('Sample preview photography'),
+    'Products explicitly marked isSampleAsset: true must display Sample preview photography'
+  );
+
+  // 8. Missing image URL fallback & non-breaking catalog image validation
+  const missingUrlHtml = renderToStaticMarkup(
+    <PhotoImage
+      image={{
+        id: 'img_missing',
+        url: '',
+        fallbackColor: '#EBF3FE',
+        alt: 'Missing ceramic pitcher photo',
+      }}
+      preset="card-portrait"
+    />
+  );
+  assert.match(missingUrlHtml, /role="img"/);
+  assert.match(missingUrlHtml, /Missing ceramic pitcher photo/);
+
+  const validationIssues = validateProductImagesForProduct({
+    id: 'prod_validation_check',
+    title: 'Validation Check Product',
+    images: [
+      {
+        id: 'img_01',
+        url: 'https://images.unsplash.com/photo-12345',
+        fallbackColor: '#F6F4EF',
+        alt: 'Valid alt text here',
+        isSampleAsset: true,
+        focalPoint: { x: 1.5, y: -0.2 },
+        width: 1600,
+        height: 1200,
+      },
+    ],
+  });
+  const issueCodes = validationIssues.map((i) => i.code);
+  assert.ok(issueCodes.includes('PLACEHOLDER_IMAGE_DOMAIN'));
+  assert.ok(issueCodes.includes('SAMPLE_IMAGE_ASSET'));
+  assert.ok(issueCodes.includes('INVALID_FOCAL_POINT'));
+  assert.ok(issueCodes.includes('SUBOPTIMAL_IMAGE_DIMENSIONS'));
+
+  const catalogIntegrity = validateCatalogIntegrity();
+  assert.equal(
+    catalogIntegrity.passed,
+    true,
+    'Development catalog validation must pass without breaking the build while surfacing sample/placeholder warnings'
+  );
+  assert.ok(
+    catalogIntegrity.issues.some(
+      (i) =>
+        i.code === 'PLACEHOLDER_IMAGE_DOMAIN' && i.severity === 'warning'
+    )
+  );
+});
+
+test('38. Complete SEO Infrastructure: decoupled H1 vs SEO titles, intelligent defaults, canonical normalization, robots & anti-site-wide-noindex guardrail, dynamic XML sitemap, JSON-LD, and Editorial Hub readiness', () => {
+  const baseGuide = contentRepository.getAllGiftGuides()[0];
+  const baseArticle = contentRepository.getAllArticles()[0];
+  const baseProduct = contentRepository.getAllProducts()[0];
+
+  // 1. Gift guide with custom SEO title vs on-page H1 (decoupled bidirectional independence)
+  const guideCustomSeo = resolvePageSeoMetadata({
+    onPageTitle: 'Visible On-Page Guide H1 Headline',
+    subtitleOrSummary: baseGuide.subtitle,
+    seo: {
+      seoTitle: 'Custom Search Title for Gift Guide | Science of Gifts',
+      metaDescription: 'Custom guide meta description for search engines.',
+      canonicalPath: `/gift-guides/${baseGuide.slug}/`,
+      ogType: 'article',
+      schemaType: 'ItemList',
+    },
+    defaultCanonicalPath: `/gift-guides/${baseGuide.slug}/`,
+    defaultOgType: 'article',
+    contentType: 'guide',
+  });
+  assert.equal(
+    guideCustomSeo.onPageTitle,
+    'Visible On-Page Guide H1 Headline',
+    'Changing seoTitle must never alter the visible on-page H1'
+  );
+  assert.equal(
+    guideCustomSeo.seoTitle,
+    'Custom Search Title for Gift Guide | Science of Gifts',
+    'Changing on-page H1 must never overwrite an explicit custom seoTitle'
+  );
+
+  // 2. Gift guide without custom SEO title using intelligent default title generation (no injected year or fake counts)
+  const guideDefaultSeo = resolvePageSeoMetadata({
+    onPageTitle: 'Quiet Morning Rituals for Tea Lovers',
+    subtitleOrSummary:
+      'Hand-thrown matcha bowls and stoneware vessels that turn the first fifteen minutes of the morning into a calm ritual.',
+    seo: {
+      seoTitle: '',
+      metaDescription: '',
+      canonicalPath: '/gift-guides/quiet-morning-rituals/',
+      ogType: 'article',
+      schemaType: 'ItemList',
+    },
+    defaultCanonicalPath: '/gift-guides/quiet-morning-rituals/',
+    defaultOgType: 'article',
+    contentType: 'guide',
+  });
+  assert.equal(
+    guideDefaultSeo.seoTitle,
+    'Quiet Morning Rituals for Tea Lovers | Science of Gifts'
+  );
+  assert.ok(
+    !/202\d/.test(guideDefaultSeo.seoTitle),
+    'Default SEO title must not automatically inject the current year'
+  );
+  assert.equal(
+    guideDefaultSeo.metaDescription,
+    'Hand-thrown matcha bowls and stoneware vessels that turn the first fifteen minutes of the morning into a calm ritual.'
+  );
+
+  // 3 & 4. Article with custom SEO title vs on-page H1, and Article without custom SEO title
+  const articleCustomSeo = resolvePageSeoMetadata({
+    onPageTitle: baseArticle.title,
+    subtitleOrSummary: baseArticle.subtitle,
+    seo: {
+      ...baseArticle.seo,
+      seoTitle: 'Custom Behavioral Gifting Essay Title | Science of Gifts',
+    },
+    defaultCanonicalPath: `/articles/${baseArticle.slug}/`,
+    defaultOgType: 'article',
+    contentType: 'article',
+  });
+  assert.equal(articleCustomSeo.onPageTitle, baseArticle.title);
+  assert.equal(
+    articleCustomSeo.seoTitle,
+    'Custom Behavioral Gifting Essay Title | Science of Gifts'
+  );
+
+  const articleDefaultSeo = resolvePageSeoMetadata({
+    onPageTitle: 'Why Shared Experiences Outlast Novelty Gadgets',
+    subtitleOrSummary:
+      'Empirical research shows that gifts anchoring a shared ritual build stronger relationship warmth over time. Even a modest kitchen ritual can connect giver and receiver.',
+    defaultCanonicalPath: '/articles/shared-experiences-outlast-novelty/',
+    defaultOgType: 'article',
+    contentType: 'article',
+  });
+  assert.equal(
+    articleDefaultSeo.seoTitle,
+    'Why Shared Experiences Outlast Novelty Gadgets | Science of Gifts'
+  );
+  assert.ok(
+    articleDefaultSeo.metaDescription.endsWith('.'),
+    'Default meta description should preserve complete sentences without mid-word truncation'
+  );
+
+  // 5 & 6. Product page with custom SEO fields vs intelligent defaults
+  const productCustomSeo = resolvePageSeoMetadata({
+    onPageTitle: baseProduct.title,
+    subtitleOrSummary: baseProduct.subtitle,
+    seo: {
+      seoTitle: 'Custom Carafe SEO Title | Science of Gifts',
+      metaDescription: 'Custom Carafe Meta Description.',
+      canonicalPath: `/products/${baseProduct.slug}/`,
+      ogType: 'product',
+      schemaType: 'Product',
+    },
+    defaultCanonicalPath: `/products/${baseProduct.slug}/`,
+    defaultOgType: 'product',
+    contentType: 'product',
+    vendor: baseProduct.vendor,
+  });
+  assert.equal(
+    productCustomSeo.seoTitle,
+    'Custom Carafe SEO Title | Science of Gifts'
+  );
+  assert.equal(
+    productCustomSeo.metaDescription,
+    'Custom Carafe Meta Description.'
+  );
+
+  const productDefaultSeo = resolvePageSeoMetadata({
+    onPageTitle: baseProduct.title,
+    subtitleOrSummary: `${baseProduct.subtitle} ${baseProduct.whyToGiveIt}`,
+    defaultCanonicalPath: `/products/${baseProduct.slug}/`,
+    defaultOgType: 'product',
+    contentType: 'product',
+    vendor: baseProduct.vendor,
+  });
+  assert.ok(productDefaultSeo.seoTitle.includes(baseProduct.title));
+  assert.ok(productDefaultSeo.seoTitle.includes(baseProduct.vendor));
+  assert.ok(productDefaultSeo.seoTitle.endsWith('| Science of Gifts'));
+
+  // Non-blocking length guidance warnings
+  const lengthWarnings = evaluateSeoLengthGuidance(
+    'Short Title',
+    'Short meta desc.'
+  );
+  assert.equal(lengthWarnings.length, 2);
+
+  // 7 & 8. Category archive & directory SEO metadata and custom override support
+  const testRepo = createContentRepository(new LocalCMSContentStore(true));
+  const parentsArchiveBefore = testRepo.getRecipientCategoryArchive('parent');
+  assert.ok(parentsArchiveBefore);
+  assert.equal(
+    parentsArchiveBefore.category.seo?.canonicalPath,
+    '/gift-guides/recipients/parent/'
+  );
+  testRepo.setDirectoryOrCategorySeoOverride(
+    '/gift-guides/recipients/parent/',
+    {
+      seoTitle: 'Custom Parents Gift Archive Title | Science of Gifts',
+      metaDescription: 'Custom parents archive meta description.',
+    }
+  );
+  const parentsArchiveAfter = testRepo.getRecipientCategoryArchive('parent');
+  assert.equal(
+    parentsArchiveAfter?.category.seo?.seoTitle,
+    'Custom Parents Gift Archive Title | Science of Gifts'
+  );
+  assert.equal(
+    parentsArchiveAfter?.category.label,
+    'Parents & In-Laws',
+    'Custom category SEO title must not alter visible category label/H1'
+  );
+
+  const guidesDirSeo = testRepo.getDirectorySeoEntry('/gift-guides/');
+  assert.ok(guidesDirSeo);
+  assert.equal(guidesDirSeo.title, 'Gift Guides');
+  assert.ok(guidesDirSeo.seo?.seoTitle?.includes('Gift Guides'));
+
+  // 9. Canonical URL generation, trailing slash normalization, query-string stripping, and cross-domain rejection
+  assert.equal(
+    normalizeCanonicalPath('/gift-guides/slug-without-slash').canonicalPath,
+    '/gift-guides/slug-without-slash/'
+  );
+  assert.equal(
+    normalizeCanonicalPath('/gift-finder/?recipient=parent&maxPrice=50')
+      .canonicalPath,
+    '/gift-finder/'
+  );
+  const crossDomainShopAttempt = resolveCanonicalUrl(
+    'https://shop.scienceofgifts.com/products/some-item',
+    '/products/hand-blown-two-tone-bedside-water-carafe-and-glass/'
+  );
+  assert.equal(
+    crossDomainShopAttempt.rejectedCrossDomainOverride,
+    true,
+    'Must reject cross-domain canonical override to shop.scienceofgifts.com'
+  );
+  assert.equal(SITE_ORIGIN, 'https://www.scienceofgifts.com');
+  assert.equal(
+    crossDomainShopAttempt.canonicalUrl,
+    'https://www.scienceofgifts.com/products/hand-blown-two-tone-bedside-water-carafe-and-glass/'
+  );
+  // Non-www input URL on scienceofgifts.com normalizes cleanly to https://www.scienceofgifts.com
+  const nonWwwNormalized = resolveCanonicalUrl(
+    'https://scienceofgifts.com/gift-guides/',
+    '/gift-guides/'
+  );
+  assert.equal(
+    nonWwwNormalized.canonicalUrl,
+    'https://www.scienceofgifts.com/gift-guides/'
+  );
+  assert.equal(nonWwwNormalized.rejectedCrossDomainOverride, false);
+
+  // 10. Open Graph and Twitter metadata output (including independent ogTitle and ogDescription)
+  const socialOverrideSeo = resolvePageSeoMetadata({
+    onPageTitle: 'On-Page H1 Title',
+    subtitleOrSummary: 'Default summary.',
+    seo: {
+      seoTitle: 'Search Engine Title | Science of Gifts',
+      metaDescription: 'Search Engine Meta Description.',
+      ogTitle: 'Social Card Headline Override',
+      ogDescription: 'Social Card Description Override.',
+      ogImage: 'https://cdn.sanity.io/images/social-card.jpg',
+      canonicalPath: '/articles/sample-story/',
+      ogType: 'article',
+      schemaType: 'Article',
+    },
+    defaultCanonicalPath: '/articles/sample-story/',
+    defaultOgType: 'article',
+  });
+  assert.equal(socialOverrideSeo.ogTitle, 'Social Card Headline Override');
+  assert.equal(
+    socialOverrideSeo.ogDescription,
+    'Social Card Description Override.'
+  );
+  assert.equal(
+    socialOverrideSeo.ogImage,
+    'https://cdn.sanity.io/images/social-card.jpg'
+  );
+  assert.equal(socialOverrideSeo.twitterCard, 'summary_large_image');
+
+  // 11. noindex page behavior, draft page behavior & sample product preview behavior
+  const explicitNoindexSeo = resolvePageSeoMetadata({
+    onPageTitle: 'Theme Lab',
+    defaultCanonicalPath: '/dev/theme-lab/',
+    forceNoindex: true,
+  });
+  assert.equal(explicitNoindexSeo.noindex, true);
+  assert.equal(explicitNoindexSeo.robots, 'noindex, follow');
+  assert.equal(explicitNoindexSeo.indexing, 'noindex,follow');
+
+  const draftPageSeo = resolvePageSeoMetadata({
+    onPageTitle: 'Unpublished Draft Guide',
+    defaultCanonicalPath: '/gift-guides/draft-guide/',
+    status: 'draft',
+  });
+  assert.equal(draftPageSeo.noindex, true);
+  assert.equal(draftPageSeo.robots, 'noindex, follow');
+
+  // Sample products in catalog.ts resolve to noindex so previews work without indexing fake products
+  const sampleProductReadiness = evaluateProductCommerceReadiness(baseProduct);
+  assert.equal(sampleProductReadiness.isSampleOrPlaceholderProduct, true);
+  assert.equal(sampleProductReadiness.canEmitStructuredOffer, false);
+  assert.equal(sampleProductReadiness.canIndexProductPage, false);
+
+  const sampleProductSeo = resolvePageSeoMetadata({
+    onPageTitle: baseProduct.title,
+    defaultCanonicalPath: `/products/${baseProduct.slug}/`,
+    contentType: 'product',
+    vendor: baseProduct.vendor,
+    product: baseProduct,
+  });
+  assert.equal(
+    sampleProductSeo.noindex,
+    true,
+    'Sample product preview page must resolve to noindex'
+  );
+  assert.equal(sampleProductSeo.isSampleProductPreview, true);
+
+  // Verified non-sample product resolves to index, follow and can emit Offer
+  const verifiedProdRecord = {
+    ...baseProduct,
+    vendor: 'Atelier Verre',
+    purchaseUrl: 'https://atelierverre.com/products/bedside-carafe',
+    isPlaceholderLink: false,
+    isSampleProduct: false,
+    priceVerified: true,
+  };
+  const verifiedReadiness = evaluateProductCommerceReadiness(verifiedProdRecord);
+  assert.equal(verifiedReadiness.isSampleOrPlaceholderProduct, false);
+  assert.equal(verifiedReadiness.canEmitStructuredOffer, true);
+  assert.equal(verifiedReadiness.canIndexProductPage, true);
+  assert.equal(
+    verifiedReadiness.hasVerifiedInventoryAvailability,
+    false,
+    'Inventory availability must remain false unless inventoryVerified === true'
+  );
+
+  // 12. Prevention of accidental site-wide noindex via validateSeoAndIndexingSafety
+  const productionSafety = validateSeoAndIndexingSafety({
+    catalog: contentRepository.getCatalogSnapshot(),
+    categoryEntries: contentRepository.getAllCategorySeoEntries(),
+  });
+  assert.equal(
+    productionSafety.passed,
+    true,
+    'Normal production catalog must pass SEO & indexing safety check with zero errors'
+  );
+  assert.equal(productionSafety.noindexPublicRoutes, 0);
+  assert.equal(productionSafety.samplePreviewProductsNoindexCount, 13);
+  assert.ok(productionSafety.indexablePublicRoutes >= 27);
+
+  const simulatedGlobalNoindex = validateSeoAndIndexingSafety({
+    catalog: contentRepository.getCatalogSnapshot(),
+    simulateGlobalNoindexOverride: true,
+  });
+  assert.equal(simulatedGlobalNoindex.passed, false);
+  assert.ok(
+    simulatedGlobalNoindex.issues.some(
+      (i) => i.code === 'GLOBAL_NOINDEX_DEFAULT_DETECTED'
+    ),
+    'Safety guardrail must detect accidental site-wide noindex'
+  );
+
+  // 13. Dynamic XML sitemap excludes sample products, noindex, draft, /dev/, and filter URLs, and includes verified products
+  const sitemapEntries = buildXmlSitemapEntries({
+    catalog: contentRepository.getCatalogSnapshot(),
+    categoryEntries: contentRepository.getAllCategorySeoEntries(),
+    editorialHubs: contentRepository.getAllEditorialHubs({
+      includeDrafts: true,
+    }),
+  });
+  const sitemapLocs = sitemapEntries.map((e) => e.loc);
+  assert.ok(
+    sitemapLocs.every((url) => url.startsWith('https://www.scienceofgifts.com/')),
+    'All sitemap URLs must use https://www.scienceofgifts.com/'
+  );
+  // Sample products from seed catalog must NOT be included in production sitemap
+  for (const sampleProd of contentRepository.getAllProducts()) {
+    assert.ok(
+      !sitemapLocs.includes(
+        `https://www.scienceofgifts.com/products/${sampleProd.slug}/`
+      ),
+      `Sample product /products/${sampleProd.slug}/ must be excluded from production sitemap`
+    );
+  }
+  // Verified production product IS included in sitemap
+  const sitemapWithVerifiedProduct = buildXmlSitemapEntries({
+    catalog: {
+      ...contentRepository.getCatalogSnapshot(),
+      products: {
+        [verifiedProdRecord.id]: verifiedProdRecord,
+      },
+    },
+    categoryEntries: contentRepository.getAllCategorySeoEntries(),
+  });
+  assert.ok(
+    sitemapWithVerifiedProduct.some(
+      (e) =>
+        e.loc ===
+        `https://www.scienceofgifts.com/products/${verifiedProdRecord.slug}/`
+    ),
+    'Verified production product must be included in XML sitemap'
+  );
+
+  assert.ok(
+    !sitemapLocs.some((url) => url.includes('/dev/')),
+    'Sitemap must never include /dev/ routes'
+  );
+  assert.ok(
+    !sitemapLocs.some((url) => url.includes('?')),
+    'Sitemap must never include search or filter query parameter URLs'
+  );
+  assert.ok(
+    !sitemapLocs.some(
+      (url) =>
+        url.includes('/gifts-for-him/') || url.includes('/gifts-for-her/')
+    ),
+    'Sitemap must exclude draft/unready /gifts-for-him/ and /gifts-for-her/ editorial hubs'
+  );
+
+  const xmlString = generateXmlSitemap({
+    catalog: contentRepository.getCatalogSnapshot(),
+    categoryEntries: contentRepository.getAllCategorySeoEntries(),
+    editorialHubs: contentRepository.getAllEditorialHubs({
+      includeDrafts: true,
+    }),
+  });
+  assert.ok(
+    xmlString.startsWith('<?xml version="1.0" encoding="UTF-8"?>')
+  );
+  assert.ok(
+    xmlString.includes('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">')
+  );
+
+  const prodRobotsTxt = generateRobotsTxt({ allowIndexing: true });
+  assert.ok(prodRobotsTxt.includes('Allow: /'));
+  assert.ok(prodRobotsTxt.includes('Disallow: /dev/'));
+  assert.ok(
+    prodRobotsTxt.includes(
+      'Sitemap: https://www.scienceofgifts.com/sitemap.xml'
+    )
+  );
+  const stagingRobotsTxt = generateRobotsTxt({ allowIndexing: false });
+  assert.ok(stagingRobotsTxt.includes('Disallow: /'));
+
+  // 14. Structured Data (JSON-LD) accuracy across Homepage, Guides, Articles, Products, and Category Archives
+  const websiteLd = buildWebsiteJsonLd();
+  assert.equal(websiteLd['@graph'].length, 2);
+  assert.equal(websiteLd['@graph'][0]['@type'], 'Organization');
+  assert.equal(websiteLd['@graph'][1]['@type'], 'WebSite');
+  assert.equal(websiteLd.url, 'https://www.scienceofgifts.com');
+
+  const guideLd = buildGiftGuideJsonLd(baseGuide);
+  assert.equal(guideLd['@graph'][0]['@type'], 'BreadcrumbList');
+  assert.equal(guideLd['@graph'][1]['@type'], 'ItemList');
+  assert.equal(guideLd['@graph'][2]['@type'], 'Article');
+  assert.equal(guideLd['@graph'][2].headline, baseGuide.title);
+  // Sample products inside guide ItemList must not emit fake Offer URLs
+  for (const listItem of guideLd['@graph'][1].itemListElement ?? []) {
+    assert.equal(
+      (listItem.item as Record<string, unknown>).offers,
+      undefined,
+      'Sample product in Gift Guide ItemList must not emit structured Offer'
+    );
+  }
+
+  // Sample product JSON-LD omits offers
+  const sampleProductLd = buildProductJsonLd(baseProduct);
+  assert.equal(
+    sampleProductLd['@graph'][1].offers,
+    undefined,
+    'Sample product JSON-LD must not emit Offer'
+  );
+
+  // Verified affiliate product JSON-LD emits Offer without unverified stock availability
+  const affiliateProductLd = buildProductJsonLd(verifiedProdRecord);
+  assert.equal(
+    affiliateProductLd['@graph'][1].offers?.seller?.name,
+    'Atelier Verre',
+    'Affiliate product JSON-LD must attribute seller to the actual maker/vendor, not Science of Gifts'
+  );
+  assert.equal(
+    affiliateProductLd['@graph'][1].offers?.availability,
+    undefined,
+    'Verified product without inventoryVerified must not assert InStock'
+  );
+  assert.equal(
+    (affiliateProductLd['@graph'][1] as Record<string, unknown>)
+      .aggregateRating,
+    undefined,
+    'Product JSON-LD must never include fabricated aggregate ratings'
+  );
+
+  // Verified Fourthwall product with inventoryVerified === true emits Offer + availability + Science of Gifts Shop seller
+  const fourthwallProductLd = buildProductJsonLd({
+    ...verifiedProdRecord,
+    commerceProvider: 'fourthwall',
+    inventoryVerified: true,
+    inStock: true,
+  });
+  assert.equal(
+    fourthwallProductLd['@graph'][1].offers?.seller?.name,
+    'Science of Gifts Shop',
+    'Fourthwall first-party merchandise JSON-LD attributes seller to Science of Gifts Shop'
+  );
+  assert.equal(
+    fourthwallProductLd['@graph'][1].offers?.availability,
+    'https://schema.org/InStock'
+  );
+
+  const categoryArchiveLd = buildCategoryArchiveJsonLd({
+    archiveTitle: 'Gifts for Parents & In-Laws | Science of Gifts',
+    archiveDescription: 'Warm, usefulness-first gifts for parents.',
+    canonicalPath: '/gift-guides/recipients/parents/',
+    parentDirectoryLabel: 'Gift Guides',
+    parentDirectoryPath: '/gift-guides/',
+    items: [
+      {
+        name: baseGuide.title,
+        url: `/gift-guides/${baseGuide.slug}/`,
+        description: baseGuide.subtitle,
+      },
+    ],
+  });
+  assert.equal(categoryArchiveLd['@graph'][0]['@type'], 'BreadcrumbList');
+  assert.equal(categoryArchiveLd['@graph'][1]['@type'], 'CollectionPage');
+
+  // 15. Search and filter URLs do not create duplicate indexable pages
+  const filteredFinderSeo = resolvePageSeoMetadata({
+    onPageTitle: 'Interactive Gift Finder',
+    defaultCanonicalPath: '/gift-finder/',
+    seo: {
+      canonicalPath: '/gift-finder/?recipient=parent&maxPrice=50',
+    },
+    hasSearchOrFilterParams: true,
+  });
+  assert.equal(
+    filteredFinderSeo.canonicalPath,
+    '/gift-finder/',
+    'Filtered Gift Finder URL must canonicalize to /gift-finder/'
+  );
+  assert.equal(
+    filteredFinderSeo.canonicalUrl,
+    'https://www.scienceofgifts.com/gift-finder/'
+  );
+  assert.equal(
+    filteredFinderSeo.noindex,
+    true,
+    'Filtered Gift Finder query parameter state must resolve to noindex'
+  );
+
+  // 16. Editorial Hubs (/gifts-for-him/ and /gifts-for-her/) readiness gating, legacy /gifts-for-men/ & /gifts-for-women/ preservation, and no broken nav links
+  assert.equal(PLANNED_LAUNCH_REDIRECT_MAPPINGS.length, 2);
+  assert.deepEqual(
+    PLANNED_LAUNCH_REDIRECT_MAPPINGS.map((m) => ({
+      from: m.fromPath,
+      to: m.toPath,
+      code: m.statusCode,
+      launchOnly: m.applyOnLaunchOnly,
+    })),
+    [
+      {
+        from: '/gifts-for-men/',
+        to: '/gifts-for-him/',
+        code: 301,
+        launchOnly: true,
+      },
+      {
+        from: '/gifts-for-women/',
+        to: '/gifts-for-her/',
+        code: 301,
+        launchOnly: true,
+      },
+    ]
+  );
+
+  const draftHubs = contentRepository.getAllEditorialHubs({
+    includeDrafts: true,
+  });
+  assert.equal(draftHubs.length, 2);
+  const publicallyExposedHubs = contentRepository.getAllEditorialHubs();
+  assert.equal(
+    publicallyExposedHubs.length,
+    0,
+    'Draft editorial hubs must not be exposed as published hubs until ready'
+  );
+  for (const hub of draftHubs) {
+    const readiness = evaluateEditorialHubReadiness(
+      hub,
+      contentRepository.getCatalogSnapshot()
+    );
+    assert.equal(readiness.isReadyToPublish, false);
+    assert.equal(readiness.isIndexable, false);
+    assert.equal(
+      readiness.legacyUrlPreservationConfigured,
+      true,
+      `Hub ${hub.slug} must have legacy production URL redirect preservation configured`
+    );
+    assert.equal(readiness.plannedRedirectMappings.length, 1);
+    assert.ok(readiness.missingRequirements.length >= 2);
+  }
+
+  const baseLayoutSource = fs.readFileSync(
+    path.join(process.cwd(), 'src/layouts/BaseLayout.astro'),
+    'utf-8'
+  );
+  const footerSource = fs.readFileSync(
+    path.join(process.cwd(), 'src/components/EditorialFooter.astro'),
+    'utf-8'
+  );
+  assert.ok(
+    !baseLayoutSource.includes('/gifts-for-him') &&
+      !baseLayoutSource.includes('/gifts-for-her') &&
+      !footerSource.includes('/gifts-for-him') &&
+      !footerSource.includes('/gifts-for-her'),
+    'Navigation and footer must not contain broken links to unpublished /gifts-for-him/ or /gifts-for-her/ hubs'
+  );
+});
 

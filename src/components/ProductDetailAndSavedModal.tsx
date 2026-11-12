@@ -76,9 +76,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           <div className="md:col-span-6 space-y-3">
             <div className="aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#F3ECE1]">
               <PhotoImage
+                image={primaryImage}
                 src={primaryImage.url}
                 alt={primaryImage.alt}
                 fallbackColor={primaryImage.fallbackColor}
+                preset="modal-portrait"
+                aspectRatio="4:5"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -625,9 +628,14 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       className="w-16 h-16 rounded-xl overflow-hidden shrink-0 cursor-pointer bg-[#F3ECE1]"
                     >
                       <PhotoImage
+                        image={product.images[0]}
                         src={product.images[0]?.url}
                         alt={product.images[0]?.alt}
                         fallbackColor={product.images[0]?.fallbackColor}
+                        preset="thumbnail-sm"
+                        aspectRatio="1:1"
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     </div>

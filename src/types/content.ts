@@ -28,12 +28,21 @@ export type PersonalityTrait =
 
 export type AgeRange = 'kids' | 'young-adult' | 'adult' | 'parents-grandparents' | 'all-ages';
 
+export type RobotsIndexingDirective = 'index,follow' | 'noindex,follow';
+
+export type ContentPublishStatus = 'published' | 'draft';
+
 export interface SEOConfig {
   seoTitle: string;
   metaDescription: string;
   canonicalPath: string;
-  ogType: 'website' | 'article';
-  schemaType: 'WebSite' | 'Article' | 'ItemList';
+  ogType: 'website' | 'article' | 'product';
+  schemaType: 'WebSite' | 'Article' | 'ItemList' | 'Product' | 'CollectionPage';
+  ogTitle?: string;
+  ogDescription?: string;
+  ogImage?: string;
+  noindex?: boolean;
+  indexing?: RobotsIndexingDirective;
 }
 
 export interface Author {
@@ -57,6 +66,24 @@ export interface ResearchCitation {
   verificationStatus?: 'verified-doi' | 'sample-fixture';
 }
 
+export interface ImageFocalPoint {
+  /** Horizontal focal coordinate from 0 (left) to 1 (right). Defaults to 0.5. Compatible with Sanity image hotspot.x */
+  x: number;
+  /** Vertical focal coordinate from 0 (top) to 1 (bottom). Defaults to 0.5. Compatible with Sanity image hotspot.y */
+  y: number;
+}
+
+export interface ImageCropBox {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+export type ProductImageFitMode = 'cover' | 'contain';
+
+export type ProductImageAspectRatio = '1:1' | '4:5' | '4:3' | '16:10';
+
 export interface ProductImage {
   id: string;
   url: string;
@@ -64,6 +91,20 @@ export interface ProductImage {
   alt: string;
   caption?: string;
   isSampleAsset?: boolean;
+  /** Normalized focal point (0 to 1) used for automatic aspect-ratio cropping and CSS object-position */
+  focalPoint?: ImageFocalPoint;
+  /** Optional Sanity-compatible crop bounds */
+  crop?: ImageCropBox;
+  /** Controls whether the image fills the frame ('cover', default) or scales inside with padding ('contain') */
+  fitMode?: ProductImageFitMode;
+  /** Optional manually composed landscape image override used for 4:3 or 16:10 placements */
+  landscapeOverrideUrl?: string;
+  /** Optional manually composed portrait image override used for 4:5 placements */
+  portraitOverrideUrl?: string;
+  /** Optional intrinsic master pixel width (standard: 2400) */
+  width?: number;
+  /** Optional intrinsic master pixel height (standard: 2400) */
+  height?: number;
 }
 
 export interface ProductGiftVerdict {
@@ -114,6 +155,7 @@ export interface Product {
   slug: string;
   title: string;
   subtitle: string;
+  status?: ContentPublishStatus;
   vendor: string;
   price: number;
   currency: 'USD';
@@ -123,6 +165,9 @@ export interface Product {
   commerceProvider: CommerceProvider;
   purchaseUrl: string;
   isPlaceholderLink?: boolean;
+  isSampleProduct?: boolean;
+  priceVerified?: boolean;
+  inventoryVerified?: boolean;
   inStock: boolean;
   calloutTag?: string;
   whyToGiveIt: string;
@@ -262,11 +307,20 @@ export interface GuideBuyingTip {
   expandableDetails?: string;
 }
 
+export type ArticleTopicId =
+  | 'gift-giving-psychology'
+  | 'relationships'
+  | 'decision-making'
+  | 'gift-etiquette'
+  | 'culture'
+  | 'practical-gifting-advice';
+
 export interface GiftGuide {
   id: string;
   slug: string;
   title: string;
   subtitle: string;
+  status?: ContentPublishStatus;
   editorialIssueNumber?: string;
   curationSummary?: string;
   introParagraphs?: string[];
@@ -274,6 +328,13 @@ export interface GiftGuide {
   affiliateDisclosure: string;
   seo: SEOConfig;
   category: string;
+  featured?: boolean;
+  recipients?: RecipientType[];
+  occasions?: OccasionType[];
+  interests?: string[];
+  personalityTraits?: PersonalityTrait[];
+  budgetTiers?: BudgetTier[];
+  topics?: string[];
   publishedAt: string;
   updatedAt: string;
   readTimeMinutes: number;
@@ -354,8 +415,13 @@ export interface Article {
   slug: string;
   title: string; // On-page H1
   subtitle: string; // Dek
+  status?: ContentPublishStatus;
   seo: SEOConfig;
   category: string;
+  featured?: boolean;
+  topics?: ArticleTopicId[];
+  recipients?: RecipientType[];
+  occasions?: OccasionType[];
   publishedAt: string;
   updatedAt?: string;
   readTimeMinutes?: number; // Calculated dynamically from actual content if omitted or overridden
@@ -400,3 +466,64 @@ export interface ValidationIssue {
   entityId: string;
   message: string;
 }
+
+export interface DirectoryOrCategorySEOEntry {
+  slug: string;
+  routePath: string;
+  title: string;
+  subtitle: string;
+  seo?: Partial<SEOConfig>;
+  status?: ContentPublishStatus;
+}
+
+export interface EditorialHubRelationshipPathway {
+  id: string;
+  label: string;
+  relationshipSlug: string;
+  description: string;
+  recipientFilter?: RecipientType;
+  interestFilter?: string;
+  giftFinderHref: string;
+}
+
+export interface EditorialHubBudgetBracket {
+  id: string;
+  label: string;
+  priceRangeLabel: string;
+  maxPrice?: number;
+  minPrice?: number;
+  description: string;
+  giftFinderHref: string;
+}
+
+export interface PlannedRedirectMapping {
+  fromPath: string;
+  toPath: string;
+  statusCode: 301 | 308;
+  applyOnLaunchOnly: boolean;
+  reason: string;
+}
+
+export interface EditorialHubConfig {
+  id: string;
+  slug: 'gifts-for-him' | 'gifts-for-her' | string;
+  routePath: string;
+  /** Existing production URL paths (e.g. /gifts-for-men/, /gifts-for-women/) that must be preserved or 301-redirected on launch */
+  legacyProductionPaths?: string[];
+  /** Recorded redirect mappings for future hub launch (recorded now, applied at launch) */
+  plannedRedirectMappings?: PlannedRedirectMapping[];
+  title: string;
+  subtitle: string;
+  editorialPositioning: string;
+  status: ContentPublishStatus;
+  seo: SEOConfig;
+  relationshipPathways: EditorialHubRelationshipPathway[];
+  interestSlugs: string[];
+  budgetBrackets: EditorialHubBudgetBracket[];
+  curatedGuideIds: string[];
+  featuredProductIds: string[];
+  buyingAdvice: GuideBuyingTip[];
+  minimumRequiredGuides: number;
+  minimumRequiredProducts: number;
+}
+

@@ -146,11 +146,11 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
       {/* Open Chapter Header */}
       <div className="border-b border-[#E3E1DB] pb-5">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-semibold text-[#28537D]">
+          <p className="theme-kicker text-xs font-semibold text-[#28537D]">
             {section.editorialKicker ||
               `Chapter 0${chapterIndex + 1} · ${section.priceRangeLabel}`}
           </p>
-          <span className="text-xs font-medium text-[#636A6F] tabular-nums">
+          <span className="theme-metadata text-xs font-medium text-[#636A6F] tabular-nums">
             {validRecommendations.length}{' '}
             {validRecommendations.length === 1
               ? 'recommendation'
@@ -161,12 +161,12 @@ export const GuideBudgetSection: React.FC<GuideBudgetSectionProps> = ({
 
         <h2
           id={`heading-${section.id}`}
-          className="mt-1.5 font-serif text-2xl font-semibold leading-tight text-[#24282B] sm:text-3xl"
+          className="theme-section-heading mt-1.5 font-serif text-2xl font-semibold leading-tight text-[#24282B] sm:text-3xl"
         >
           {section.title}
         </h2>
 
-        <p className="mt-2.5 max-w-3xl text-sm leading-[1.75] text-[#636A6F] sm:text-base">
+        <p className="theme-intro-text mt-2.5 max-w-3xl text-sm leading-[1.75] text-[#636A6F] sm:text-base">
           {section.summary}
         </p>
       </div>

@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import path from 'node:path';
 
 export default defineConfig({
-  site: 'https://scienceofgifts.com',
+  site: 'https://www.scienceofgifts.com',
   output: 'static',
   trailingSlash: 'ignore',
   build: {

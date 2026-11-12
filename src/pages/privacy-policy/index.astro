@@ -1,0 +1,71 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  GIFT_LISTS_STORAGE_KEY,
+  RECIPIENT_NOTES_STORAGE_KEY,
+  SAVED_GIFTS_STORAGE_KEY,
+} from '../../utils/savedGiftsStore';
+import {
+  PublicationInfoPageView,
+  type PublicationInfoSection,
+} from '../../components/PublicationInfoPageView';
+
+const sections: PublicationInfoSection[] = [
+  {
+    id: 'overview',
+    heading: '1. Overview of Current Website Data Practices',
+    paragraphs: [
+      'This Privacy Policy describes the actual technical behavior and data practices of the Science of Gifts editorial website (scienceofgifts.com) in its current static Astro architecture.',
+      'Science of Gifts does not require user accounts, passwords, or registration to read gift guides, browse stories, use the Interactive Gift Finder, or save gift lists.',
+    ],
+  },
+  {
+    id: 'local-browser-storage',
+    heading: '2. Browser-Local Storage (Saved Gifts & Recipient Notes)',
+    paragraphs: [
+      'When you save a gift, create a named gift list, mark an item as purchased, or write a personal recipient note, that information is stored exclusively in your own web browser using standard HTML5 localStorage. It is not transmitted to a Science of Gifts database or included in shareable Gift Finder URLs.',
+    ],
+    bullets: [
+      `${SAVED_GIFTS_STORAGE_KEY}: Stores the canonical product IDs in your default saved shortlist.`,
+      `${GIFT_LISTS_STORAGE_KEY}: Stores your named gift lists, list item IDs, and purchased checkboxes.`,
+      `${RECIPIENT_NOTES_STORAGE_KEY}: Stores optional personal notes you attach to saved gifts.`,
+    ],
+  },
+  {
+    id: 'third-party-services',
+    heading: '3. Fonts, External Retailer Links & Fourthwall Store',
+    paragraphs: [
+      'Typography on Science of Gifts is loaded via Google Fonts stylesheets (fonts.googleapis.com and fonts.gstatic.com), which may receive standard HTTP request headers (such as IP address and browser user-agent) when delivering font files.',
+      'When you click an outbound link to a third-party retailer or visit the Science of Gifts Shop (shop.scienceofgifts.com, hosted on Fourthwall), you leave this editorial website and become subject to the privacy and cookie policies of that destination service.',
+    ],
+    ownerReviewNote:
+      'Review and confirm whether any web analytics provider (e.g., Plausible, Cloudflare Web Analytics, Google Analytics), affiliate tracking pixels, or cookie consent banners will be enabled in production.',
+  },
+  {
+    id: 'contact-and-rights',
+    heading: '4. Reader Inquiries & Legal Jurisdiction',
+    paragraphs: [
+      'You can clear your saved gift lists and notes at any time directly within the Saved Gifts drawer or by clearing your browser’s site data for scienceofgifts.com.',
+    ],
+    ownerReviewNote:
+      'Insert your verified legal entity name, governing jurisdiction, and privacy contact email address before final legal publication.',
+  },
+];
+---
+
+<BaseLayout
+  title="Privacy Policy — Data & Browser Storage Practices | Science of Gifts"
+  description="Learn how Science of Gifts handles browser-local Saved Gifts storage, external merchant links, and reader privacy."
+  canonicalPath="/privacy-policy/"
+  ogType="website"
+>
+  <PublicationInfoPageView
+    currentPath="/privacy-policy/"
+    kicker="Privacy & Data Transparency"
+    title="Privacy Policy"
+    subtitle="A factual summary of how Science of Gifts operates in your browser, with items flagged for owner legal review prior to production cutover."
+    lastUpdated="November 2026"
+    ownerReviewSummary="This draft reflects the exact technical behavior of the current codebase (browser-only localStorage for Saved Gifts, static page delivery, Google Fonts, and outbound links to merchants and Fourthwall). Sections requiring owner confirmation—such as production analytics, affiliate network cookies, and legal entity details—are explicitly marked below."
+    sections={sections}
+  />
+</BaseLayout>

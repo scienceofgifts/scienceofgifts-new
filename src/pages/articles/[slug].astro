@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { contentRepository } from '../../cms/contentRepository';
-import { buildArticleJsonLd } from '../../utils/seoAndValidation';
+import {
+  buildArticleJsonLd,
+  resolvePageSeoMetadata,
+} from '../../utils/seoAndValidation';
 import { ArticleInteractiveIsland } from '../../components/islands/AstroIslands';
 import type { Article } from '../../types/content';
 
@@ -19,15 +22,30 @@ interface Props {
 
 const { article } = Astro.props;
 const catalog = contentRepository.getCatalogSnapshot();
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: article.title,
+  subtitleOrSummary: article.subtitle,
+  seo: article.seo,
+  defaultCanonicalPath: `/articles/${article.slug}/`,
+  defaultOgType: 'article',
+  defaultOgImage: article.heroImageUrl,
+  contentType: 'article',
+  status: article.status,
+});
 const articleJsonLd = buildArticleJsonLd(article, catalog);
 ---
 
 <BaseLayout
-  title={article.seo.seoTitle}
-  description={article.seo.metaDescription}
-  canonicalPath={`/articles/${article.slug}/`}
-  ogType={article.seo.ogType}
-  ogImage={article.heroImageUrl}
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
   jsonLd={articleJsonLd}
   activeSection="articles"
   pageBgClass="bg-[#FAF7F2]"

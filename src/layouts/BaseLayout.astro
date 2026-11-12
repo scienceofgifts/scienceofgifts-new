@@ -1,18 +1,31 @@
 ---
 import '../index.css';
 import { contentRepository } from '../cms/contentRepository';
+import { SHOP_EXTERNAL_URL } from '../config/navigationConfig';
+import EditorialFooter from '../components/EditorialFooter.astro';
 import {
   HeaderSavedButtonIsland,
-  FooterSavedActionsIsland,
+  MobileNavigationIsland,
   GlobalOverlaysIsland,
 } from '../components/islands/AstroIslands';
+
+import {
+  DEFAULT_OG_IMAGE_URL,
+  resolveCanonicalUrl,
+  type ResolvedPageSeoMetadata,
+} from '../utils/seoAndValidation';
 
 export interface Props {
   title: string;
   description: string;
   canonicalPath: string;
-  ogType?: 'website' | 'article';
+  ogType?: 'website' | 'article' | 'product';
+  ogTitle?: string;
+  ogDescription?: string;
   ogImage?: string;
+  noindex?: boolean;
+  robots?: 'index, follow' | 'noindex, follow';
+  seo?: ResolvedPageSeoMetadata;
   jsonLd?: Record<string, unknown>;
   activeSection?: 'home' | 'guides' | 'articles' | 'products' | 'finder';
   pageBgClass?: string;
@@ -23,21 +36,33 @@ const {
   description,
   canonicalPath,
   ogType = 'website',
-  ogImage = 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1400&q=85',
+  ogTitle,
+  ogDescription,
+  ogImage = DEFAULT_OG_IMAGE_URL,
+  noindex = false,
+  robots,
+  seo,
   jsonLd,
   activeSection = 'home',
   pageBgClass = 'bg-[#FAF9F6]',
 } = Astro.props;
 
-const canonicalUrl = canonicalPath.startsWith('http')
-  ? canonicalPath
-  : `https://scienceofgifts.com${canonicalPath}`;
+const effectiveTitle = seo?.seoTitle ?? title;
+const effectiveDescription = seo?.metaDescription ?? description;
+const { canonicalUrl } = resolveCanonicalUrl(
+  seo?.canonicalPath ?? canonicalPath,
+  canonicalPath
+);
+const effectiveOgType = seo?.ogType ?? ogType;
+const effectiveOgTitle = seo?.ogTitle ?? ogTitle ?? effectiveTitle;
+const effectiveOgDescription =
+  seo?.ogDescription ?? ogDescription ?? effectiveDescription;
+const effectiveOgImage = seo?.ogImage ?? ogImage;
+const effectiveNoindex = Boolean(seo?.noindex ?? noindex);
+const effectiveRobots =
+  seo?.robots ?? robots ?? (effectiveNoindex ? 'noindex, follow' : 'index, follow');
 
-const guides = contentRepository.getAllGiftGuides();
-const articles = contentRepository.getAllArticles();
 const productsMap = contentRepository.getCatalogSnapshot().products;
-const featuredGuide = guides[0];
-const featuredArticle = articles[0];
 ---
 
 <!doctype html>
@@ -45,29 +70,30 @@ const featuredArticle = articles[0];
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <title>{effectiveTitle}</title>
+    <meta name="description" content={effectiveDescription} />
+    <meta name="robots" content={effectiveRobots} />
     <link rel="canonical" href={canonicalUrl} />
 
     <!-- OpenGraph Metadata -->
     <meta property="og:site_name" content="Science of Gifts" />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={effectiveOgTitle} />
+    <meta property="og:description" content={effectiveOgDescription} />
+    <meta property="og:type" content={effectiveOgType} />
     <meta property="og:url" content={canonicalUrl} />
-    <meta property="og:image" content={ogImage} />
+    <meta property="og:image" content={effectiveOgImage} />
 
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content={ogImage} />
+    <meta name="twitter:title" content={effectiveOgTitle} />
+    <meta name="twitter:description" content={effectiveOgDescription} />
+    <meta name="twitter:image" content={effectiveOgImage} />
 
-    <!-- Editorial Google Fonts -->
+    <!-- Editorial Google Fonts (Matches src/styles/site-theme.css) -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=JetBrains+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..600&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400..700;1,400..600&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Playfair+Display:ital,wght@0,400..700;1,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400..700;1,400..600&display=swap"
       rel="stylesheet"
     />
 
@@ -85,164 +111,95 @@ const featuredArticle = articles[0];
   >
     <!-- =====================================================================
          TOP NAVIGATION BAR (Calm Magazine Masthead)
+         Structure: Science of Gifts | Gift Guides | Stories | Shop | Saved Gifts | Find a Gift
         ===================================================================== -->
     <header class="sticky top-0 z-30 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E3E1DB]">
-      <div class="max-w-7xl mx-auto flex items-center justify-between gap-8 px-6 py-4">
+      <div class="relative max-w-7xl mx-auto flex items-center justify-between gap-8 px-6 py-4">
         <!-- Zone 1: Brand Wordmark -->
         <a
           href="/"
-          class="text-2xl font-serif font-semibold tracking-tight text-[#24282B] whitespace-nowrap shrink-0"
+          class="text-2xl font-serif font-semibold tracking-tight text-[#24282B] whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
         >
           Science of Gifts
         </a>
 
-        <!-- Zone 2: 5 Single-Line Navigation Links -->
+        <!-- Zone 2: Desktop Primary Navigation Links -->
         <nav
           aria-label="Primary Navigation"
-          class="hidden md:flex items-center gap-7 text-sm font-medium text-[#24282B]"
+          class="hidden md:flex items-center gap-8 theme-nav-link"
         >
           <a
-            href={`/gift-guides/${featuredGuide.slug}/`}
-            class={`hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 ${
+            href="/gift-guides/"
+            aria-current={activeSection === 'guides' ? 'page' : undefined}
+            class={`theme-nav-link hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
               activeSection === 'guides'
-                ? 'text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
+                ? 'theme-nav-link-active text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
                 : 'text-[#24282B]'
             }`}
           >
             Gift Guides
           </a>
           <a
-            href="/gift-finder/"
-            class={`hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 ${
-              activeSection === 'finder'
-                ? 'text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
-                : 'text-[#24282B]'
-            }`}
-          >
-            Gift Finder
-          </a>
-          <a
-            href="/gift-finder/?maxPrice=50"
-            class="text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0"
-          >
-            Under $50
-          </a>
-          <a
-            href={`/articles/${featuredArticle.slug}/`}
-            class={`hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 ${
+            href="/articles/"
+            aria-current={activeSection === 'articles' ? 'page' : undefined}
+            class={`theme-nav-link hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
               activeSection === 'articles'
-                ? 'text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
+                ? 'theme-nav-link-active text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
                 : 'text-[#24282B]'
             }`}
           >
             Stories
           </a>
+          <a
+            href={SHOP_EXTERNAL_URL}
+            class="theme-nav-link inline-flex items-center gap-1.5 text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              class="h-4 w-4 shrink-0 text-[#1B3D5F]"
+            >
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            <span>Shop</span>
+          </a>
           <HeaderSavedButtonIsland client:idle variant="desktop" />
         </nav>
 
-        <!-- Zone 3: 1 Primary CTA -->
-        <div class="flex items-center shrink-0">
+        <!-- Zone 3: Desktop Primary CTA & Mobile Accessible Navigation -->
+        <div class="flex items-center gap-3 shrink-0">
           <a
             href="/gift-finder/"
-            class="px-4 py-2 text-xs font-semibold text-[#FFFFFF] bg-[#1B3D5F] rounded-lg hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0"
+            aria-current={activeSection === 'finder' ? 'page' : undefined}
+            class={`hidden md:inline-flex theme-btn-primary theme-button-text px-4 py-2 text-xs font-semibold text-[#FFFFFF] bg-[#1B3D5F] rounded-lg hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+              activeSection === 'finder' ? 'ring-2 ring-[#28537D] ring-offset-2' : ''
+            }`}
           >
             Find a Gift
           </a>
+
+          <MobileNavigationIsland client:load activeSection={activeSection} />
         </div>
       </div>
     </header>
-
-    <!-- Mobile Secondary Navigation Strip -->
-    <nav
-      aria-label="Mobile navigation"
-      class="md:hidden bg-[#FFFFFF] border-b border-[#E3E1DB] px-6 py-2.5 flex items-center gap-5 overflow-x-auto text-xs font-medium text-[#24282B]"
-    >
-      <a href="/" class="whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline">
-        Home
-      </a>
-      <a
-        href={`/gift-guides/${featuredGuide.slug}/`}
-        class="whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline"
-      >
-        Little Things Guide
-      </a>
-      <a href="/gift-finder/" class="whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline">
-        Gift Finder
-      </a>
-      <a
-        href={`/articles/${featuredArticle.slug}/`}
-        class="whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline"
-      >
-        Stories
-      </a>
-      <HeaderSavedButtonIsland client:idle variant="mobile" />
-    </nav>
 
     <!-- Main Page Content Slot -->
     <main class="flex-1">
       <slot />
     </main>
 
-    <!-- =====================================================================
-         EDITORIAL FOOTER
-        ===================================================================== -->
-    <footer class="bg-[#FFFFFF] text-[#24282B] border-t border-[#E3E1DB]">
-      <div class="max-w-7xl mx-auto px-6 py-14 grid grid-cols-1 md:grid-cols-12 gap-10">
-        <div class="md:col-span-5 space-y-3">
-          <a
-            href="/"
-            class="inline-block text-2xl font-serif font-semibold tracking-tight text-[#24282B]"
-          >
-            Science of Gifts
-          </a>
-          <p class="text-sm text-[#636A6F] leading-relaxed max-w-sm">
-            A magazine and gift-discovery publication dedicated to thoughtful giving, memorable objects, and the human stories behind why we give.
-          </p>
-        </div>
-
-        <div class="md:col-span-4 space-y-2 text-sm">
-          <div class="text-xs font-semibold text-[#636A6F] mb-3">
-            Guides & Essays
-          </div>
-          <ul class="space-y-2.5 text-sm">
-            {
-              guides.map((guide) => (
-                <li>
-                  <a
-                    href={`/gift-guides/${guide.slug}/`}
-                    class="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left block"
-                  >
-                    {guide.title}
-                  </a>
-                </li>
-              ))
-            }
-            {
-              articles.map((article) => (
-                <li>
-                  <a
-                    href={`/articles/${article.slug}/`}
-                    class="text-[#28537D] hover:text-[#1B3D5F] hover:underline text-left block"
-                  >
-                    {article.title}
-                  </a>
-                </li>
-              ))
-            }
-          </ul>
-        </div>
-
-        <div class="md:col-span-3 space-y-3 text-sm">
-          <div class="text-xs font-semibold text-[#636A6F] mb-2">
-            Saved Shortlist
-          </div>
-          <p class="text-xs text-[#636A6F] leading-relaxed">
-            Bookmark favorite ideas as you browse; your shortlist stays saved in your browser.
-          </p>
-          <FooterSavedActionsIsland client:visible />
-        </div>
-      </div>
-    </footer>
+    <!-- Shared Multi-Column Editorial Publication Footer -->
+    <EditorialFooter />
 
     <!-- Shared Overlays Island (Product Quick-View Modal, Saved List Drawer, Technical Spec Modal) -->
     <GlobalOverlaysIsland client:idle productsMap={productsMap} />

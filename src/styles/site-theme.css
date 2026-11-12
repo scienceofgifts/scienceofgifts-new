@@ -1,0 +1,140 @@
+/**
+ * ============================================================================
+ * SCIENCE OF GIFTS — CENTRALIZED VISUAL DESIGN SETTINGS
+ * File: src/styles/site-theme.css
+ * ============================================================================
+ *
+ * HOW TO USE THIS FILE (QUICK GUIDE FOR MANUAL EDITING):
+ *
+ * This is the single source of truth for the website's fonts, text sizes,
+ * line heights, colors, and layout spacing across all Gift Guides, Product
+ * Profiles, Stories, and the Gift Finder.
+ * ============================================================================
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..600&family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Lora:ital,wght@0,400..700;1,400..600&family=Newsreader:ital,opsz,wght@0,6..72,400..700;1,6..72,400..600&family=Playfair+Display:ital,wght@0,400..700;1,400..600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Sans+3:ital,wght@0,400..700;1,400..600&display=swap');
+
+:root {
+  /* ==========================================================================
+   * SECTION A: FONT FAMILIES
+   * ========================================================================== */
+  --theme-font-display: 'Fraunces', Georgia, serif;
+  --theme-font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --theme-font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --theme-font-mono: 'JetBrains Mono', monospace;
+
+  /* ==========================================================================
+   * SECTION B: TYPOGRAPHY SIZES
+   * ========================================================================== */
+  --theme-size-display-heading: clamp(2.15rem, 3.8vw, 3.25rem);
+  --theme-size-page-title: clamp(1.875rem, 3.1vw, 2.75rem);
+  --theme-size-section-heading: clamp(1.5rem, 2.2vw, 1.875rem);
+  --theme-size-subsection-heading: clamp(1.1875rem, 1.5vw, 1.375rem);
+  --theme-size-info-heading: 1.0625rem;
+  --theme-size-info-label: 0.95rem;
+  --theme-size-product-title: clamp(1.125rem, 1.35vw, 1.25rem);
+  --theme-size-product-title-featured: clamp(1.375rem, 1.9vw, 1.65rem);
+  --theme-size-intro: clamp(1.0625rem, 1.3vw, 1.25rem);
+  --theme-size-body: 0.9375rem;
+  --theme-size-body-sm: 0.875rem;
+  --theme-size-caption: 0.75rem;
+  --theme-size-metadata: 0.75rem;
+  --theme-size-nav: 0.875rem;
+  --theme-size-button: 0.75rem;
+  --theme-size-sidebar-link: 0.75rem;
+
+  /* ==========================================================================
+   * SECTION C: TYPOGRAPHY CHARACTERISTICS (WEIGHTS, LINE HEIGHTS, SPACING)
+   * ========================================================================== */
+  --theme-weight-heading: 600;
+  --theme-weight-subheading: 600;
+  --theme-weight-info-heading: 600;
+  --theme-weight-product-title: 600;
+  --theme-weight-body: 400;
+  --theme-weight-nav: 500;
+  --theme-weight-button: 600;
+  --theme-weight-metadata: 600;
+
+  --theme-leading-display: 1.12;
+  --theme-leading-heading: 1.24;
+  --theme-leading-subheading: 1.35;
+  --theme-leading-intro: 1.62;
+  --theme-leading-body: 1.72;
+  --theme-leading-compact: 1.55;
+
+  --theme-tracking-heading: -0.015em;
+  --theme-tracking-body: 0em;
+  --theme-tracking-kicker: 0.04em;
+
+  /* ==========================================================================
+   * SECTION D: PRINCIPAL COLORS
+   * ========================================================================== */
+  --theme-color-page-bg: #FAF9F6;
+  --theme-color-page-bg-warm: #FAF7F2;
+  --theme-color-surface: #FFFFFF;
+  --theme-color-surface-subtle: #F6F4EF;
+  --theme-color-surface-warm: #F3ECE1;
+
+  --theme-color-text-primary: #111;
+  --theme-color-text-secondary: #222;
+  --theme-color-text-muted: #636A6F;
+
+  --theme-color-heading: var(--theme-color-text-primary);
+  --theme-color-subheading: var(--theme-color-text-primary);
+  --theme-color-info-heading: var(--theme-color-text-primary);
+  --theme-color-product-title: var(--theme-color-text-primary);
+  --theme-color-body: var(--theme-color-text-primary);
+  --theme-color-intro: var(--theme-color-text-secondary);
+  --theme-color-caption: var(--theme-color-text-secondary);
+
+  --theme-color-brand-primary: #111;
+  --theme-color-link: #3771c8;
+  --theme-color-link-hover: #111;
+  --theme-color-nav: var(--theme-color-text-primary);
+  --theme-color-nav-active: var(--theme-color-brand-primary);
+  --theme-color-sidebar-link: var(--theme-color-text-secondary);
+  --theme-color-sidebar-link-active: var(--theme-color-brand-primary);
+  --theme-color-button-bg: #111;
+  --theme-color-button-bg-hover: #28537D;
+  --theme-color-button-text: #FFFFFF;
+
+  --theme-color-border: #E3E1DB;
+  --theme-color-border-strong: #C5C1B8;
+
+  --theme-color-accent-mint-bg: #E5F3EC;
+  --theme-color-accent-mint-border: #C6E4D6;
+  --theme-color-accent-mint-bright: #C3F3DF;
+  --theme-color-accent-butter-bg: #FFF4D6;
+  --theme-color-accent-blue-bg: #EBF3FE;
+  --theme-color-accent-coral: #F2846B;
+
+  /* ==========================================================================
+   * SECTION E: COMMON VISUAL PROPERTIES (RADII, SPACING, CONTENT WIDTHS)
+   * ========================================================================== */
+  --theme-radius-sm: 0.5rem;
+  --theme-radius-md: 0.75rem;
+  --theme-radius-lg: 1rem;
+  --theme-radius-xl: 1.5rem;
+
+  --theme-space-section-y: 3.5rem;
+  --theme-space-card-padding: 1.5rem;
+
+  --theme-width-site-max: 1360px;
+  --theme-width-profile-max: 1280px;
+  --theme-width-reading-measure: 68ch;
+
+  /* Legacy variable aliases */
+  --font-serif: var(--theme-font-display);
+  --font-sans: var(--theme-font-body);
+  --font-mono: var(--theme-font-mono);
+
+  --color-editorial-canvas: var(--theme-color-page-bg);
+  --color-paper-surface: var(--theme-color-surface);
+  --color-paper-subtle: var(--theme-color-surface-subtle);
+  --color-ink-primary: var(--theme-color-text-primary);
+  --color-ink-secondary: var(--theme-color-text-secondary);
+  --color-brand-navy: var(--theme-color-brand-primary);
+  --color-interactive-blue: var(--theme-color-link);
+  --color-mint-subtle: var(--theme-color-accent-mint-bg);
+  --color-border-soft: var(--theme-color-border);
+}

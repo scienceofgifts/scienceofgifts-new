@@ -60,7 +60,7 @@ export class LocalCMSContentStore {
     this.siteSettings = {
       id: 'site_settings_singleton',
       siteName: 'Science of Gifts',
-      siteOrigin: 'https://scienceofgifts.com',
+      siteOrigin: 'https://www.scienceofgifts.com',
       defaultAffiliateDisclosure:
         'Science of Gifts is reader-supported. When you buy through links on our site, we may earn an affiliate commission at no extra cost to you.',
     };

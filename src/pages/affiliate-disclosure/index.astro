@@ -1,0 +1,64 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  AFFILIATE_DISCLOSURE_CONFIG,
+  SHOP_EXTERNAL_URL,
+  SHOP_RETURNS_FAQ_URL,
+} from '../../config/navigationConfig';
+import {
+  PublicationInfoPageView,
+  type PublicationInfoSection,
+} from '../../components/PublicationInfoPageView';
+
+const sections: PublicationInfoSection[] = [
+  {
+    id: 'how-affiliate-links-work',
+    heading: 'How Third-Party Affiliate Links Work',
+    paragraphs: [
+      AFFILIATE_DISCLOSURE_CONFIG.guideHeaderDisclosure,
+      'When you click an outbound link to a third-party retailer on Science of Gifts and complete a qualifying purchase, the merchant may pay Science of Gifts a small referral commission. This commission comes from the retailer and never increases the price you pay.',
+    ],
+  },
+  {
+    id: 'where-disclosures-appear',
+    heading: 'Where Disclosures Appear on Science of Gifts',
+    paragraphs: [
+      'We believe disclosures should appear where you are making a reading or shopping decision—not solely in a footer link. Accordingly, Science of Gifts displays concise reader-support notices in the header area of gift guides, inside the purchase panel of individual product profiles, and alongside catalog listings on category archive pages.',
+    ],
+  },
+  {
+    id: 'third-party-vs-shop-merchandise',
+    heading: 'Third-Party Retailers vs. Science of Gifts Shop Merchandise',
+    paragraphs: [
+      'Science of Gifts features two distinct categories of purchasable items:',
+    ],
+    bullets: [
+      'Third-Party Retailer Recommendations: Products made and sold by independent brands or external retailers. Purchases, shipping, customer service, and returns are handled by the external merchant.',
+      `First-Party Science of Gifts Shop Merchandise: Products sold directly through the Science of Gifts Shop (${SHOP_EXTERNAL_URL}), powered by Fourthwall. Orders and returns for shop merchandise are governed by the Shop Returns & FAQ (${SHOP_RETURNS_FAQ_URL}).`,
+    ],
+  },
+  {
+    id: 'editorial-curation-integrity',
+    heading: 'How Commercial Relationships Relate to Curation',
+    paragraphs: [
+      'Our gift guides and Gift Finder organize items across clear budget brackets (including Under $25 and Under $50) and evaluate them based on recipient suitability and everyday usefulness. Inclusion of a third-party product in a guide or category archive is determined by editorial fit rather than whether an affiliate arrangement exists.',
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Affiliate Disclosure — Reader Support & Commercial Transparency | Science of Gifts"
+  description="Understand how affiliate links work on Science of Gifts and how third-party retailer links differ from merchandise sold in the Science of Gifts Shop."
+  canonicalPath="/affiliate-disclosure/"
+  ogType="website"
+>
+  <PublicationInfoPageView
+    currentPath="/affiliate-disclosure/"
+    kicker="Commercial Transparency"
+    title="Affiliate Disclosure"
+    subtitle="How reader-supported links work on Science of Gifts and how we distinguish third-party retail recommendations from our own shop merchandise."
+    lastUpdated="November 2026"
+    sections={sections}
+  />
+</BaseLayout>

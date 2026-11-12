@@ -58,6 +58,7 @@ import {
   resolveSavedListItems,
   useSavedGiftsState,
 } from '../utils/savedGiftsStore';
+import { SITE_ORIGIN } from '../utils/seoAndValidation';
 import { GiftThinkingAnimation } from './GiftThinkingAnimation';
 import { PhotoImage } from './ObjectIllustrations';
 
@@ -243,6 +244,33 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
   };
 
   const isHydratedRef = useRef(false);
+  const skipInitialFilterReplaceRef = useRef(false);
+
+  const syncGiftFinderHeadTags = (rawSearch: string) => {
+    if (
+      typeof document === 'undefined' ||
+      typeof window === 'undefined' ||
+      !window.location.pathname.startsWith('/gift-finder')
+    ) {
+      return;
+    }
+    const hasQueryParams = rawSearch.replace(/^\?/, '').trim().length > 0;
+    const canonicalEl = document.querySelector('link[rel="canonical"]');
+    if (canonicalEl) {
+      canonicalEl.setAttribute('href', `${SITE_ORIGIN}/gift-finder/`);
+    }
+    const ogUrlEl = document.querySelector('meta[property="og:url"]');
+    if (ogUrlEl) {
+      ogUrlEl.setAttribute('content', `${SITE_ORIGIN}/gift-finder/`);
+    }
+    const robotsEl = document.querySelector('meta[name="robots"]');
+    if (robotsEl) {
+      robotsEl.setAttribute(
+        'content',
+        hasQueryParams ? 'noindex, follow' : 'index, follow'
+      );
+    }
+  };
 
   // Clean up any pending thinking timers on unmount & subscribe to prefers-reduced-motion
   useEffect(() => {
@@ -271,28 +299,31 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
   // Read URL query parameters on client mount and browser back/forward
   useEffect(() => {
     if (typeof window === 'undefined') return;
+    const rawMountSearch = window.location.search || '';
     const parsedFromWindow = parseFinderUrlSearchParams(
-      window.location.search,
+      rawMountSearch,
       products
     );
     thinkingCoordinatorRef.current.cancelActiveOperation();
     setThinkingState(null);
+    if (rawMountSearch && rawMountSearch !== '?') {
+      skipInitialFilterReplaceRef.current = true;
+    }
     setFilters(parsedFromWindow);
     setSearchDraft(parsedFromWindow.query);
     setDisplayedEvaluation(
       evaluateGiftFinder(products, parsedFromWindow, { guides, articles })
     );
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(rawMountSearch);
     if (params.get('mode') === 'quiz') {
       setActiveMode('quiz');
     }
+    syncGiftFinderHeadTags(rawMountSearch);
     isHydratedRef.current = true;
 
     const handlePopState = () => {
-      const nextFromHistory = parseFinderUrlSearchParams(
-        window.location.search,
-        products
-      );
+      const popSearch = window.location.search || '';
+      const nextFromHistory = parseFinderUrlSearchParams(popSearch, products);
       thinkingCoordinatorRef.current.cancelActiveOperation();
       setThinkingState(null);
       setFilters(nextFromHistory);
@@ -300,14 +331,21 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       setDisplayedEvaluation(
         evaluateGiftFinder(products, nextFromHistory, { guides, articles })
       );
+      syncGiftFinderHeadTags(popSearch);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, [products, guides, articles]);
 
   // Synchronize finder filter state back to URL query parameters without navigation loops
+  // and enforce search/filter indexing policy (canonical stays /gift-finder/, filtered query URLs set noindex,follow)
   useEffect(() => {
     if (typeof window === 'undefined' || !isHydratedRef.current) return;
+    if (skipInitialFilterReplaceRef.current) {
+      skipInitialFilterReplaceRef.current = false;
+      syncGiftFinderHeadTags(window.location.search || '');
+      return;
+    }
     const nextSearch = serializeFinderUrlSearchParams(filters);
     const currentSearch = window.location.search || '';
     const normCurrent = currentSearch === '?' ? '' : currentSearch;
@@ -315,6 +353,7 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
       const nextUrl = `${window.location.pathname}${nextSearch}${window.location.hash}`;
       window.history.replaceState(null, '', nextUrl);
     }
+    syncGiftFinderHeadTags(nextSearch);
   }, [filters]);
 
   // Use displayedEvaluation for the results list and count so stale results are never shown as new ones
@@ -2369,11 +2408,16 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
                             <div className="flex items-center gap-3.5 min-w-0">
                               <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-[#F3ECE1]">
                                 <PhotoImage
+                                  image={product.images[0]}
                                   src={product.images[0]?.url}
                                   alt={product.images[0]?.alt}
                                   fallbackColor={
                                     product.images[0]?.fallbackColor
                                   }
+                                  preset="thumbnail-sm"
+                                  aspectRatio="1:1"
+                                  width={64}
+                                  height={64}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
@@ -2836,9 +2880,12 @@ const FinderResultCard: React.FC<FinderResultCardProps> = ({
           className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] cursor-pointer mb-4"
         >
           <PhotoImage
+            image={primaryImage}
             src={primaryImage.url}
             alt={primaryImage.alt}
             fallbackColor={primaryImage.fallbackColor}
+            preset="card-portrait"
+            aspectRatio="4:5"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
           <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent pointer-events-none" />

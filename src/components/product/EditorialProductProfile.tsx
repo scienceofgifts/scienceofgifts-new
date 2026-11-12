@@ -5,6 +5,7 @@ import {
   Product,
   ResearchCitation,
 } from '../../types/content';
+import { AFFILIATE_DISCLOSURE_CONFIG } from '../../config/navigationConfig';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -17,6 +18,7 @@ import {
   Info,
   Scale,
 } from 'lucide-react';
+import { PhotoImage } from '../ObjectIllustrations';
 
 export interface ProductGuideAppearance {
   guide: GiftGuide;
@@ -91,6 +93,13 @@ export const EditorialProductProfile: React.FC<
   };
 
   const primaryGuideAppearance = guideAppearances[0];
+  const editorsPickAppearances = guideAppearances.filter((a) => a.isEditorsPick);
+  const unambiguousParentGuide =
+    guideAppearances.length === 1
+      ? guideAppearances[0].guide
+      : editorsPickAppearances.length === 1
+        ? editorsPickAppearances[0].guide
+        : undefined;
   const verdict = product.giftVerdict;
   const recipientProfile = product.idealRecipientProfile;
 
@@ -185,17 +194,30 @@ export const EditorialProductProfile: React.FC<
               <span aria-hidden="true" className="text-[#C5C1B8]">
                 /
               </span>
-              {primaryGuideAppearance ? (
+              {guideAppearances.length > 0 ? (
                 <>
                   <a
-                    href={`/gift-guides/${primaryGuideAppearance.guide.slug}/`}
+                    href="/gift-guides/"
                     className="text-[#636A6F] transition-colors hover:text-[#28537D]"
                   >
-                    {primaryGuideAppearance.guide.title}
+                    Gift Guides
                   </a>
                   <span aria-hidden="true" className="text-[#C5C1B8]">
                     /
                   </span>
+                  {unambiguousParentGuide && (
+                    <>
+                      <a
+                        href={`/gift-guides/${unambiguousParentGuide.slug}/`}
+                        className="text-[#636A6F] transition-colors hover:text-[#28537D]"
+                      >
+                        {unambiguousParentGuide.title}
+                      </a>
+                      <span aria-hidden="true" className="text-[#C5C1B8]">
+                        /
+                      </span>
+                    </>
+                  )}
                 </>
               ) : (
                 <>
@@ -241,13 +263,14 @@ export const EditorialProductProfile: React.FC<
                     backgroundColor: primaryImage.fallbackColor || '#F6F4EF',
                   }}
                 >
-                  <img
-                    src={primaryImage.url}
-                    alt={primaryImage.alt}
+                  <PhotoImage
+                    image={primaryImage}
+                    preset="hero-landscape"
+                    aspectRatio="4:3"
                     width={840}
                     height={630}
                     loading="eager"
-                    decoding="async"
+                    fetchPriority="high"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -256,7 +279,7 @@ export const EditorialProductProfile: React.FC<
                     {primaryImage.caption ||
                       `${product.title} (${product.productType})`}
                   </span>
-                  {(primaryImage.isSampleAsset ?? true) && (
+                  {Boolean(primaryImage.isSampleAsset) && (
                     <span className="text-[11px] text-[#636A6F]">
                       Sample preview photography
                     </span>
@@ -282,58 +305,57 @@ export const EditorialProductProfile: React.FC<
                 <span>{product.vendor}</span>
               </div>
 
-              <h1 className="mt-2.5 font-serif text-3xl font-semibold leading-[1.14] tracking-tight text-[#24282B] sm:text-4xl lg:text-[2.65rem]">
+              <h1 className="theme-page-title mt-2.5 font-serif text-3xl font-semibold leading-[1.14] tracking-tight text-[#24282B] sm:text-4xl lg:text-[2.65rem]">
                 {product.title}
               </h1>
 
-              <p className="mt-3.5 text-base leading-[1.65] text-[#636A6F] sm:text-lg">
+              <p className="theme-intro-text mt-3.5 text-base leading-[1.65] text-[#636A6F] sm:text-lg">
                 {product.subtitle}
               </p>
 
               {/* Short Gift Verdict Preview */}
               <div className="mt-5 border-l-2 border-[#1B3D5F] pl-4">
-                <div className="text-xs font-semibold text-[#1B3D5F]">
+                <div className="theme-kicker text-xs font-semibold text-[#1B3D5F]">
                   Editorial Gift Verdict
                 </div>
-                <p className="mt-1 text-sm leading-[1.7] text-[#24282B] sm:text-[0.95rem]">
+                <p className="theme-body-sm mt-1 text-sm leading-[1.7] text-[#24282B] sm:text-[0.95rem]">
                   {verdict?.editorialAssessment || product.whyToGiveIt}
                 </p>
               </div>
 
               {/* Compact, Refined Purchase & Save Card */}
               <div className="mt-6 rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-5 sm:p-6">
-                <div className="flex flex-wrap items-baseline justify-between gap-4 border-b border-[#E3E1DB] pb-4">
-                  <div>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-serif text-3xl font-semibold text-[#24282B] tabular-nums">
-                        ${product.price}
-                      </span>
-                      <span className="text-xs font-medium text-[#636A6F]">
-                        {product.currency}
-                      </span>
-                    </div>
-                    <p className="mt-0.5 text-xs text-[#636A6F]">
-                      {product.vendor} ·{' '}
-                      <span className="font-medium text-[#24282B]">
-                        {product.inStock
-                          ? 'In Stock (Catalog Preview)'
-                          : 'Out of Stock'}
-                      </span>
-                    </p>
+                <div className="border-b border-[#E3E1DB] pb-4 text-left">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-serif text-3xl font-semibold text-[#24282B] tabular-nums">
+                      ${product.price}
+                    </span>
+                    <span className="text-xs font-medium text-[#636A6F]">
+                      {product.currency}
+                    </span>
                   </div>
+                  <p className="mt-1 text-xs text-[#636A6F]">
+                    {product.vendor} ·{' '}
+                    <span className="font-medium text-[#24282B]">
+                      {product.inStock
+                        ? 'In Stock (Catalog Preview)'
+                        : 'Out of Stock'}
+                    </span>
+                  </p>
+                </div>
 
-                  <div className="text-right text-xs text-[#636A6F]">
-                    <div className="font-semibold text-[#24282B]">
-                      Best suited for
-                    </div>
-                    <div className="max-w-[230px] leading-snug">
-                      {product.bestForSummary}
-                    </div>
+                {/* Best Suited For — Full-width, left-aligned information block */}
+                <div className="w-full border-b border-[#E3E1DB] py-4 text-left">
+                  <div className="theme-info-label text-left font-semibold text-[#24282B]">
+                    Best suited for
                   </div>
+                  <p className="theme-body-text mt-1 text-left text-[#24282B]">
+                    {product.bestForSummary}
+                  </p>
                 </div>
 
                 {/* Interactive Save / Merchant Action Area */}
-                <div className="mt-4">
+                <div className="pt-4">
                   {renderedActions ? (
                     renderedActions
                   ) : (
@@ -360,6 +382,22 @@ export const EditorialProductProfile: React.FC<
                       </a>
                     </div>
                   )}
+                </div>
+
+                {/* Conspicuous Merchant & Affiliate Disclosure */}
+                <div className="mt-4 border-t border-[#E3E1DB] pt-3 text-left text-xs text-[#636A6F]">
+                  <p className="theme-caption leading-relaxed">
+                    {product.commerceProvider === 'fourthwall'
+                      ? 'Offered directly through the Science of Gifts Shop.'
+                      : AFFILIATE_DISCLOSURE_CONFIG.shortInlineNotice}{' '}
+                    <a
+                      href={AFFILIATE_DISCLOSURE_CONFIG.disclosurePageHref}
+                      className="font-semibold text-[#28537D] underline underline-offset-2 hover:text-[#1B3D5F]"
+                    >
+                      Affiliate Disclosure
+                    </a>
+                    .
+                  </p>
                 </div>
 
                 {/* Honest Development Placeholder Note + Collapsible Technical Metadata */}
@@ -458,16 +496,16 @@ export const EditorialProductProfile: React.FC<
         >
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-12">
             <div className="lg:col-span-4">
-              <p className="text-xs font-semibold text-[#28537D]">
+              <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                 01 · Evaluation
               </p>
               <h2
                 id="heading-gift-verdict"
-                className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
               >
                 The Gift Verdict
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#636A6F]">
+              <p className="theme-caption mt-2 text-sm leading-relaxed text-[#636A6F]">
                 Our concise curatorial assessment of why this object earns a place on our shortlist, what sets it apart, and when to skip it.
               </p>
             </div>
@@ -479,29 +517,29 @@ export const EditorialProductProfile: React.FC<
 
               <dl className="mt-6 grid grid-cols-1 gap-6 border-t border-[#E3E1DB] pt-6 sm:grid-cols-2">
                 <div>
-                  <dt className="text-xs font-semibold text-[#1B3D5F]">
+                  <dt className="theme-info-label text-xs font-semibold text-[#1B3D5F]">
                     What sets it apart from similar gifts
                   </dt>
-                  <dd className="mt-1.5 text-sm leading-[1.7] text-[#24282B]">
+                  <dd className="theme-body-sm mt-1.5 text-sm leading-[1.7] text-[#24282B]">
                     {verdict?.standoutReason || product.subtitle}
                   </dd>
                 </div>
 
                 <div>
-                  <dt className="text-xs font-semibold text-[#1B3D5F]">
+                  <dt className="theme-info-label text-xs font-semibold text-[#1B3D5F]">
                     Why someone will enjoy receiving it
                   </dt>
-                  <dd className="mt-1.5 text-sm leading-[1.7] text-[#24282B]">
+                  <dd className="theme-body-sm mt-1.5 text-sm leading-[1.7] text-[#24282B]">
                     {verdict?.recipientDelight || product.whyToGiveIt}
                   </dd>
                 </div>
 
                 {verdict?.importantCaveat && (
                   <div className="border-t border-[#E3E1DB] pt-4 sm:col-span-2">
-                    <dt className="text-xs font-semibold text-[#636A6F]">
+                    <dt className="theme-info-label text-xs font-semibold text-[#636A6F]">
                       Important caveat before you buy
                     </dt>
-                    <dd className="mt-1 text-sm leading-[1.7] text-[#24282B]">
+                    <dd className="theme-body-sm mt-1 text-sm leading-[1.7] text-[#24282B]">
                       {verdict.importantCaveat}
                     </dd>
                   </div>
@@ -519,28 +557,28 @@ export const EditorialProductProfile: React.FC<
         >
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-12">
             <div className="lg:col-span-4">
-              <p className="text-xs font-semibold text-[#28537D]">
+              <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                 02 · Recipient Fit
               </p>
               <h2
                 id="heading-ideal-recipient"
-                className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
               >
                 Ideal Recipient
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#636A6F]">
+              <p className="theme-caption mt-2 text-sm leading-relaxed text-[#636A6F]">
                 Who will genuinely appreciate unwrapping this gift, and how it fits into their everyday habits.
               </p>
             </div>
 
             <div className="space-y-6 lg:col-span-8">
               <div className="rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-6 sm:p-8">
-                <h3 className="font-serif text-xl font-semibold leading-snug text-[#24282B]">
+                <h3 className="theme-subsection-heading font-serif text-xl font-semibold leading-snug text-[#24282B]">
                   {recipientProfile?.headline ||
                     `Best suited for ${product.bestForSummary}`}
                 </h3>
 
-                <p className="mt-3 max-w-[68ch] text-base leading-[1.8] text-[#24282B]">
+                <p className="theme-body-text theme-reading-measure mt-3 max-w-[68ch] text-base leading-[1.8] text-[#24282B]">
                   {recipientProfile?.narrative ||
                     `We recommend the ${product.title} for ${product.bestForSummary.toLowerCase()} Because it focuses on ${product.interests
                       .join(', ')
@@ -550,12 +588,12 @@ export const EditorialProductProfile: React.FC<
                 {recipientProfile?.lifestyleNotes &&
                   recipientProfile.lifestyleNotes.length > 0 && (
                     <div className="mt-6 border-t border-[#E3E1DB] pt-5">
-                      <h4 className="text-xs font-semibold text-[#1B3D5F]">
+                      <h4 className="theme-info-label text-xs font-semibold text-[#1B3D5F]">
                         Signs this gift matches your person
                       </h4>
                       <ul className="mt-3 space-y-2.5 text-sm text-[#24282B]">
                         {recipientProfile.lifestyleNotes.map((note, idx) => (
-                          <li key={idx} className="flex items-start gap-2.5">
+                          <li key={idx} className="theme-body-sm flex items-start gap-2.5">
                             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-[#28537D]" />
                             <span className="leading-relaxed">{note}</span>
                           </li>
@@ -612,22 +650,22 @@ export const EditorialProductProfile: React.FC<
         >
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-12">
             <div className="lg:col-span-4">
-              <p className="text-xs font-semibold text-[#28537D]">
+              <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                 03 · Editorial Essay
               </p>
               <h2
                 id="heading-why-it-works"
-                className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
               >
                 Why It Makes a Great Gift
               </h2>
-              <p className="mt-2 text-sm leading-relaxed text-[#636A6F]">
+              <p className="theme-caption mt-2 text-sm leading-relaxed text-[#636A6F]">
                 The relationship psychology and everyday utility behind why this object stays appreciated months after it is unwrapped.
               </p>
             </div>
 
             <div className="space-y-6 lg:col-span-8">
-              <div className="max-w-[68ch] space-y-4 text-base leading-[1.82] text-[#24282B] sm:text-[1.0625rem]">
+              <div className="theme-body-text theme-reading-measure max-w-[68ch] space-y-4 text-base leading-[1.82] text-[#24282B] sm:text-[1.0625rem]">
                 {narrativeParagraphs.map((para, idx) => (
                   <p key={idx}>{para}</p>
                 ))}
@@ -639,14 +677,14 @@ export const EditorialProductProfile: React.FC<
                   aria-label="Research perspective"
                   className="rounded-2xl border border-[#C6E4D6] bg-[#E5F3EC]/65 p-6"
                 >
-                  <div className="text-xs font-semibold text-[#1B3D5F]">
+                  <div className="theme-kicker text-xs font-semibold text-[#1B3D5F]">
                     Behavioral Science Perspective · {citations[0].authors} (
                     {citations[0].year})
                   </div>
-                  <h3 className="mt-1 font-serif text-lg font-semibold text-[#24282B]">
+                  <h3 className="theme-subsection-heading mt-1 font-serif text-lg font-semibold text-[#24282B]">
                     {citations[0].title}
                   </h3>
-                  <p className="mt-2 text-sm leading-[1.75] text-[#24282B]">
+                  <p className="theme-body-sm mt-2 text-sm leading-[1.75] text-[#24282B]">
                     {(citations[0].keyFinding ?? '').replace(/\s*—\s*/g, ', ')}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-[#C6E4D6] pt-3 text-xs text-[#636A6F]">
@@ -676,16 +714,16 @@ export const EditorialProductProfile: React.FC<
           >
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-start lg:gap-12">
               <div className="lg:col-span-4">
-                <p className="text-xs font-semibold text-[#28537D]">
+                <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                   04 · Practical Notes
                 </p>
                 <h2
                   id="heading-buying-considerations"
-                  className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                  className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
                 >
                   What to Consider Before Buying
                 </h2>
-                <p className="mt-2 text-sm leading-relaxed text-[#636A6F]">
+                <p className="theme-caption mt-2 text-sm leading-relaxed text-[#636A6F]">
                   Practical details on dimensions, care requirements, and household fit so there are no surprises after gifting.
                 </p>
               </div>
@@ -696,10 +734,10 @@ export const EditorialProductProfile: React.FC<
                     <div className="flex items-start gap-3">
                       <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#28537D]" />
                       <div>
-                        <h3 className="font-serif text-base font-semibold text-[#24282B]">
+                        <h3 className="theme-info-heading font-serif text-base font-semibold text-[#24282B]">
                           {item.label}
                         </h3>
-                        <p className="mt-1 text-sm leading-[1.7] text-[#24282B]">
+                        <p className="theme-body-sm mt-1 text-sm leading-[1.7] text-[#24282B]">
                           {item.detail}
                         </p>
                       </div>
@@ -720,16 +758,16 @@ export const EditorialProductProfile: React.FC<
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-start lg:gap-12">
             {/* Left 6 Columns: Specifications and Product Details */}
             <div className="lg:col-span-6">
-              <p className="text-xs font-semibold text-[#28537D]">
+              <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                 05 · Specifications
               </p>
               <h2
                 id="heading-specifications"
-                className="mt-1 font-serif text-2xl font-semibold text-[#24282B]"
+                className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B]"
               >
                 Specifications & Product Details
               </h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#636A6F]">
+              <p className="theme-caption mt-1.5 text-xs leading-relaxed text-[#636A6F]">
                 Verified dimensions, materials, and care instructions from the catalog record.
               </p>
 
@@ -739,10 +777,10 @@ export const EditorialProductProfile: React.FC<
                     key={idx}
                     className="grid grid-cols-1 gap-1 px-5 py-3.5 text-sm sm:grid-cols-12 sm:gap-4"
                   >
-                    <dt className="font-semibold text-[#636A6F] sm:col-span-4">
+                    <dt className="theme-info-label font-semibold text-[#636A6F] sm:col-span-4">
                       {spec.label}
                     </dt>
-                    <dd className="text-[#24282B] sm:col-span-8">
+                    <dd className="theme-body-sm text-[#24282B] sm:col-span-8">
                       {spec.value}
                     </dd>
                   </div>
@@ -752,13 +790,13 @@ export const EditorialProductProfile: React.FC<
 
             {/* Right 6 Columns: Gift Occasions and Buying Context */}
             <div id="gift-occasions" className="lg:col-span-6">
-              <p className="text-xs font-semibold text-[#28537D]">
+              <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                 06 · Gifting Context
               </p>
-              <h2 className="mt-1 font-serif text-2xl font-semibold text-[#24282B]">
+              <h2 className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B]">
                 Gift Occasions & Buying Context
               </h2>
-              <p className="mt-1.5 text-xs leading-relaxed text-[#636A6F]">
+              <p className="theme-caption mt-1.5 text-xs leading-relaxed text-[#636A6F]">
                 When this gift shines brightest and how to present it thoughtfully.
               </p>
 
@@ -766,7 +804,7 @@ export const EditorialProductProfile: React.FC<
                 {occasionItems.map((occItem, idx) => (
                   <div key={idx} className="p-5">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="font-serif text-base font-semibold text-[#24282B]">
+                      <h3 className="theme-info-heading font-serif text-base font-semibold text-[#24282B]">
                         {occItem.label}
                       </h3>
                       <a
@@ -776,7 +814,7 @@ export const EditorialProductProfile: React.FC<
                         More {occItem.label.toLowerCase()} gifts →
                       </a>
                     </div>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[#24282B]">
+                    <p className="theme-body-sm mt-1.5 text-sm leading-relaxed text-[#24282B]">
                       {occItem.note}
                     </p>
                   </div>
@@ -795,18 +833,18 @@ export const EditorialProductProfile: React.FC<
           >
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
               <div>
-                <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D]">
+                <p className="theme-kicker inline-flex items-center gap-1.5 text-xs font-semibold text-[#28537D]">
                   <Scale className="h-3.5 w-3.5" />
                   07 · Comparative Alternatives
                 </p>
                 <h2
                   id="heading-compare-similar"
-                  className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                  className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
                 >
                   Compare With Similar Gifts
                 </h2>
               </div>
-              <p className="max-w-md text-xs leading-relaxed text-[#636A6F]">
+              <p className="theme-caption max-w-md text-xs leading-relaxed text-[#636A6F]">
                 Not sure if the {product.title} is the exact match? Consider these curated alternatives from our catalog depending on your budget and recipient.
               </p>
             </div>
@@ -824,23 +862,23 @@ export const EditorialProductProfile: React.FC<
                         {altImg && (
                           <a
                             href={`/products/${altProduct.slug}/`}
-                            className="block aspect-[16/10] w-full overflow-hidden border-b border-[#E3E1DB] bg-[#F6F4EF]"
+                            className="block aspect-[4/3] w-full overflow-hidden border-b border-[#E3E1DB] bg-[#F6F4EF]"
                           >
-                            <img
-                              src={altImg.url}
-                              alt={altImg.alt}
+                            <PhotoImage
+                              image={altImg}
+                              preset="card-landscape"
+                              aspectRatio="4:3"
                               width={480}
-                              height={300}
-                              loading="lazy"
+                              height={360}
                               className="h-full w-full object-cover transition-transform duration-500 hover:scale-[1.02]"
                             />
                           </a>
                         )}
                         <div className="p-5">
-                          <div className="text-xs font-semibold text-[#1B3D5F]">
+                          <div className="theme-kicker text-xs font-semibold text-[#1B3D5F]">
                             {comparisonAngle}
                           </div>
-                          <h3 className="mt-1 font-serif text-lg font-semibold leading-snug text-[#24282B]">
+                          <h3 className="theme-product-title mt-1 font-serif text-lg font-semibold leading-snug text-[#24282B]">
                             <a
                               href={`/products/${altProduct.slug}/`}
                               className="hover:text-[#28537D]"
@@ -848,13 +886,13 @@ export const EditorialProductProfile: React.FC<
                               {altProduct.title}
                             </a>
                           </h3>
-                          <p className="mt-0.5 text-xs text-[#636A6F]">
+                          <p className="theme-metadata mt-0.5 text-xs text-[#636A6F]">
                             {altProduct.vendor} ·{' '}
                             <span className="font-semibold text-[#24282B] tabular-nums">
                               ${altProduct.price} {altProduct.currency}
                             </span>
                           </p>
-                          <p className="mt-3 text-xs leading-[1.7] text-[#24282B] sm:text-sm">
+                          <p className="theme-body-sm mt-3 text-xs leading-[1.7] text-[#24282B] sm:text-sm">
                             {summary}
                           </p>
                         </div>
@@ -886,17 +924,17 @@ export const EditorialProductProfile: React.FC<
           >
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
               <div>
-                <p className="text-xs font-semibold text-[#28537D]">
+                <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                   08 · Featured Gift Guide
                 </p>
                 <h2
                   id="heading-featured-guide"
-                  className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                  className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
                 >
                   Where This Gift Is Featured
                 </h2>
               </div>
-              <p className="max-w-md text-xs leading-relaxed text-[#636A6F]">
+              <p className="theme-caption max-w-md text-xs leading-relaxed text-[#636A6F]">
                 See how this object compares side by side with other recommendations in our flagship editorial gift guide.
               </p>
             </div>
@@ -941,7 +979,7 @@ export const EditorialProductProfile: React.FC<
                           )}
                         </div>
 
-                        <h3 className="mt-2 font-serif text-2xl font-semibold leading-snug text-[#24282B]">
+                        <h3 className="theme-subsection-heading mt-2 font-serif text-2xl font-semibold leading-snug text-[#24282B]">
                           <a
                             href={`/gift-guides/${app.guide.slug}/`}
                             className="hover:text-[#28537D]"
@@ -950,12 +988,12 @@ export const EditorialProductProfile: React.FC<
                           </a>
                         </h3>
 
-                        <p className="mt-2 text-sm leading-relaxed text-[#636A6F]">
+                        <p className="theme-body-sm mt-2 text-sm leading-relaxed text-[#636A6F]">
                           {app.guide.subtitle}
                         </p>
 
                         {app.whyWeChoseIt && (
-                          <div className="mt-4 border-t border-[#E3E1DB] pt-4 text-xs leading-[1.7] text-[#24282B] sm:text-sm">
+                          <div className="theme-body-sm mt-4 border-t border-[#E3E1DB] pt-4 text-xs leading-[1.7] text-[#24282B] sm:text-sm">
                             <strong className="font-semibold text-[#1B3D5F]">
                               Why we selected it for this guide:{' '}
                             </strong>
@@ -967,7 +1005,7 @@ export const EditorialProductProfile: React.FC<
                       <div className="mt-6 flex flex-wrap items-center gap-3 border-t border-[#E3E1DB] pt-4">
                         <a
                           href={`/gift-guides/${app.guide.slug}/`}
-                          className="inline-flex items-center gap-2 rounded-lg bg-[#1B3D5F] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#28537D]"
+                          className="theme-button-text inline-flex items-center gap-2 rounded-lg bg-[#1B3D5F] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#28537D]"
                         >
                           Read Full Gift Guide
                           <ArrowRight className="h-3.5 w-3.5" />
@@ -975,7 +1013,7 @@ export const EditorialProductProfile: React.FC<
                         {app.sectionId && (
                           <a
                             href={`/gift-guides/${app.guide.slug}/#${app.sectionId}`}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-4 py-2.5 text-xs font-semibold text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
+                            className="theme-button-text inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FAF9F6] px-4 py-2.5 text-xs font-semibold text-[#24282B] transition-colors hover:border-[#28537D] hover:text-[#28537D]"
                           >
                             Jump to Guide Section
                           </a>
@@ -997,12 +1035,12 @@ export const EditorialProductProfile: React.FC<
         >
           <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
             <div>
-              <p className="text-xs font-semibold text-[#28537D]">
+              <p className="theme-kicker text-xs font-semibold text-[#28537D]">
                 09 · Related Reading & Discovery
               </p>
               <h2
                 id="heading-related-editorial"
-                className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+                className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
               >
                 Related Editorial Essays & Gift Discovery
               </h2>

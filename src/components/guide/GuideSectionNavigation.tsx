@@ -172,10 +172,10 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
             className="border-t border-[#E3E1DB] pt-4"
           >
             <div className="flex items-center justify-between pb-3">
-              <span className="font-serif text-sm font-semibold text-[#24282B]">
+              <span className="theme-info-heading font-serif text-sm font-semibold text-[#24282B]">
                 In This Guide
               </span>
-              <span className="text-xs text-[#636A6F] tabular-nums">
+              <span className="theme-metadata text-xs text-[#636A6F] tabular-nums">
                 {guide.sections.reduce(
                   (acc, s) => acc + s.recommendations.length,
                   0
@@ -192,8 +192,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                   onClick={() => onJumpToSection('quick-picks')}
                   className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                     activeSectionId === 'quick-picks'
-                      ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                      : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                      ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                      : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                   }`}
                 >
                   <span className="inline-flex items-center gap-2">
@@ -219,8 +219,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                   onClick={() => onJumpToSection('find-the-right-gift')}
                   className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                     activeSectionId === 'find-the-right-gift'
-                      ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                      : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                      ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                      : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                   }`}
                 >
                   <span className="inline-flex items-center gap-2">
@@ -243,8 +243,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                   onClick={() => onJumpToSection('editors-pick')}
                   className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                     activeSectionId === 'editors-pick'
-                      ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                      : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                      ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                      : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                   }`}
                 >
                   <span className="inline-flex items-center gap-2">
@@ -265,7 +265,7 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
 
             {/* Budget Chapters */}
             <div className="mt-4 border-t border-[#E3E1DB] pt-3">
-              <div className="mb-1.5 text-[11px] font-medium text-[#636A6F]">
+              <div className="theme-metadata mb-1.5 text-[11px] font-medium text-[#636A6F]">
                 Recommendations by Budget
               </div>
               <ul className="space-y-1">
@@ -276,8 +276,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                       onClick={() => onJumpToSection(sec.id)}
                       className={`flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === sec.id
-                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                          ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
                       <span className="truncate pr-2">{sec.shortNavTitle}</span>
@@ -292,7 +292,7 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
 
             {/* Comparison, Buying Advice & FAQ */}
             <div className="mt-4 border-t border-[#E3E1DB] pt-3">
-              <div className="mb-1.5 text-[11px] font-medium text-[#636A6F]">
+              <div className="theme-metadata mb-1.5 text-[11px] font-medium text-[#636A6F]">
                 Comparison & Advice
               </div>
               <ul className="space-y-1">
@@ -303,8 +303,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                       onClick={() => onJumpToSection('gift-comparison')}
                       className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'gift-comparison'
-                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                          ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
                       <span className="inline-flex items-center gap-2">
@@ -329,8 +329,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                       onClick={() => onJumpToSection('buying-advice')}
                       className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'buying-advice'
-                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                          ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
                       <span className="inline-flex items-center gap-2">
@@ -355,8 +355,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                       onClick={() => onJumpToSection('guide-faq')}
                       className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'guide-faq'
-                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                          ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
                       <span className="inline-flex items-center gap-2">
@@ -381,8 +381,8 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
                       onClick={() => onJumpToSection('related-discoveries')}
                       className={`group flex w-full items-center justify-between py-1.5 text-left text-xs transition-colors ${
                         activeSectionId === 'related-discoveries'
-                          ? 'border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
-                          : 'pl-3 text-[#636A6F] hover:text-[#24282B]'
+                          ? 'theme-sidebar-link-active border-l-2 border-[#1B3D5F] pl-2.5 font-semibold text-[#1B3D5F]'
+                          : 'theme-sidebar-link pl-3 text-[#636A6F] hover:text-[#24282B]'
                       }`}
                     >
                       <span className="inline-flex items-center gap-2">
@@ -424,7 +424,7 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
 
             {/* Saved in This Guide Counter */}
             <div className="mt-4 border-t border-[#E3E1DB] pt-3">
-              <div className="flex items-center justify-between pl-3 text-xs text-[#636A6F]">
+              <div className="theme-sidebar-link flex items-center justify-between pl-3 text-xs text-[#636A6F]">
                 <span className="inline-flex items-center gap-2">
                   <Bookmark
                     aria-hidden="true"
@@ -446,15 +446,15 @@ export const GuideSectionNavigation: React.FC<GuideSectionNavigationProps> = ({
 
           {/* Restrained Discovery Note */}
           <div className="border-t border-[#E3E1DB] pt-4 text-xs">
-            <p className="font-serif text-sm font-semibold text-[#24282B]">
+            <p className="theme-info-heading font-serif text-sm font-semibold text-[#24282B]">
               Looking for a specific budget or occasion?
             </p>
-            <p className="mt-1 leading-relaxed text-[#636A6F]">
+            <p className="theme-caption mt-1 leading-relaxed text-[#636A6F]">
               Filter the full catalog by recipient, relationship, and price ceiling in the Gift Finder.
             </p>
             <a
               href="/gift-finder/"
-              className="mt-2 inline-block font-semibold text-[#28537D] underline decoration-[#28537D]/35 underline-offset-4 hover:text-[#1B3D5F]"
+              className="theme-link mt-2 inline-block font-semibold text-[#28537D] underline decoration-[#28537D]/35 underline-offset-4 hover:text-[#1B3D5F]"
             >
               Open Gift Finder →
             </a>

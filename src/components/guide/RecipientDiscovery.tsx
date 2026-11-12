@@ -5,6 +5,7 @@ import {
   Product,
 } from '../../types/content';
 import { ArrowDownRight, Filter, RotateCcw } from 'lucide-react';
+import { PhotoImage } from '../ObjectIllustrations';
 
 export interface RecipientDiscoveryProps {
   guide: GiftGuide;
@@ -100,17 +101,17 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
     >
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
         <div>
-          <p className="text-xs font-semibold text-[#28537D]">
+          <p className="theme-kicker text-xs font-semibold text-[#28537D]">
             Browse by Recipient
           </p>
           <h2
             id="recipient-discovery-heading"
-            className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+            className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
           >
             Find the Right Gift for Your Person
           </h2>
         </div>
-        <p className="max-w-md text-xs leading-relaxed text-[#636A6F]">
+        <p className="theme-caption max-w-md text-xs leading-relaxed text-[#636A6F]">
           Select who you are shopping for to see top matches in this guide, or filter the chapters below.
         </p>
       </div>
@@ -145,7 +146,7 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-serif text-sm font-semibold text-[#24282B]">
+                  <span className="theme-info-heading font-serif text-sm font-semibold text-[#24282B]">
                     {pathway.label}
                   </span>
                   {isFilterActive && (
@@ -154,7 +155,7 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
                     </span>
                   )}
                 </div>
-                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-[#636A6F]">
+                <p className="theme-caption mt-1.5 line-clamp-2 text-xs leading-relaxed text-[#636A6F]">
                   {pathway.description}
                 </p>
               </div>
@@ -170,14 +171,14 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
       <div className="mt-5 rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-5 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#E3E1DB] pb-4">
           <div className="max-w-2xl">
-            <div className="text-xs font-semibold text-[#1B3D5F]">
+            <div className="theme-kicker text-xs font-semibold text-[#1B3D5F]">
               {currentPathway.label}
             </div>
-            <p className="mt-1 text-sm leading-relaxed text-[#24282B]">
+            <p className="theme-body-sm mt-1 text-sm leading-relaxed text-[#24282B]">
               {currentPathway.description}
             </p>
             {currentPathway.editorialTip && (
-              <p className="mt-2 text-xs italic text-[#636A6F]">
+              <p className="theme-caption mt-2 text-xs italic text-[#636A6F]">
                 <strong className="font-semibold not-italic text-[#24282B]">
                   Editorial tip:
                 </strong>{' '}
@@ -194,7 +195,7 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
                   isFilteringMainGuide ? null : currentPathway
                 )
               }
-              className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
+              className={`theme-button-text inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-semibold transition-colors ${
                 isFilteringMainGuide
                   ? 'bg-[#1B3D5F] text-white hover:bg-[#28537D]'
                   : 'border border-[#E3E1DB] bg-[#FAF9F6] text-[#24282B] hover:border-[#28537D] hover:text-[#28537D]'
@@ -231,20 +232,22 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
                 <div>
                   <div className="flex items-center gap-3">
                     {img && (
-                      <img
-                        src={img.url}
-                        alt={img.alt}
-                        width={56}
-                        height={56}
-                        loading="lazy"
-                        className="h-14 w-14 shrink-0 rounded-lg border border-[#E3E1DB] object-cover"
-                      />
+                      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-[#E3E1DB] bg-[#F6F4EF]">
+                        <PhotoImage
+                          image={img}
+                          preset="thumbnail-xs"
+                          aspectRatio="1:1"
+                          width={56}
+                          height={56}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
                     )}
                     <div className="min-w-0">
                       <span className="text-xs font-semibold text-[#28537D] tabular-nums">
                         ${product.price}
                       </span>
-                      <h3 className="font-serif text-sm font-semibold leading-snug text-[#24282B]">
+                      <h3 className="theme-product-title font-serif text-sm font-semibold leading-snug text-[#24282B]">
                         <a
                           href={`/products/${product.slug}/`}
                           className="hover:text-[#28537D]"
@@ -252,12 +255,12 @@ export const RecipientDiscovery: React.FC<RecipientDiscoveryProps> = ({
                           {product.title}
                         </a>
                       </h3>
-                      <p className="text-[11px] text-[#636A6F]">
+                      <p className="theme-metadata text-[11px] text-[#636A6F]">
                         {product.vendor}
                       </p>
                     </div>
                   </div>
-                  <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-[#24282B]">
+                  <p className="theme-body-sm mt-3 line-clamp-2 text-xs leading-relaxed text-[#24282B]">
                     {(product.bestForSummary || product.whyToGiveIt).replace(
                       /\s*—\s*/g,
                       ', '

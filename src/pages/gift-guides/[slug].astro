@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { contentRepository } from '../../cms/contentRepository';
-import { buildGiftGuideJsonLd } from '../../utils/seoAndValidation';
+import {
+  buildGiftGuideJsonLd,
+  resolvePageSeoMetadata,
+} from '../../utils/seoAndValidation';
 import { GiftGuideInteractiveIsland } from '../../components/islands/AstroIslands';
 import type { GiftGuide } from '../../types/content';
 
@@ -19,15 +22,30 @@ interface Props {
 
 const { guide } = Astro.props;
 const catalog = contentRepository.getCatalogSnapshot();
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: guide.title,
+  subtitleOrSummary: guide.subtitle,
+  seo: guide.seo,
+  defaultCanonicalPath: `/gift-guides/${guide.slug}/`,
+  defaultOgType: 'article',
+  defaultOgImage: guide.heroImageUrl,
+  contentType: 'guide',
+  status: guide.status,
+});
 const guideJsonLd = buildGiftGuideJsonLd(guide, catalog);
 ---
 
 <BaseLayout
-  title={guide.seo.seoTitle}
-  description={guide.seo.metaDescription}
-  canonicalPath={`/gift-guides/${guide.slug}/`}
-  ogType={guide.seo.ogType}
-  ogImage={guide.heroImageUrl}
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
   jsonLd={guideJsonLd}
   activeSection="guides"
 >

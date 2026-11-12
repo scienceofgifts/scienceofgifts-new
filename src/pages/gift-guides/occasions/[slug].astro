@@ -1,0 +1,99 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../../cms/contentRepository';
+import {
+  buildCategoryArchiveJsonLd,
+  resolvePageSeoMetadata,
+} from '../../../utils/seoAndValidation';
+import { CategoryArchiveView } from '../../../components/CategoryArchiveView';
+
+export function getStaticPaths() {
+  const dir = contentRepository.getGiftGuidesDirectoryData();
+  return dir.occasionDiscovery.map((occ) => ({
+    params: { slug: occ.slug },
+    props: { slug: occ.slug },
+  }));
+}
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const archive = contentRepository.getOccasionCategoryArchive(slug);
+if (!archive) {
+  throw new Error(`Occasion archive not found for slug: ${slug}`);
+}
+
+const { category, relatedCategories } = archive;
+const defaultCanonicalPath = `/gift-guides/occasions/${category.slug}/`;
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: `${category.label} Gift Ideas & Guides`,
+  subtitleOrSummary: category.description,
+  seo: category.seo,
+  defaultCanonicalPath,
+  defaultOgType: 'website',
+  defaultOgImage:
+    category.matchingGuides[0]?.guide.heroImageUrl ??
+    category.matchingProducts[0]?.images[0]?.url,
+  contentType: 'category',
+});
+
+const archiveJsonLd = buildCategoryArchiveJsonLd({
+  archiveTitle: resolvedSeo.seoTitle,
+  archiveDescription: resolvedSeo.metaDescription,
+  canonicalPath: resolvedSeo.canonicalPath,
+  parentDirectoryLabel: 'Gift Guides',
+  parentDirectoryPath: '/gift-guides/',
+  items: [
+    ...category.matchingGuides.map((g) => ({
+      name: g.guide.title,
+      url: `/gift-guides/${g.guide.slug}/`,
+      description: g.guide.subtitle,
+    })),
+    ...category.matchingProducts.map((p) => ({
+      name: p.title,
+      url: `/products/${p.slug}/`,
+      description: p.subtitle,
+    })),
+  ],
+});
+---
+
+<BaseLayout
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
+  jsonLd={archiveJsonLd}
+  activeSection="guides"
+>
+  <CategoryArchiveView
+    client:load
+    archiveType="guide-category"
+    dimensionLabel="Occasions"
+    parentDirectoryLabel="Gift Guides"
+    parentDirectoryHref="/gift-guides/"
+    categoryLabel={category.label}
+    categoryDescription={category.description}
+    iconKey={category.iconKey}
+    matchingGuides={category.matchingGuides}
+    matchingProducts={category.matchingProducts}
+    finderHref={category.finderHref}
+    relatedCategories={relatedCategories.map((rel) => ({
+      slug: rel.slug,
+      label: rel.label,
+      description: rel.description,
+      iconKey: rel.iconKey,
+      archiveHref: rel.archiveHref,
+      primaryCountLabel: `${rel.matchingGuides.length} ${rel.matchingGuides.length === 1 ? 'guide' : 'guides'}`,
+      secondaryCountLabel: `${rel.productCount} eligible gifts`,
+    }))}
+  />
+</BaseLayout>

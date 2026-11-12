@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  SHOP_EXTERNAL_URL,
+  SHOP_RETURNS_FAQ_URL,
+} from '../../config/navigationConfig';
+import {
+  PublicationInfoPageView,
+  type PublicationInfoSection,
+} from '../../components/PublicationInfoPageView';
+
+const sections: PublicationInfoSection[] = [
+  {
+    id: 'editorial-scope',
+    heading: '1. Informational & Editorial Purpose',
+    paragraphs: [
+      'Science of Gifts (scienceofgifts.com) is an editorial publication and gift-discovery resource. All articles, research summaries, gift guides, and Gift Finder results are provided for general informational and editorial purposes.',
+    ],
+  },
+  {
+    id: 'pricing-and-availability',
+    heading: '2. Product Pricing, Specifications & Third-Party Merchants',
+    paragraphs: [
+      'While we strive to keep canonical product profiles accurate, third-party retailers and independent makers control their own pricing, inventory, product formulations, shipping terms, and return policies. Prices and stock status displayed on Science of Gifts reflect the information recorded at the time of editorial review and may differ from live merchant checkout pages.',
+      'Science of Gifts is not a party to transactions completed on external third-party merchant websites.',
+    ],
+  },
+  {
+    id: 'shop-terms',
+    heading: '3. Science of Gifts Shop (Fourthwall) Purchases',
+    paragraphs: [
+      `First-party merchandise offered at ${SHOP_EXTERNAL_URL} is fulfilled through Fourthwall and is governed by the terms, shipping policies, and return rules published on the Shop Returns & FAQ page (${SHOP_RETURNS_FAQ_URL}).`,
+    ],
+  },
+  {
+    id: 'intellectual-property-and-governing-law',
+    heading: '4. Intellectual Property & Governing Law',
+    paragraphs: [
+      'Original editorial essays, guide commentary, curatorial taxonomies, and visual design on Science of Gifts are the property of Science of Gifts and its contributors. Referenced academic studies remain the intellectual property of their respective authors and publishers.',
+    ],
+    ownerReviewNote:
+      'Confirm your business entity name, governing law/jurisdiction, and limitation-of-liability clauses with your legal counsel before final sign-off.',
+  },
+];
+---
+
+<BaseLayout
+  title="Terms of Use — Editorial & Commerce Terms | Science of Gifts"
+  description="Terms governing the use of the Science of Gifts editorial website, third-party retailer links, and Science of Gifts Shop merchandise."
+  canonicalPath="/terms-of-use/"
+  ogType="website"
+>
+  <PublicationInfoPageView
+    currentPath="/terms-of-use/"
+    kicker="Publication Terms"
+    title="Terms of Use"
+    subtitle="Terms governing your use of the Science of Gifts editorial publication, interactive Gift Finder, and outbound merchant links."
+    lastUpdated="November 2026"
+    ownerReviewSummary="This draft outlines the operational boundary between the Science of Gifts editorial website, external third-party merchants, and the Fourthwall-hosted Science of Gifts Shop. Please review the marked legal entity and jurisdiction notes prior to production launch."
+    sections={sections}
+  />
+</BaseLayout>

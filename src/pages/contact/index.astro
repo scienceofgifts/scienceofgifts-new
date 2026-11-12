@@ -1,0 +1,72 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  PUBLICATION_CONTACT_CONFIG,
+  SHOP_EXTERNAL_URL,
+  SHOP_RETURNS_FAQ_URL,
+} from '../../config/navigationConfig';
+import {
+  PublicationInfoPageView,
+  type PublicationInfoSection,
+} from '../../components/PublicationInfoPageView';
+
+const { editorialContactEmail } = PUBLICATION_CONTACT_CONFIG;
+
+const sections: PublicationInfoSection[] = [
+  {
+    id: 'editorial-inquiries',
+    heading: 'Editorial & Publication Inquiries',
+    paragraphs: editorialContactEmail
+      ? [
+          `For questions about our gift guides, stories, corrections, or editorial policies, please contact the Science of Gifts editorial desk at ${editorialContactEmail}.`,
+        ]
+      : [
+          'This page provides the structure for contacting the Science of Gifts editorial desk regarding gift guides, stories, corrections, and catalog inquiries.',
+          'To avoid displaying an unverified address or a non-delivering contact form, direct editorial email routing is held in configuration (PUBLICATION_CONTACT_CONFIG.editorialContactEmail in src/config/navigationConfig.ts) and will appear here as soon as the publication owner confirms the public inbox address.',
+        ],
+    ownerReviewNote: editorialContactEmail
+      ? undefined
+      : 'Set PUBLICATION_CONTACT_CONFIG.editorialContactEmail in src/config/navigationConfig.ts (or via Sanity siteSettings) to activate the public mailto address on this page.',
+  },
+  {
+    id: 'shop-orders-and-returns',
+    heading: 'Science of Gifts Shop Orders, Shipping & Returns',
+    paragraphs: [
+      'First-party merchandise sold through the Science of Gifts Shop (shop.scienceofgifts.com) is fulfilled through Fourthwall. The editorial desk does not process payment changes, shipping address updates, or merchandise returns directly on this website.',
+      'For questions about an existing Science of Gifts Shop order, shipping timelines, or return eligibility, please visit our dedicated Shop Returns & FAQ page.',
+    ],
+    bullets: [
+      `Science of Gifts Shop: ${SHOP_EXTERNAL_URL}`,
+      `Shop Returns, Shipping & Order FAQ: ${SHOP_RETURNS_FAQ_URL}`,
+    ],
+  },
+  {
+    id: 'third-party-merchant-orders',
+    heading: 'Third-Party Retailer & Maker Purchases',
+    paragraphs: [
+      'When you follow an outbound link from a Science of Gifts guide or product profile to an external retailer or independent maker, your purchase is completed directly with that merchant. Please contact the retailer where you placed your order for shipping, warranty, or return support.',
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Contact Science of Gifts — Editorial Inquiries & Shop Support"
+  description="How to reach Science of Gifts for editorial questions, catalog feedback, and Science of Gifts Shop order support."
+  canonicalPath="/contact/"
+  ogType="website"
+>
+  <PublicationInfoPageView
+    currentPath="/contact/"
+    kicker="Reader Correspondence"
+    title="Contact Science of Gifts"
+    subtitle="How to reach our publication regarding editorial content, corrections, and Science of Gifts Shop orders."
+    lastUpdated="November 2026"
+    ownerReviewSummary={
+      editorialContactEmail
+        ? undefined
+        : 'No verified public editorial email address or backend form delivery service is currently configured in the repository. Rather than inventing an email address or rendering a nonfunctional form, this page routes merchandise inquiries to the verified Fourthwall support page and provides a centralized configuration slot for the editorial inbox.'
+    }
+    sections={sections}
+  />
+</BaseLayout>

@@ -1,55 +1,413 @@
+@import "./styles/site-theme.css";
 @import "tailwindcss";
 
+/* ============================================================================
+ * TAILWIND CSS v4 THEME BRIDGE
+ * Connects Tailwind's built-in font and color utilities to the centralized
+ * tokens defined in `src/styles/site-theme.css`.
+ * ============================================================================ */
+@theme inline {
+  --font-serif: var(--theme-font-display);
+  --font-sans: var(--theme-font-body);
+  --font-mono: var(--theme-font-mono);
+
+  --color-page-canvas: var(--theme-color-page-bg);
+  --color-surface-paper: var(--theme-color-surface);
+  --color-surface-subtle: var(--theme-color-surface-subtle);
+  --color-ink-primary: var(--theme-color-text-primary);
+  --color-ink-secondary: var(--theme-color-text-secondary);
+  --color-brand-primary: var(--theme-color-brand-primary);
+  --color-link-accent: var(--theme-color-link);
+  --color-border-hairline: var(--theme-color-border);
+  --color-highlight-mint: var(--theme-color-accent-mint-bg);
+}
+
 @layer base {
-  :root {
-    --font-serif: 'Fraunces', Georgia, serif;
-    --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-
-    /* Refined Editorial Palette (Section 3) */
-    --color-editorial-canvas: #FAF9F6;
-    --color-paper-surface: #FFFFFF;
-    --color-paper-subtle: #F6F4EF;
-    --color-ink-primary: #24282B;
-    --color-ink-secondary: #636A6F;
-    --color-brand-navy: #1B3D5F;
-    --color-interactive-blue: #28537D;
-    --color-mint-subtle: #E5F3EC;
-    --color-border-soft: #E3E1DB;
-
-    /* Preserved Legacy & Article Variables */
-    --color-page-bg: #FAF9F6;
-    --color-ref-card-bg: #FFFFFF;
-    --color-ref-card-border: #E3E1DB;
-    --color-border-subtle: #E3E1DB;
-    --color-text-heading: #24282B;
-    --color-text-primary: #24282B;
-    --color-text-body: #24282B;
-    --color-text-secondary: #636A6F;
-    --color-text-callout: #24282B;
-    --color-link-accent: #28537D;
-    --color-mint-soft: #E5F3EC;
-    --color-control-selected-bg: #1B3D5F;
-    --color-control-selected-text: #FFFFFF;
-  }
-
   body {
-    font-family: var(--font-sans);
-    background-color: var(--color-editorial-canvas);
-    color: var(--color-ink-primary);
+    font-family: var(--theme-font-body);
+    font-size: var(--theme-size-body);
+    line-height: var(--theme-leading-body);
+    color: var(--theme-color-body);
+    background-color: var(--theme-color-page-bg);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, .font-serif {
-    font-family: var(--font-serif);
-    color: var(--color-ink-primary);
-    letter-spacing: -0.015em;
+    font-family: var(--theme-font-display);
+    color: var(--theme-color-heading);
+    letter-spacing: var(--theme-tracking-heading);
+  }
+
+  .font-sans {
+    font-family: var(--theme-font-body);
   }
 
   .font-mono {
-    font-family: var(--font-mono);
+    font-family: var(--theme-font-mono);
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ============================================================================
+ * CENTRALIZED TYPOGRAPHY ROLE CLASSES
+ * Each class maps directly to a distinct typography role in `site-theme.css`.
+ * Used across Gift Guides, Product Profiles, Stories, Navigation, and Finder.
+ * ============================================================================ */
+
+/* 1. Display Headings (Flagship Guide & Home Cover H1) */
+.theme-display-heading {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-display-heading);
+  font-weight: var(--theme-weight-heading);
+  line-height: var(--theme-leading-display);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-heading);
+}
+
+/* 2. Page Titles (Product Profile H1, Story H1, Gift Finder H1) */
+.theme-page-title {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-page-title);
+  font-weight: var(--theme-weight-heading);
+  line-height: var(--theme-leading-display);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-heading);
+}
+
+/* 3. Major Section Headings (Chapter H2s & Primary Section H2s) */
+.theme-section-heading {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-section-heading);
+  font-weight: var(--theme-weight-heading);
+  line-height: var(--theme-leading-heading);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-heading);
+}
+
+/* 4. Subsection Headings (H3s, Curator Notes, Buying Principles, FAQ Questions) */
+.theme-subsection-heading {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-subsection-heading);
+  font-weight: var(--theme-weight-subheading);
+  line-height: var(--theme-leading-subheading);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-subheading);
+}
+
+/* 5. Information Headings (Callout Boxes, "Who This Guide Is Written For",
+      "Three Questions Before You Buy", Consideration & Occasion Headings) */
+.theme-info-heading {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-info-heading);
+  font-weight: var(--theme-weight-info-heading);
+  line-height: var(--theme-leading-subheading);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-info-heading);
+}
+
+/* 6. Minor Information Labels (Definition list labels like "Best suited for") */
+.theme-info-label {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-info-label);
+  font-weight: var(--theme-weight-info-heading);
+  line-height: var(--theme-leading-compact);
+  color: var(--theme-color-brand-primary);
+}
+
+/* 7. Product Titles (Standard Cards & Featured Editor's Pick / Lead Spreads) */
+.theme-product-title {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-product-title);
+  font-weight: var(--theme-weight-product-title);
+  line-height: var(--theme-leading-subheading);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-product-title);
+}
+
+.theme-product-title-featured {
+  font-family: var(--theme-font-display);
+  font-size: var(--theme-size-product-title-featured);
+  font-weight: var(--theme-weight-product-title);
+  line-height: var(--theme-leading-heading);
+  letter-spacing: var(--theme-tracking-heading);
+  color: var(--theme-color-product-title);
+}
+
+.theme-display-heading a:hover,
+.theme-page-title a:hover,
+.theme-section-heading a:hover,
+.theme-subsection-heading a:hover,
+.theme-product-title a:hover,
+.theme-product-title-featured a:hover {
+  color: var(--theme-color-link);
+}
+
+/* 8. Introductory Descriptions (Standfirsts, Subtitles, Chapter Summaries) */
+.theme-intro-text {
+  font-family: var(--theme-font-body);
+  font-size: var(--theme-size-intro);
+  font-weight: var(--theme-weight-body);
+  line-height: var(--theme-leading-intro);
+  color: var(--theme-color-intro);
+}
+
+/* 9. Body Paragraphs (Primary Editorial Prose & Reviews) */
+.theme-body-text {
+  font-family: var(--theme-font-body);
+  font-size: var(--theme-size-body);
+  font-weight: var(--theme-weight-body);
+  line-height: var(--theme-leading-body);
+  letter-spacing: var(--theme-tracking-body);
+  color: var(--theme-color-body);
+}
+
+.theme-body-sm {
+  font-family: var(--theme-font-body);
+  font-size: var(--theme-size-body-sm);
+  font-weight: var(--theme-weight-body);
+  line-height: var(--theme-leading-body);
+  letter-spacing: var(--theme-tracking-body);
+  color: var(--theme-color-body);
+}
+
+/* 10. Captions & Disclosures */
+.theme-caption {
+  font-family: var(--theme-font-body);
+  font-size: var(--theme-size-caption);
+  line-height: var(--theme-leading-compact);
+  color: var(--theme-color-caption);
+}
+
+/* 11. Metadata & Section Kickers */
+.theme-metadata {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-metadata);
+  line-height: var(--theme-leading-compact);
+  color: var(--theme-color-text-secondary);
+}
+
+.theme-kicker {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-metadata);
+  font-weight: var(--theme-weight-metadata);
+  line-height: var(--theme-leading-compact);
+  color: var(--theme-color-link);
+}
+
+/* 12. Navigation Text */
+.theme-nav-link {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-nav);
+  font-weight: var(--theme-weight-nav);
+  color: var(--theme-color-nav);
+}
+
+.theme-nav-link:hover,
+.theme-nav-link-active {
+  color: var(--theme-color-nav-active);
+}
+
+/* 13. Buttons & Links */
+.theme-button-text {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-button);
+  font-weight: var(--theme-weight-button);
+}
+
+.theme-btn-primary {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-button);
+  font-weight: var(--theme-weight-button);
+  background-color: var(--theme-color-button-bg);
+  color: var(--theme-color-button-text);
+  border-radius: var(--theme-radius-sm);
+}
+
+.theme-btn-primary:hover {
+  background-color: var(--theme-color-button-bg-hover);
+}
+
+.theme-btn-secondary {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-button);
+  font-weight: var(--theme-weight-button);
+  background-color: var(--theme-color-surface);
+  color: var(--theme-color-text-primary);
+  border: 1px solid var(--theme-color-border);
+  border-radius: var(--theme-radius-sm);
+}
+
+.theme-btn-secondary:hover {
+  border-color: var(--theme-color-link);
+  color: var(--theme-color-link);
+}
+
+.theme-link {
+  color: var(--theme-color-link);
+}
+
+.theme-link:hover {
+  color: var(--theme-color-link-hover);
+}
+
+/* 14. Sidebar Links */
+.theme-sidebar-link {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-sidebar-link);
+  color: var(--theme-color-sidebar-link);
+}
+
+.theme-sidebar-link:hover {
+  color: var(--theme-color-text-primary);
+}
+
+.theme-sidebar-link-active {
+  font-family: var(--theme-font-ui);
+  font-size: var(--theme-size-sidebar-link);
+  font-weight: var(--theme-weight-metadata);
+  color: var(--theme-color-sidebar-link-active);
+  border-left: 2px solid var(--theme-color-sidebar-link-active);
+}
+
+/* 15. Common Layout Widths */
+.theme-reading-measure {
+  max-width: var(--theme-width-reading-measure);
+}
+
+/* ============================================================================
+ * CENTRALIZED PALETTE TOKEN BRIDGE FOR EXISTING UTILITY CLASSES
+ * Connects component classes across Astro and React islands to `site-theme.css`
+ * so editing a principal color in `site-theme.css` updates every page.
+ * ============================================================================ */
+@layer utilities {
+  /* Backgrounds */
+  .bg-\[\#FAF9F6\],
+  .bg-\[\#FAF7F2\] {
+    background-color: var(--theme-color-page-bg);
+  }
+
+  .bg-\[\#FAF9F6\]\/95,
+  .bg-\[\#FAF7F2\]\/90 {
+    background-color: color-mix(in srgb, var(--theme-color-page-bg) 95%, transparent);
+  }
+
+  .bg-\[\#FFFFFF\] {
+    background-color: var(--theme-color-surface);
+  }
+
+  .bg-\[\#F6F4EF\],
+  .bg-\[\#F5F4F0\],
+  .bg-\[\#F3ECE1\] {
+    background-color: var(--theme-color-surface-subtle);
+  }
+
+  .bg-\[\#E5F3EC\],
+  .bg-\[\#E8F8F0\],
+  .bg-\[\#E5F5EE\] {
+    background-color: var(--theme-color-accent-mint-bg);
+  }
+
+  .bg-\[\#E5F3EC\]\/65,
+  .bg-\[\#E8F8F0\]\/65 {
+    background-color: color-mix(in srgb, var(--theme-color-accent-mint-bg) 65%, transparent);
+  }
+
+  .bg-\[\#FFF4D6\],
+  .bg-\[\#FFF8E7\] {
+    background-color: var(--theme-color-accent-butter-bg);
+  }
+
+  .bg-\[\#EBF3FE\] {
+    background-color: var(--theme-color-accent-blue-bg);
+  }
+
+  .bg-\[\#1B3D5F\] {
+    background-color: var(--theme-color-button-bg);
+  }
+
+  .bg-\[\#28537D\] {
+    background-color: var(--theme-color-link);
+  }
+
+  /* Text Colors */
+  .text-\[\#24282B\],
+  .text-\[\#222426\],
+  .text-\[\#292B2D\] {
+    color: var(--theme-color-text-primary);
+  }
+
+  .text-\[\#636A6F\],
+  .text-\[\#62666A\] {
+    color: var(--theme-color-text-secondary);
+  }
+
+  .text-\[\#1B3D5F\] {
+    color: var(--theme-color-brand-primary);
+  }
+
+  .text-\[\#28537D\] {
+    color: var(--theme-color-link);
+  }
+
+  .text-\[\#FFFFFF\] {
+    color: var(--theme-color-button-text);
+  }
+
+  /* Borders & Dividers */
+  .border-\[\#E3E1DB\],
+  .border-\[\#DFDBD3\] {
+    border-color: var(--theme-color-border);
+  }
+
+  .divide-\[\#E3E1DB\] > :not(:last-child),
+  .divide-\[\#DFDBD3\] > :not(:last-child) {
+    border-color: var(--theme-color-border);
+  }
+
+  .border-\[\#C6E4D6\] {
+    border-color: var(--theme-color-accent-mint-border);
+  }
+
+  .border-\[\#1B3D5F\] {
+    border-color: var(--theme-color-brand-primary);
+  }
+
+  /* Interactive Hover Variants */
+  .hover\:text-\[\#28537D\]:hover {
+    color: var(--theme-color-link);
+  }
+
+  .hover\:text-\[\#1B3D5F\]:hover {
+    color: var(--theme-color-brand-primary);
+  }
+
+  .hover\:text-\[\#24282B\]:hover {
+    color: var(--theme-color-text-primary);
+  }
+
+  .hover\:bg-\[\#28537D\]:hover {
+    background-color: var(--theme-color-button-bg-hover);
+  }
+
+  .hover\:bg-\[\#1B3D5F\]:hover {
+    background-color: var(--theme-color-button-bg);
+  }
+
+  .hover\:bg-\[\#FAF9F6\]:hover {
+    background-color: var(--theme-color-page-bg);
+  }
+
+  .hover\:border-\[\#28537D\]:hover {
+    border-color: var(--theme-color-link);
+  }
+
+  .group:hover .group-hover\:text-\[\#28537D\] {
+    color: var(--theme-color-link);
+  }
+
+  .group:hover .group-hover\:text-\[\#24282B\] {
+    color: var(--theme-color-text-primary);
   }
 }
 
@@ -60,4 +418,3 @@
 .text-balance {
   text-wrap: balance;
 }
-

@@ -1,0 +1,88 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { contentRepository } from '../../../cms/contentRepository';
+import {
+  buildCategoryArchiveJsonLd,
+  resolvePageSeoMetadata,
+} from '../../../utils/seoAndValidation';
+import { CategoryArchiveView } from '../../../components/CategoryArchiveView';
+
+export function getStaticPaths() {
+  const dir = contentRepository.getArticlesDirectoryData();
+  return dir.topicDiscovery.map((topic) => ({
+    params: { slug: topic.slug },
+    props: { slug: topic.slug },
+  }));
+}
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const archive = contentRepository.getArticleTopicArchive(slug);
+if (!archive) {
+  throw new Error(`Topic archive not found for slug: ${slug}`);
+}
+
+const { topic, relatedTopics, companionGuides } = archive;
+const defaultCanonicalPath = `/articles/topics/${topic.slug}/`;
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: topic.label,
+  subtitleOrSummary: topic.description,
+  seo: topic.seo,
+  defaultCanonicalPath,
+  defaultOgType: 'website',
+  defaultOgImage: topic.matchingArticles[0]?.article.heroImageUrl,
+  contentType: 'category',
+});
+
+const archiveJsonLd = buildCategoryArchiveJsonLd({
+  archiveTitle: resolvedSeo.seoTitle,
+  archiveDescription: resolvedSeo.metaDescription,
+  canonicalPath: resolvedSeo.canonicalPath,
+  parentDirectoryLabel: 'Stories',
+  parentDirectoryPath: '/articles/',
+  items: topic.matchingArticles.map((art) => ({
+    name: art.article.title,
+    url: `/articles/${art.article.slug}/`,
+    description: art.article.subtitle,
+  })),
+});
+---
+
+<BaseLayout
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
+  jsonLd={archiveJsonLd}
+  activeSection="articles"
+>
+  <CategoryArchiveView
+    client:load
+    archiveType="article-topic"
+    dimensionLabel="Topics"
+    parentDirectoryLabel="Stories"
+    parentDirectoryHref="/articles/"
+    categoryLabel={topic.label}
+    categoryDescription={topic.description}
+    iconKey={topic.iconKey}
+    matchingArticles={topic.matchingArticles}
+    companionGuides={companionGuides}
+    relatedCategories={relatedTopics.map((rel) => ({
+      slug: rel.slug,
+      label: rel.label,
+      description: rel.description,
+      iconKey: rel.iconKey,
+      archiveHref: rel.archiveHref,
+      primaryCountLabel: `${rel.matchingArticles.length} ${rel.matchingArticles.length === 1 ? 'story' : 'stories'}`,
+    }))}
+  />
+</BaseLayout>

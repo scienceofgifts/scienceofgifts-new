@@ -75,9 +75,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             className="md:col-span-5 relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] cursor-pointer"
           >
             <PhotoImage
+              image={primaryImage}
               src={primaryImage.url}
               alt={primaryImage.alt}
               fallbackColor={primaryImage.fallbackColor}
+              preset="feature-landscape"
+              aspectRatio="4:3"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
             <button
@@ -220,9 +223,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] cursor-pointer mb-4"
         >
           <PhotoImage
+            image={primaryImage}
             src={primaryImage.url}
             alt={primaryImage.alt}
             fallbackColor={primaryImage.fallbackColor}
+            preset="card-portrait"
+            aspectRatio="4:5"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
 
@@ -270,7 +276,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </div>
 
           {/* Product Name */}
-          <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors mb-1">
+          <h3 className="theme-product-title text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors mb-1">
             <a
               href={`/products/${product.slug}/`}
               onClick={(e) => {
@@ -284,12 +290,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </h3>
 
           {/* Short, specific description */}
-          <p className="text-xs font-medium text-[#62666A] mb-2 line-clamp-2">
+          <p className="theme-caption text-xs font-medium text-[#62666A] mb-2 line-clamp-2">
             {product.subtitle}
           </p>
 
           {/* Clear explanation of why it makes a good gift */}
-          <p className="text-sm text-[#292B2D] leading-relaxed mb-3">
+          <p className="theme-body-sm text-sm text-[#292B2D] leading-relaxed mb-3">
             {customEditorialNote || product.whyToGiveIt}
           </p>
 

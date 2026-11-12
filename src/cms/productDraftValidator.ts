@@ -1,11 +1,18 @@
 import {
   AgeRange,
   CommerceProvider,
+  ImageFocalPoint,
   OccasionType,
   PersonalityTrait,
   Product,
+  ProductImageFitMode,
   RecipientType,
 } from '../types/content';
+import {
+  isPlaceholderOrSampleImageUrl,
+  isValidFocalPoint,
+  normalizeFocalPoint,
+} from '../utils/productImageDelivery';
 
 export type FieldProvenanceStatus =
   | 'verified_deterministic'
@@ -68,6 +75,10 @@ export interface AIProductDraftSuggestion {
   personalityTraits: PersonalityTrait[];
   imageUrl: string;
   imageAlt: string;
+  imageFocalPoint?: ImageFocalPoint;
+  imageFitMode?: ProductImageFitMode;
+  landscapeOverrideUrl?: string;
+  portraitOverrideUrl?: string;
   provenance: ProductDraftFieldProvenance;
   reviewWarnings: string[];
   humanReviewed: boolean;
@@ -636,11 +647,22 @@ export function validateProductDraftForPublish(
   }
   if (!draft.vendor.trim()) {
     errors.push('Merchant / vendor name is required.');
+  } else if (/^sample\s+maker\b/i.test(draft.vendor.trim())) {
+    errors.push(
+      'Development sample vendor ("Sample Maker: ...") cannot be published as a genuine production product.'
+    );
   }
   const urlCheck = validateMerchantSourceUrl(draft.purchaseUrl);
   if (!urlCheck.valid) {
     errors.push(
       urlCheck.error || 'Purchase URL must be a valid https:// merchant URL.'
+    );
+  } else if (
+    /^(www\.)?example\.(com|org|net)$/i.test(urlCheck.hostname ?? '') ||
+    draft.purchaseUrl.includes('/dev-placeholder/')
+  ) {
+    errors.push(
+      'Placeholder merchant URLs (example.com or /dev-placeholder/) cannot be published as genuine indexed products.'
     );
   }
   if (
@@ -656,6 +678,23 @@ export function validateProductDraftForPublish(
   }
   if (draft.inStock === null) {
     errors.push('Stock availability (inStock) must be explicitly confirmed.');
+  }
+  if (!draft.imageUrl.trim()) {
+    errors.push(
+      'Primary product image URL (2400×2400px 1:1 square master recommended) is required.'
+    );
+  } else {
+    const imgDomainCheck = isPlaceholderOrSampleImageUrl(draft.imageUrl);
+    if (imgDomainCheck.isPlaceholderDomain) {
+      warnings.push(
+        `Product image uses stock/placeholder domain "${imgDomainCheck.hostname}". Replace with a 2400×2400px 1:1 square master photograph before final production.`
+      );
+    }
+  }
+  if (draft.imageFocalPoint && !isValidFocalPoint(draft.imageFocalPoint)) {
+    warnings.push(
+      'Image focal point coordinates must be normalized between 0 and 1; out-of-range coordinates will be clamped.'
+    );
   }
   if (!draft.imageAlt.trim() || draft.imageAlt.trim().length < 10) {
     errors.push(
@@ -709,7 +748,10 @@ export function validateProductDraftForPublish(
     productType: draft.productType,
     commerceProvider: draft.commerceProvider,
     purchaseUrl: urlCheck.normalizedUrl ?? draft.purchaseUrl.trim(),
-    isPlaceholderLink: true,
+    isPlaceholderLink: false,
+    isSampleProduct: false,
+    priceVerified: true,
+    inventoryVerified: draft.inStock !== null,
     inStock: Boolean(draft.inStock),
     whyToGiveIt: draft.whyToGiveIt.trim(),
     detailsAndCare: draft.detailsAndCare.trim(),
@@ -725,6 +767,12 @@ export function validateProductDraftForPublish(
         url: draft.imageUrl,
         fallbackColor: '#E5F5EE',
         alt: draft.imageAlt.trim(),
+        focalPoint: draft.imageFocalPoint
+          ? normalizeFocalPoint(draft.imageFocalPoint)
+          : undefined,
+        fitMode: draft.imageFitMode,
+        landscapeOverrideUrl: draft.landscapeOverrideUrl?.trim() || undefined,
+        portraitOverrideUrl: draft.portraitOverrideUrl?.trim() || undefined,
       },
     ],
     citationIds: [],

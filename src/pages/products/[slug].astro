@@ -1,7 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { contentRepository } from '../../cms/contentRepository';
-import { buildProductJsonLd } from '../../utils/seoAndValidation';
+import {
+  buildProductJsonLd,
+  resolvePageSeoMetadata,
+} from '../../utils/seoAndValidation';
 import { ProductDetailActionsIsland } from '../../components/islands/AstroIslands';
 import { EditorialProductProfile } from '../../components/product/EditorialProductProfile';
 import type { Product, ResearchCitation } from '../../types/content';
@@ -40,22 +43,38 @@ const citations = (product.citationIds ?? [])
   .map((id) => citationsMap[id])
   .filter((c): c is ResearchCitation => Boolean(c));
 
-const productJsonLd = buildProductJsonLd(product);
+const primaryParentGuide = contentRepository.resolvePrimaryGuideForProduct(product.id);
+const productJsonLd = buildProductJsonLd(
+  product,
+  primaryParentGuide,
+  guideAppearances.length > 0
+);
 
-const seoTitle =
-  product.seo?.seoTitle ??
-  `${product.title} by ${product.vendor} | Editorial Gift Profile | Science of Gifts`;
-const seoDescription =
-  product.seo?.metaDescription ??
-  `${product.subtitle}. ${product.giftVerdict?.editorialAssessment || product.whyToGiveIt}`;
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: product.title,
+  subtitleOrSummary: `${product.subtitle} ${product.giftVerdict?.editorialAssessment || product.whyToGiveIt}`,
+  seo: product.seo,
+  defaultCanonicalPath: `/products/${product.slug}/`,
+  defaultOgType: 'product',
+  defaultOgImage: primaryImage.url,
+  contentType: 'product',
+  vendor: product.vendor,
+  product,
+  status: product.status,
+});
 ---
 
 <BaseLayout
-  title={seoTitle}
-  description={seoDescription}
-  canonicalPath={`/products/${product.slug}/`}
-  ogType="website"
-  ogImage={primaryImage.url}
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
   jsonLd={productJsonLd}
   activeSection="products"
 >

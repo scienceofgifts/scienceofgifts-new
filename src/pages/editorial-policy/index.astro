@@ -1,0 +1,70 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  PublicationInfoPageView,
+  type PublicationInfoSection,
+} from '../../components/PublicationInfoPageView';
+
+const sections: PublicationInfoSection[] = [
+  {
+    id: 'curation-principles',
+    heading: 'How We Curate Gift Recommendations',
+    paragraphs: [
+      'Science of Gifts selects recommendations based on recipient suitability, everyday utility, material clarity, and emotional resonance. Our goal is to help readers move past generic gift baskets toward objects that fit naturally into a recipient’s existing habits and home environment.',
+      'Every product in our canonical catalog is documented once and referenced across relevant gift guides, stories, and the Interactive Gift Finder. This single-record structure ensures that price, vendor, and suitability details remain consistent across the entire publication.',
+    ],
+  },
+  {
+    id: 'recipient-suitability',
+    heading: 'Evaluating Recipient Suitability & Practical Caveats',
+    paragraphs: [
+      'No gift is universal. A thoughtful present for a close partner or parent can feel overly personal for a coworker or burdensome for a dinner host at the front door.',
+      'For that reason, our product profiles and guide entries highlight both who an item fits best and practical buying considerations—such as care instructions, storage footprint, fragility, or situations where another option in the catalog may be better suited.',
+    ],
+    bullets: [
+      'Clear recipient tags (Parents & In-Laws, Partners & Spouses, Close Friends, Dinner & Weekend Hosts, Coworkers & Mentors, Kids & Families).',
+      'Explicit occasion context explaining why an item works—or does not work—for birthdays, housewarmings, thank-you gestures, or holidays.',
+      'Candid caveats and care notes presented alongside every recommendation.',
+    ],
+  },
+  {
+    id: 'product-information-and-research',
+    heading: 'Product Information & Behavioral Research Citations',
+    paragraphs: [
+      'Product specifications, materials, and prices are compiled from merchant documentation and verified at the time a catalog entry is created or updated. Retail prices and stock availability can change on external merchant sites without notice.',
+      'When our Stories or Gift Guides reference academic findings in psychology or behavioral economics, we cite specific published papers with author names, publication years, journal details, and study context so readers can inspect the underlying research.',
+    ],
+  },
+  {
+    id: 'commercial-and-affiliate-distinction',
+    heading: 'Editorial Judgment, Affiliate Links & First-Party Merchandise',
+    paragraphs: [
+      'Science of Gifts organizes recommendations by recipient fit and budget tier rather than commission rates. Some outbound links to third-party retailers may earn an affiliate commission at no extra cost to the buyer.',
+      'In addition to third-party recommendations, Science of Gifts offers select first-party merchandise through the Science of Gifts Shop (shop.scienceofgifts.com). Every catalog record carries an explicit fulfillment classification distinguishing third-party affiliate items from publication-owned merchandise.',
+    ],
+  },
+  {
+    id: 'updates-and-corrections',
+    heading: 'Content Updates & Catalog Maintenance',
+    paragraphs: [
+      'Each gift guide and story displays its publication or last-updated date. When a product’s price, availability, or editorial assessment changes in our central repository, the update propagates across all referencing guides, product profiles, and Gift Finder results.',
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Editorial Policy — Curation Standards & Research Approach | Science of Gifts"
+  description="Read how Science of Gifts curates gift recommendations, evaluates recipient suitability, cites behavioral research, and distinguishes editorial content from commerce."
+  canonicalPath="/editorial-policy/"
+  ogType="website"
+>
+  <PublicationInfoPageView
+    currentPath="/editorial-policy/"
+    kicker="Standards & Methodology"
+    title="Editorial Policy"
+    subtitle="How Science of Gifts curates gift recommendations, evaluates recipient suitability, presents practical buying considerations, and distinguishes editorial work from commercial links."
+    lastUpdated="November 2026"
+    sections={sections}
+  />
+</BaseLayout>

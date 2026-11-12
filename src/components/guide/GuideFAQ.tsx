@@ -44,12 +44,12 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
     >
       <div className="flex flex-wrap items-end justify-between gap-4 border-b border-[#E3E1DB] pb-4">
         <div>
-          <p className="text-xs font-semibold text-[#28537D]">
+          <p className="theme-kicker text-xs font-semibold text-[#28537D]">
             Common Questions
           </p>
           <h2
             id="guide-faq-heading"
-            className="mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
+            className="theme-section-heading mt-1 font-serif text-2xl font-semibold text-[#24282B] sm:text-3xl"
           >
             Frequently Asked Questions
           </h2>
@@ -58,7 +58,7 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
         <button
           type="button"
           onClick={toggleAll}
-          className="rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#28537D] transition-colors hover:border-[#28537D]"
+          className="theme-button-text rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3.5 py-2 text-xs font-semibold text-[#28537D] transition-colors hover:border-[#28537D]"
         >
           {allExpanded ? 'Collapse All Answers' : 'Expand All Answers'}
         </button>
@@ -82,7 +82,7 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
                   onClick={() => toggleItem(faq.id)}
                   className="flex w-full items-start justify-between gap-4 text-left"
                 >
-                  <span className="font-serif text-base font-semibold leading-snug text-[#24282B] sm:text-lg">
+                  <span className="theme-subsection-heading font-serif text-base font-semibold leading-snug text-[#24282B] sm:text-lg">
                     {faq.question}
                   </span>
                   <ChevronDown
@@ -94,7 +94,7 @@ export const GuideFAQ: React.FC<GuideFAQProps> = ({
               </h3>
 
               <div id={panelId} hidden={!isOpen} className="mt-3">
-                <p className="max-w-[68ch] text-sm leading-[1.8] text-[#24282B] sm:text-base">
+                <p className="theme-body-text theme-reading-measure max-w-[68ch] text-sm leading-[1.8] text-[#24282B] sm:text-base">
                   {faq.answer}
                 </p>
 
