@@ -1,0 +1,68 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { contentRepository } from '../cms/contentRepository';
+import {
+  buildEditorialHubJsonLd,
+  resolvePageSeoMetadata,
+} from '../utils/seoAndValidation';
+import { EditorialHubInteractiveIsland } from './islands/AstroIslands';
+
+export interface Props {
+  hubSlug: string;
+}
+
+const { hubSlug } = Astro.props;
+const enrichedHub = contentRepository.getEnrichedEditorialHub(hubSlug, {
+  includeDrafts: true,
+});
+
+if (!enrichedHub) {
+  throw new Error(`Editorial hub not found for slug: "${hubSlug}"`);
+}
+
+const { hub, readiness } = enrichedHub;
+const catalog = contentRepository.getCatalogSnapshot({ includeDrafts: false });
+
+const defaultOgImage =
+  hub.heroImage?.url ??
+  enrichedHub.leadFeaturedGuide?.guide.heroImageUrl ??
+  'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80';
+
+const effectiveNoindex = !readiness.isIndexable || Boolean(hub.seo.noindex);
+const effectiveIndexing = effectiveNoindex ? 'noindex,follow' : 'index,follow';
+
+const resolvedSeo = resolvePageSeoMetadata({
+  onPageTitle: hub.title,
+  subtitleOrSummary: hub.subtitle,
+  seo: {
+    ...hub.seo,
+    noindex: effectiveNoindex,
+    indexing: effectiveIndexing,
+  },
+  defaultCanonicalPath: hub.routePath,
+  defaultOgType: 'website',
+  defaultOgImage,
+  contentType: 'editorial-hub',
+  status: readiness.isIndexable ? 'published' : 'draft',
+});
+
+const hubJsonLd = buildEditorialHubJsonLd(hub, catalog);
+---
+
+<BaseLayout
+  title={resolvedSeo.seoTitle}
+  description={resolvedSeo.metaDescription}
+  canonicalPath={resolvedSeo.canonicalPath}
+  ogType={resolvedSeo.ogType}
+  ogTitle={resolvedSeo.ogTitle}
+  ogDescription={resolvedSeo.ogDescription}
+  ogImage={resolvedSeo.ogImage}
+  noindex={resolvedSeo.noindex}
+  robots={resolvedSeo.robots}
+  seo={resolvedSeo}
+  jsonLd={hubJsonLd}
+  activeSection={hub.slug === 'gifts-for-men' ? 'him' : 'her'}
+>
+  <EditorialHubInteractiveIsland client:load enrichedHub={enrichedHub} />
+</BaseLayout>
+

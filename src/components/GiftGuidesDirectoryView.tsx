@@ -20,6 +20,7 @@ import {
   RECIPIENT_TAXONOMY_META,
   RecipientDiscoveryItem,
 } from '../cms/contentRepository';
+import { EditorialHubConfig } from '../types/content';
 import { CategoryIcon } from './CategoryIcon';
 
 export const MAX_CATEGORY_PREVIEW_ITEMS = 3;
@@ -33,6 +34,7 @@ export interface GiftGuidesDirectoryViewProps {
   occasionDiscovery: OccasionDiscoveryItem[];
   budgetDiscovery: BudgetDiscoveryItem[];
   totalCanonicalProductsCount: number;
+  publishedEditorialHubs?: EditorialHubConfig[];
 }
 
 export const GiftGuidesDirectoryView: React.FC<
@@ -46,6 +48,7 @@ export const GiftGuidesDirectoryView: React.FC<
   occasionDiscovery,
   budgetDiscovery,
   totalCanonicalProductsCount,
+  publishedEditorialHubs = [],
 }) => {
   const hasSupportingFeatured = supportingFeaturedGuides.length > 0;
 
@@ -650,6 +653,34 @@ export const GiftGuidesDirectoryView: React.FC<
                 );
               })}
             </div>
+
+            {publishedEditorialHubs.length > 0 && (
+              <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-2">
+                {publishedEditorialHubs.map((hub) => (
+                  <a
+                    key={hub.slug}
+                    href={hub.routePath}
+                    className="group flex flex-col justify-between rounded-2xl border border-[#C6E4D6] bg-[#E5F3EC]/55 p-6 transition-colors hover:border-[#28537D]"
+                  >
+                    <div>
+                      <span className="theme-kicker text-xs font-semibold uppercase tracking-widest text-[#28537D]">
+                        Editorial Discovery Hub
+                      </span>
+                      <h3 className="theme-subsection-heading mt-1 font-serif text-xl font-semibold text-[#24282B] group-hover:text-[#28537D]">
+                        {hub.title}
+                      </h3>
+                      <p className="theme-body-sm mt-2 text-xs text-[#24282B]">
+                        {hub.subtitle}
+                      </p>
+                    </div>
+                    <div className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-[#1B3D5F] group-hover:text-[#28537D]">
+                      <span>Explore {hub.title}</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
           </section>
         )}
 

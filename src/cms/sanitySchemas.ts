@@ -818,6 +818,15 @@ export const SANITY_SCHEMA_TYPES: SanitySchemaDefinition[] = [
           'Centralized human-readable labels and filter descriptions for recipients, occasions, personality traits, and budget buckets.',
         validationRule: 'Rule.required()',
       },
+      {
+        name: 'editorialHubs',
+        title: 'Editorial Discovery Hubs (Gifts for Him, Gifts for Her, & Future Hubs)',
+        type: 'array',
+        description:
+          'Structured configuration for major editorial discovery hubs (/gifts-for-men/, /gifts-for-women/) with decoupled H1 title, SEO metadata, relationship pathways, interest slugs, budget brackets, curated guides, curated products, and publication readiness thresholds.',
+        of: [{ type: 'editorialHubConfig' }],
+        validationRule: 'Rule.optional()',
+      },
     ],
   },
 ];
@@ -992,10 +1001,107 @@ export const SANITY_OBJECT_SCHEMA_TYPES: SanitySchemaDefinition[] = [
       },
     ],
   },
+  {
+    name: 'editorialHubConfig',
+    title: 'Editorial Discovery Hub Configuration (Gifts for Him / Gifts for Her)',
+    type: 'object',
+    description:
+      'Reusable configuration for major editorial discovery hubs (/gifts-for-men/, /gifts-for-women/) combining relationship pathways, interest taxonomy, budget tiers, occasion discovery, curated guides, curated products, and buying advice.',
+    fields: [
+      {
+        name: 'slug',
+        title: 'Canonical Route Slug (e.g. "gifts-for-men", "gifts-for-women")',
+        type: 'string',
+        validationRule: 'Rule.required()',
+      },
+      {
+        name: 'routePath',
+        title: 'Normalized Canonical Route Path (e.g. "/gifts-for-men/")',
+        type: 'string',
+        validationRule: 'Rule.required().regex(/^\\/[a-z0-9-]+\\/$/)',
+      },
+      {
+        name: 'title',
+        title: 'Visible H1 Heading (e.g. "Gifts for Him", "Gifts for Her")',
+        type: 'string',
+        description:
+          'Decoupled from the URL slug and SEO <title> tag so existing production URLs (/gifts-for-men/, /gifts-for-women/) can display editorial H1 headings ("Gifts for Him", "Gifts for Her").',
+        validationRule: 'Rule.required().min(5).max(90)',
+      },
+      {
+        name: 'subtitle',
+        title: 'Editorial Lead / Subtitle',
+        type: 'text',
+        validationRule: 'Rule.required().max(280)',
+      },
+      {
+        name: 'editorialLeadParagraphs',
+        title: 'Editorial Introduction Paragraphs',
+        type: 'array',
+        of: [{ type: 'text' }],
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'status',
+        title: 'Publication Status',
+        type: 'string',
+        options: { list: ['draft', 'published'] },
+        validationRule: 'Rule.required()',
+      },
+      {
+        name: 'seo',
+        title: 'SEO, Canonical URL & Indexing Metadata',
+        type: 'seoMetadata',
+        validationRule: 'Rule.required()',
+      },
+      {
+        name: 'relationshipPathways',
+        title: 'Browse by Relationship Pathways',
+        type: 'array',
+        of: [{ type: 'object' }],
+        validationRule: 'Rule.required().min(4)',
+      },
+      {
+        name: 'interestSlugs',
+        title: 'Browse by Interest Slugs',
+        type: 'array',
+        of: [{ type: 'string' }],
+        validationRule: 'Rule.required().min(1)',
+      },
+      {
+        name: 'budgetBrackets',
+        title: 'Browse by Budget Brackets',
+        type: 'array',
+        of: [{ type: 'object' }],
+        validationRule: 'Rule.required().min(3)',
+      },
+      {
+        name: 'curatedGuides',
+        title: 'Curated Editorial Gift Guides',
+        type: 'array',
+        of: [{ type: 'reference', to: [{ type: 'giftGuide' }] }],
+        validationRule: 'Rule.unique()',
+      },
+      {
+        name: 'curatedProductPicks',
+        title: 'Curated Individual Gift Selections',
+        type: 'array',
+        of: [{ type: 'object' }],
+        validationRule: 'Rule.optional()',
+      },
+      {
+        name: 'buyingAdvice',
+        title: 'Editorial Buying Advice Blocks',
+        type: 'array',
+        of: [{ type: 'object' }],
+        validationRule: 'Rule.required().min(3)',
+      },
+    ],
+  },
 ];
 
 /**
- * Reference GROQ projections demonstrating how Gift Guides and Articles join
+ * Reference GROQ projections demonstrating how Gift Guides, Articles, and Editorial Hubs join
  * canonical `product` and `researchCitation` documents without duplicating records.
  */
 export const GROQ_QUERIES = {
@@ -1164,5 +1270,36 @@ export const GROQ_QUERIES = {
     },
     "relatedGuides": relatedGuides[]->{ "id": _id, "slug": slug.current, title, subtitle, readTimeMinutes, heroImageUrl },
     "relatedArticles": relatedArticles[]->{ "id": _id, "slug": slug.current, title, subtitle, category, heroImageUrl }
+  }`,
+
+  editorialHubBySlug: `*[_type == "siteSettings"][0].editorialHubs[slug == $slug][0]{
+    id,
+    slug,
+    routePath,
+    title,
+    editorialKicker,
+    subtitle,
+    editorialLeadParagraphs,
+    editorialPositioning,
+    status,
+    seo,
+    relationshipPathways,
+    interestSlugs,
+    budgetBrackets,
+    occasionKeys,
+    "curatedGuideIds": curatedGuides[]->_id,
+    curatedProductPicks[]{
+      selectionSource,
+      editorialNote,
+      bestForRelationship,
+      "productId": product->productId,
+      "featuredGuideId": featuredGuide->_id
+    },
+    finderCta,
+    buyingAdvice,
+    "relatedArticleIds": relatedArticles[]->_id,
+    companionHubSlug,
+    minimumRequiredGuides,
+    minimumRequiredProducts
   }`,
 };

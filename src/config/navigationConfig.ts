@@ -22,36 +22,112 @@ export const PUBLICATION_CONTACT_CONFIG: {
   shopSupportUrl: SHOP_RETURNS_FAQ_URL,
 };
 
+export type HeaderActiveSection =
+  | 'home'
+  | 'guides'
+  | 'him'
+  | 'her'
+  | 'articles'
+  | 'products'
+  | 'finder';
+
 export interface NavLinkItem {
   id: string;
   label: string;
   href: string;
   external?: boolean;
   iconKey?: 'shopping-bag';
-  activeSection?: 'guides' | 'articles' | 'finder';
+  activeSection?: HeaderActiveSection;
+  hubSlug?: 'gifts-for-men' | 'gifts-for-women';
 }
 
-export const PRIMARY_NAV_LINKS: NavLinkItem[] = [
+/**
+ * Controls whether the editorial discovery hubs (`For Him` and `For Her`)
+ * are visible in the global navbar during development preview so they can be
+ * navigated and reviewed while remaining `draft` + `noindex, follow` for SEO.
+ *
+ * In strict public production mode (`isDevPreview: false`), `For Him` and `For Her`
+ * only appear in navigation once their respective hub passes publication readiness.
+ */
+export const ENABLE_EDITORIAL_HUB_DEV_NAV_PREVIEW = true;
+
+export const EDITORIAL_HUB_HEADER_LINKS: NavLinkItem[] = [
   {
-    id: 'gift-guides',
-    label: 'Gift Guides',
-    href: '/gift-guides/',
-    activeSection: 'guides',
+    id: 'for-him',
+    label: 'For Him',
+    href: '/gifts-for-men/',
+    activeSection: 'him',
+    hubSlug: 'gifts-for-men',
   },
   {
-    id: 'stories',
-    label: 'Stories',
-    href: '/articles/',
-    activeSection: 'articles',
-  },
-  {
-    id: 'shop',
-    label: 'Shop',
-    href: SHOP_EXTERNAL_URL,
-    external: true,
-    iconKey: 'shopping-bag',
+    id: 'for-her',
+    label: 'For Her',
+    href: '/gifts-for-women/',
+    activeSection: 'her',
+    hubSlug: 'gifts-for-women',
   },
 ];
+
+export interface HeaderNavigationVisibilityOptions {
+  /**
+   * When true (default in development preview), includes `For Him` and `For Her`
+   * in the navbar so the hubs can be navigated and reviewed safely without
+   * weakening their draft/noindex status.
+   * When false (strict public production mode), only includes hubs listed in
+   * `readyHubSlugs`.
+   */
+  isDevPreview?: boolean;
+  /**
+   * Slugs of editorial hubs that have passed publication readiness (`isReadyToPublish && isIndexable`).
+   */
+  readyHubSlugs?: string[];
+}
+
+export function resolveEditorialHubHeaderLinks(
+  options?: HeaderNavigationVisibilityOptions
+): NavLinkItem[] {
+  const isDevPreview =
+    options?.isDevPreview ?? ENABLE_EDITORIAL_HUB_DEV_NAV_PREVIEW;
+  if (isDevPreview) {
+    return EDITORIAL_HUB_HEADER_LINKS;
+  }
+  const readySet = new Set(options?.readyHubSlugs ?? []);
+  return EDITORIAL_HUB_HEADER_LINKS.filter(
+    (link) => link.hubSlug && readySet.has(link.hubSlug)
+  );
+}
+
+export function resolveHeaderEditorialNavLinks(
+  options?: HeaderNavigationVisibilityOptions
+): NavLinkItem[] {
+  const hubLinks = resolveEditorialHubHeaderLinks(options);
+  return [
+    {
+      id: 'gift-guides',
+      label: 'Gift Guides',
+      href: '/gift-guides/',
+      activeSection: 'guides',
+    },
+    ...hubLinks,
+    {
+      id: 'stories',
+      label: 'Stories',
+      href: '/articles/',
+      activeSection: 'articles',
+    },
+    {
+      id: 'shop',
+      label: 'Shop',
+      href: SHOP_EXTERNAL_URL,
+      external: true,
+      iconKey: 'shopping-bag',
+    },
+  ];
+}
+
+export const PRIMARY_NAV_LINKS: NavLinkItem[] = resolveHeaderEditorialNavLinks({
+  isDevPreview: ENABLE_EDITORIAL_HUB_DEV_NAV_PREVIEW,
+});
 
 export const PRIMARY_CTA_LINK: NavLinkItem = {
   id: 'find-a-gift',
@@ -59,6 +135,7 @@ export const PRIMARY_CTA_LINK: NavLinkItem = {
   href: '/gift-finder/',
   activeSection: 'finder',
 };
+
 
 export interface FooterLinkItem {
   label: string;

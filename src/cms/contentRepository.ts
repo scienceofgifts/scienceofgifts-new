@@ -5,7 +5,10 @@ import {
   Author,
   BudgetTier,
   DirectoryOrCategorySEOEntry,
+  EditorialHubBudgetBracket,
   EditorialHubConfig,
+  EditorialHubProductSelection,
+  EditorialHubRelationshipPathway,
   GiftGuide,
   OccasionType,
   Product,
@@ -16,9 +19,12 @@ import {
 } from '../types/content';
 import {
   CatalogDataOverride,
+  EditorialHubReadinessEvaluation,
   calculateArticleReadingTime,
   calculateArticleWordCount,
+  evaluateEditorialHubReadiness,
 } from '../utils/seoAndValidation';
+import { hasValidNumericPrice } from '../utils/giftFinderEngine';
 import {
   CategoryIconKey,
   resolveCategoryIconKey,
@@ -117,6 +123,46 @@ export interface ArticleTopicDiscoveryItem {
   matchingArticles: EnrichedArticle[];
   archiveHref: string;
   seo?: Partial<SEOConfig>;
+}
+
+export interface EnrichedEditorialHubRelationship {
+  pathway: EditorialHubRelationshipPathway;
+  iconKey: CategoryIconKey;
+  archiveHref: string;
+  giftFinderHref: string;
+  matchingGuideCount: number;
+  matchingProductCount: number;
+}
+
+export interface EnrichedEditorialHubBudget {
+  bracket: EditorialHubBudgetBracket;
+  iconKey: CategoryIconKey;
+  matchingProductCount: number;
+  matchingGuideCount: number;
+  featuredGuide?: EnrichedGiftGuide;
+}
+
+export interface EnrichedEditorialHubProductPick {
+  product: Product;
+  selection: EditorialHubProductSelection;
+  featuredGuide?: EnrichedGiftGuide;
+  guideAppearancesCount: number;
+}
+
+export interface EnrichedEditorialHub {
+  hub: EditorialHubConfig;
+  readiness: EditorialHubReadinessEvaluation;
+  relationships: EnrichedEditorialHubRelationship[];
+  interests: InterestDiscoveryItem[];
+  budgets: EnrichedEditorialHubBudget[];
+  occasions: OccasionDiscoveryItem[];
+  leadFeaturedGuide: EnrichedGiftGuide | null;
+  supportingFeaturedGuides: EnrichedGiftGuide[];
+  allCuratedGuides: EnrichedGiftGuide[];
+  curatedProducts: EnrichedEditorialHubProductPick[];
+  relatedArticles: EnrichedArticle[];
+  recipientArchives: RecipientDiscoveryItem[];
+  companionHub?: EditorialHubConfig;
 }
 
 export const RECIPIENT_TAXONOMY_META: Record<
@@ -312,33 +358,36 @@ export const DEFAULT_DIRECTORY_SEO_ENTRIES: Record<
 };
 
 export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
-  'gifts-for-him': {
+  'gifts-for-men': {
     id: 'hub_gifts_for_him',
-    slug: 'gifts-for-him',
-    routePath: '/gifts-for-him/',
+    slug: 'gifts-for-men',
+    routePath: '/gifts-for-men/',
     legacyProductionPaths: ['/gifts-for-men/'],
-    plannedRedirectMappings: [
-      {
-        fromPath: '/gifts-for-men/',
-        toPath: '/gifts-for-him/',
-        statusCode: 301,
-        applyOnLaunchOnly: true,
-        reason:
-          'Preserve existing live production URL /gifts-for-men/ by 301 redirecting to /gifts-for-him/ when the editorial hub launches (not applied until launch).',
-      },
-    ],
-    title: 'Thoughtful Gifts for Him',
+    plannedRedirectMappings: [],
+    title: 'Gifts for Him',
+    editorialKicker: 'Editorial Discovery Hub · Gifts for Him',
     subtitle:
-      'Tactile everyday upgrades, morning coffee rituals, kitchen craft, and lasting objects organized by who he actually is and how he spends his days.',
+      'Thoughtful everyday objects, quiet morning rituals, kitchen craft, and enduring keepsakes—organized by who he is to you, what he enjoys, and how he actually spends his days.',
+    editorialLeadParagraphs: [
+      'Shopping for the men in your life is hardest when gift guides treat every father, husband, brother, and friend as a single stereotype. Most people do not actually want another novelty whiskey stone set or engraved desk gadget that ends up in a hallway drawer by January.',
+      'Instead, we organize this hub around the way thoughtful gifting actually works in practice: start with your relationship, look closely at one or two routines he genuinely enjoys—from morning coffee or sourdough baking to weeknight board games and evening reading—and choose a well-made object or consumable that upgrades that habit without adding clutter.',
+    ],
     editorialPositioning:
       'Broad search entry point designed around real relationships, daily habits, and concrete interests rather than generic novelty clichés.',
+    heroImage: {
+      url: 'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80',
+      alt: 'Warm linen-wrapped gift parcels, ceramic vessels, and natural twine arranged on a sunlit wooden table',
+      caption:
+        'The strongest gifts for him rarely rely on spectacle; they fit effortlessly into the first or last hour of his day.',
+      isSampleAsset: true,
+    },
     status: 'draft',
     seo: {
       seoTitle:
-        'Thoughtful Gifts for Him — By Relationship, Routine & Budget | Science of Gifts',
+        'Gifts for Him — Thoughtful Ideas for Dads, Husbands, Boyfriends & Brothers | Science of Gifts',
       metaDescription:
-        'Discover thoughtful gifts for fathers, husbands, partners, brothers, and close friends—organized by daily ritual, interest, and budget.',
-      canonicalPath: '/gifts-for-him/',
+        'Explore thoughtful gifts for him—from dads and husbands to boyfriends, brothers, grandfathers, and close friends—organized by interest, occasion, and budget ($18 to $115+).',
+      canonicalPath: '/gifts-for-men/',
       ogType: 'website',
       schemaType: 'CollectionPage',
       noindex: true,
@@ -346,49 +395,87 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
     },
     relationshipPathways: [
       {
-        id: 'him-father',
-        label: 'For Fathers & Fathers-in-Law',
-        relationshipSlug: 'father',
+        id: 'him-dad',
+        label: 'For Dad & Fathers-in-Law',
+        shortLabel: 'Dad',
+        relationshipSlug: 'dad',
+        iconKey: 'users',
         description:
-          'High-craft consumables, morning ritual upgrades, and warm household pieces for dads who insist they need nothing.',
+          'Clutter-free pantry flights, warm lambswool throws, and countertop upgrades for fathers who insist they already have everything.',
         recipientFilter: 'parent',
+        recipientArchiveHref: '/gift-guides/recipients/parent/',
         giftFinderHref: '/gift-finder/?recipient=parent',
       },
       {
-        id: 'him-partner',
-        label: 'For a Husband or Partner',
-        relationshipSlug: 'partner',
+        id: 'him-husband',
+        label: 'For a Husband or Spouse',
+        shortLabel: 'Husband',
+        relationshipSlug: 'husband',
+        iconKey: 'heart',
         description:
-          'Personal keepsakes, bedside glassware, and breathable Turkish cotton comfort for shared routines.',
+          'Garment-washed Turkish cotton robes, custom night-sky star charts, and tactile upgrades for shared mornings and anniversaries.',
         recipientFilter: 'partner',
+        recipientArchiveHref: '/gift-guides/recipients/partner/',
+        giftFinderHref: '/gift-finder/?recipient=partner&occasion=anniversary',
+      },
+      {
+        id: 'him-boyfriend',
+        label: 'For a Boyfriend or Partner',
+        shortLabel: 'Boyfriend',
+        relationshipSlug: 'boyfriend',
+        iconKey: 'heart-handshake',
+        description:
+          'Hand-blown bedside glassware, wheel-thrown matcha studios, and personal keepsakes that celebrate shared routines.',
+        recipientFilter: 'partner',
+        recipientArchiveHref: '/gift-guides/recipients/partner/',
         giftFinderHref: '/gift-finder/?recipient=partner',
       },
       {
-        id: 'him-brother-friend',
-        label: 'For a Brother or Close Friend',
-        relationshipSlug: 'friend',
+        id: 'him-brother',
+        label: 'For a Brother or Brother-in-Law',
+        shortLabel: 'Brother',
+        relationshipSlug: 'brother',
+        iconKey: 'user-round',
         description:
-          'Small-batch pantry flights, tabletop games, and everyday tools with character.',
+          'Small-batch chili crisp and wildflower honey flights, inlaid walnut travel backgammon sets, and unpretentious kitchen craft.',
         recipientFilter: 'friend',
+        recipientArchiveHref: '/gift-guides/recipients/friend/',
         giftFinderHref: '/gift-finder/?recipient=friend',
       },
       {
-        id: 'him-mentor-coworker',
-        label: 'For a Mentor or Colleague',
-        relationshipSlug: 'coworker',
+        id: 'him-grandpa',
+        label: 'For Grandpa & Grandfathers',
+        shortLabel: 'Grandpa',
+        relationshipSlug: 'grandpa',
+        iconKey: 'landmark',
         description:
-          'Desk-ready brass companions, ceremonial tea sets, and polished thank-you gestures.',
-        recipientFilter: 'coworker',
-        giftFinderHref: '/gift-finder/?recipient=coworker',
+          'Five-year daily memory journals, letterpress family recipe cards, and brushed merino reading throws steeped in family stories.',
+        recipientFilter: 'parent',
+        recipientArchiveHref: '/gift-guides/recipients/parent/',
+        giftFinderHref: '/gift-finder/?recipient=parent&trait=nostalgic-sentimental',
+      },
+      {
+        id: 'him-friends',
+        label: 'For Male Friends & Hosts',
+        shortLabel: 'Male Friends',
+        relationshipSlug: 'male-friends',
+        iconKey: 'utensils',
+        description:
+          'Self-contained dinner party gifts, stoneware butter crocks, and tabletop games for close friends, neighbors, and weekend hosts.',
+        recipientFilter: 'friend',
+        recipientArchiveHref: '/gift-guides/recipients/friend/',
+        giftFinderHref: '/gift-finder/?recipient=friend',
       },
     ],
     interestSlugs: [
       'coffee-and-tea',
       'cooking-and-hosting',
-      'cozy-home',
-      'reading-and-writing',
-      'gardening-and-nature',
-      'games-and-gatherings',
+      'cozy-sanctuary',
+      'journaling-and-reading',
+      'home-decor',
+      'slow-mornings',
+      'gardening',
+      'board-games',
     ],
     budgetBrackets: [
       {
@@ -397,17 +484,20 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
         priceRangeLabel: 'Up to $25 USD',
         maxPrice: 25,
         description:
-          'French stoneware butter keepers, beeswax tapers, and tactile small upgrades.',
+          'Best-in-class small objects: French stoneware butter keepers ($24), letterpress recipe cards ($22), and raw apiary beeswax tapers ($18).',
         giftFinderHref: '/gift-finder/?maxPrice=25',
+        featuredGuideId: 'guide_little_things_2026',
       },
       {
-        id: 'him-under-50',
-        label: 'Under $50',
-        priceRangeLabel: 'Up to $50 USD',
+        id: 'him-25-to-50',
+        label: '$25 to $50',
+        priceRangeLabel: '$25–$50 USD',
+        minPrice: 25,
         maxPrice: 50,
         description:
-          'Hand-blown bedside carafes, chili-crisp tasting flights, and five-year linen journals.',
-        giftFinderHref: '/gift-finder/?maxPrice=50',
+          'Our signature everyday-upgrade sweet spot: hand-blown bedside carafes ($48), chili-crisp tasting flights ($38), and five-year linen journals ($28).',
+        giftFinderHref: '/gift-finder/?minPrice=25&maxPrice=50',
+        featuredGuideId: 'guide_little_things_2026',
       },
       {
         id: 'him-50-to-100',
@@ -416,9 +506,28 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
         minPrice: 50,
         maxPrice: 100,
         description:
-          'Wheel-thrown matcha studios, roll-up linen backgammon sets, and Turkish cotton robes.',
+          'Generous birthday and milestone gifts: wheel-thrown Kyoto matcha sets ($58), walnut roll-up backgammon boards ($84), and Turkish cotton robes ($98).',
         giftFinderHref: '/gift-finder/?minPrice=50&maxPrice=100',
+        featuredGuideId: 'guide_hosts_and_gatherings_2026',
       },
+      {
+        id: 'him-100-plus',
+        label: '$100 and Above',
+        priceRangeLabel: '$100+ USD',
+        minPrice: 100,
+        description:
+          'Heirloom textiles and flagship keepsakes—such as brushed merino lambswool reading throws ($115)—built for major milestones and winter holidays.',
+        giftFinderHref: '/gift-finder/?minPrice=100',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+    ],
+    occasionKeys: [
+      'birthday',
+      'holidays',
+      'anniversary',
+      'housewarming',
+      'thank-you',
+      'just-because',
     ],
     curatedGuideIds: [
       'guide_little_things_2026',
@@ -432,43 +541,143 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
       'prod_french_butter_crock_12',
       'prod_kyoto_matcha_bowl_03',
     ],
+    curatedProductPicks: [
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Turns the universal habit of keeping water on a nightstand or study desk into a clean, dust-free borosilicate glass ritual.',
+        bestForRelationship: 'Husbands, Boyfriends & Design-Loving Friends',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_chili_honey_flight_01',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Three small-batch condiment and wildflower honey jars that bring immediate culinary excitement with zero permanent shelf clutter.',
+        bestForRelationship: 'Dads, Brothers & Dinner Hosts',
+        featuredGuideId: 'guide_hosts_and_gatherings_2026',
+      },
+      {
+        productId: 'prod_olivewood_board_game_05',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Weighted stone pips, solid brass dice cups, and a roll-up Belgian linen board built for cabin weekends and unhurried evenings.',
+        bestForRelationship: 'Brothers, Partners & Close Friends',
+        featuredGuideId: 'guide_hosts_and_gatherings_2026',
+      },
+      {
+        productId: 'prod_cloud_waffle_robe_02',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Garment-washed Turkish cotton honeycomb weave that breathes comfortably year-round without the bulk of heavy hotel terrycloth.',
+        bestForRelationship: 'Husbands, Partners & Milestone Birthdays',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_french_butter_crock_12',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Uses a simple cold-water seal to keep butter soft and spreadable for morning sourdough toast—proof that $24 can upgrade every single morning.',
+        bestForRelationship: 'Home Cooks, Dads & Hosts Under $25',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_kyoto_matcha_bowl_03',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'A complete wheel-thrown stoneware chawan, 100-prong bamboo whisk, and ceremonial Uji matcha tin ready to whisk on day one.',
+        bestForRelationship: 'Tea Drinkers, Remote Workers & Brothers',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+    ],
+    finderCta: {
+      kicker: 'Interactive Gift Discovery',
+      heading: 'Still Not Sure What to Choose for Him?',
+      body: 'Skip the guesswork and narrow our catalog by his exact relationship to you, a strict maximum budget, the occasion, or the daily rituals he enjoys most.',
+      primaryLabel: 'Open the Gift Finder',
+      primaryHref: '/gift-finder/',
+      secondaryLabel: 'Take the 5-Step Guided Quiz',
+      secondaryHref: '/gift-finder/?mode=quiz',
+      presetLinks: [
+        {
+          label: 'Gifts for Dad Under $50',
+          href: '/gift-finder/?recipient=parent&maxPrice=50',
+        },
+        {
+          label: 'Partner & Anniversary Ideas',
+          href: '/gift-finder/?recipient=partner&occasion=anniversary',
+        },
+        {
+          label: 'Practical Everyday Upgrades',
+          href: '/gift-finder/?trait=everyday-ritual',
+        },
+        {
+          label: 'Food & Hosting Finds',
+          href: '/gift-finder/?interest=Cooking%20%26%20Hosting',
+        },
+      ],
+    },
     buyingAdvice: [
       {
         id: 'him-advice-habit',
         heading: 'Anchor the Gift in His First or Last Hour of the Day',
-        body: 'Skip novelty barware and look at what he touches between 7:00 a.m. and 8:30 a.m. or right before sleep—a coffee vessel, a bedside carafe, or a comfortable robe.',
+        body: 'Skip novelty barware and look at what he touches between 7:00 a.m. and 8:30 a.m. or right before sleep—a coffee or tea vessel, a stoneware butter keeper for morning toast, a bedside water carafe, or a breathable cotton robe.',
+      },
+      {
+        id: 'him-advice-practical-vs-novelty',
+        heading: 'Why Practical Craft Consistently Beats Novelty Gadgets',
+        body: 'Behavioral research on the "smile-seeking" trap (Yang & Urminsky, 2018) shows givers often chase a ten-second laugh at unwrapping, while recipients judge gifts over months of actual use. A quiet upgrade made of honest materials—stoneware, linen, brass, or beeswax—earns lasting appreciation.',
+      },
+      {
+        id: 'him-advice-consumables',
+        heading: 'When He Says "I Don’t Need Anything," Choose Consumables or Shared Rituals',
+        body: 'When a father, grandfather, or minimalist partner insists his shelves are full, take him at his word. Choose either a high-craft edible flight he can enjoy over a month or a tabletop game designed for shared evenings together.',
+      },
+      {
+        id: 'him-advice-budget-scale',
+        heading: 'Match the Budget to Relationship Closeness, Not Performance',
+        body: 'Studies by Flynn & Adams (2009) confirm that spending more rarely increases gratitude on its own. A $24 French butter crock chosen for someone who bakes sourdough feels far more observant than a generic $100 luxury box.',
       },
     ],
+    relatedArticleIds: [
+      'art_price_vs_thoughtfulness_2026',
+      'art_bring_nothing_host_2026',
+    ],
+    companionHubSlug: 'gifts-for-women',
     minimumRequiredGuides: 3,
     minimumRequiredProducts: 8,
   },
-  'gifts-for-her': {
+  'gifts-for-women': {
     id: 'hub_gifts_for_her',
-    slug: 'gifts-for-her',
-    routePath: '/gifts-for-her/',
+    slug: 'gifts-for-women',
+    routePath: '/gifts-for-women/',
     legacyProductionPaths: ['/gifts-for-women/'],
-    plannedRedirectMappings: [
-      {
-        fromPath: '/gifts-for-women/',
-        toPath: '/gifts-for-her/',
-        statusCode: 301,
-        applyOnLaunchOnly: true,
-        reason:
-          'Preserve existing live production URL /gifts-for-women/ by 301 redirecting to /gifts-for-her/ when the editorial hub launches (not applied until launch).',
-      },
-    ],
-    title: 'Thoughtful Gifts for Her',
+    plannedRedirectMappings: [],
+    title: 'Gifts for Her',
+    editorialKicker: 'Editorial Discovery Hub · Gifts for Her',
     subtitle:
-      'Warm ceramic vessels, slow-morning textiles, personal keepsakes, and culinary treats organized around her actual rituals and relationships.',
+      'Warm ceramic vessels, slow-morning textiles, personal keepsakes, and culinary treats—organized around her actual routines, interests, and relationship to you.',
+    editorialLeadParagraphs: [
+      'The best gifts for the women in your life never look like a generic department-store "for her" display. Pre-packaged lotion baskets and vague seasonal gift boxes fail because they could be handed to anyone—and therefore feel personal to no one.',
+      'We built this editorial hub to help you shop with specificity instead: begin with how you know her—whether she is your mother, wife, girlfriend, sister, grandmother, or closest friend—and pair that relationship with a tangible ritual she loves, from quiet morning tea and gardening to dinner parties and handwritten family recipes.',
+    ],
     editorialPositioning:
       'Broad search entry point organized around relationship closeness, specific interests, and everyday utility rather than generic department-store sets.',
+    heroImage: {
+      url: 'https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1400&q=80',
+      alt: 'Linen-bound journal, ceramic cup, and warm botanical details resting on a calm morning table',
+      caption:
+        'An observant gift tied to a specific shared memory or morning habit always outlasts an impersonal luxury gesture.',
+      isSampleAsset: true,
+    },
     status: 'draft',
     seo: {
       seoTitle:
-        'Thoughtful Gifts for Her — By Relationship, Ritual & Budget | Science of Gifts',
+        'Gifts for Her — Thoughtful Ideas for Moms, Wives, Girlfriends & Sisters | Science of Gifts',
       metaDescription:
-        'Explore thoughtful gifts for mothers, wives, partners, sisters, and close friends—curated by everyday ritual, interest, and budget.',
-      canonicalPath: '/gifts-for-her/',
+        'Discover thoughtful gifts for her—for moms, wives, girlfriends, sisters, grandmothers, and close friends—curated by daily ritual, interest, occasion, and budget ($18 to $115+).',
+      canonicalPath: '/gifts-for-women/',
       ogType: 'website',
       schemaType: 'CollectionPage',
       noindex: true,
@@ -476,49 +685,87 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
     },
     relationshipPathways: [
       {
-        id: 'her-mother',
-        label: 'For Mothers & Mothers-in-Law',
-        relationshipSlug: 'mother',
+        id: 'her-mom',
+        label: 'For Mom & Mothers-in-Law',
+        shortLabel: 'Mom',
+        relationshipSlug: 'mom',
+        iconKey: 'users',
         description:
-          'Clutter-free artisan tastings, heirloom recipe cards, and merino wool throws for moms who say they have everything.',
+          'Clutter-free artisan tastings, heirloom cotton recipe cards, and brushed merino wool throws for mothers who say they have everything.',
         recipientFilter: 'parent',
+        recipientArchiveHref: '/gift-guides/recipients/parent/',
         giftFinderHref: '/gift-finder/?recipient=parent',
       },
       {
-        id: 'her-partner',
-        label: 'For a Wife or Partner',
-        relationshipSlug: 'partner',
+        id: 'her-wife',
+        label: 'For a Wife or Spouse',
+        shortLabel: 'Wife',
+        relationshipSlug: 'wife',
+        iconKey: 'heart',
         description:
-          'Custom night-sky prints, garment-washed waffle robes, and jewel-toned bedside glassware.',
+          'Custom night-sky constellation prints in white oak, cloud-waffle Turkish cotton robes, and heirloom keepsakes for anniversaries and milestones.',
         recipientFilter: 'partner',
+        recipientArchiveHref: '/gift-guides/recipients/partner/',
+        giftFinderHref: '/gift-finder/?recipient=partner&occasion=anniversary',
+      },
+      {
+        id: 'her-girlfriend',
+        label: 'For a Girlfriend or Partner',
+        shortLabel: 'Girlfriend',
+        relationshipSlug: 'girlfriend',
+        iconKey: 'heart-handshake',
+        description:
+          'Jewel-toned bedside glassware, spouted Kyoto matcha bowls, and five-year daily time-capsule journals that celebrate shared routines.',
+        recipientFilter: 'partner',
+        recipientArchiveHref: '/gift-guides/recipients/partner/',
         giftFinderHref: '/gift-finder/?recipient=partner',
       },
       {
-        id: 'her-sister-friend',
-        label: 'For a Sister or Best Friend',
-        relationshipSlug: 'friend',
+        id: 'her-sister',
+        label: 'For a Sister or Sister-in-Law',
+        shortLabel: 'Sister',
+        relationshipSlug: 'sister',
+        iconKey: 'user-round',
         description:
-          'Five-year daily memory journals, ceremonial matcha bowls, and shared kitchen rituals.',
+          'Self-watering terracotta herb trios, Belgian linen memory books, and small-batch kitchen favorites with personal warmth.',
         recipientFilter: 'friend',
+        recipientArchiveHref: '/gift-guides/recipients/friend/',
         giftFinderHref: '/gift-finder/?recipient=friend',
       },
       {
-        id: 'her-host-mentor',
-        label: 'For a Gracious Host or Mentor',
-        relationshipSlug: 'host',
+        id: 'her-grandma',
+        label: 'For Grandma & Grandmothers',
+        shortLabel: 'Grandma',
+        relationshipSlug: 'grandma',
+        iconKey: 'landmark',
         description:
-          'Self-contained apiary beeswax tapers, stoneware butter crocks, and zero-chore thank-you gifts.',
-        recipientFilter: 'host',
-        giftFinderHref: '/gift-finder/?recipient=host',
+          'Botanical letterpress recipe cards with your handwriting inside, merino lambswool reading throws, and unscented beeswax candlelight.',
+        recipientFilter: 'parent',
+        recipientArchiveHref: '/gift-guides/recipients/parent/',
+        giftFinderHref: '/gift-finder/?recipient=parent&trait=nostalgic-sentimental',
+      },
+      {
+        id: 'her-friends',
+        label: 'For Female Friends & Hosts',
+        shortLabel: 'Female Friends',
+        relationshipSlug: 'female-friends',
+        iconKey: 'utensils',
+        description:
+          'Zero-chore dinner host gifts, stoneware French butter keepers, and thoughtful weekday tokens for close friends and neighbors.',
+        recipientFilter: 'friend',
+        recipientArchiveHref: '/gift-guides/recipients/friend/',
+        giftFinderHref: '/gift-finder/?recipient=friend',
       },
     ],
     interestSlugs: [
       'coffee-and-tea',
       'cooking-and-hosting',
-      'cozy-home',
-      'reading-and-writing',
-      'gardening-and-nature',
-      'games-and-gatherings',
+      'cozy-sanctuary',
+      'journaling-and-reading',
+      'home-decor',
+      'slow-mornings',
+      'gardening',
+      'board-games',
     ],
     budgetBrackets: [
       {
@@ -527,17 +774,20 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
         priceRangeLabel: 'Up to $25 USD',
         maxPrice: 25,
         description:
-          'Letterpress cotton recipe cards, apiary beeswax tapers, and stoneware butter keepers.',
+          'Small, tactile pleasures crafted from honest materials: cotton rag recipe cards ($22), raw apiary beeswax tapers ($18), and stoneware butter crocks ($24).',
         giftFinderHref: '/gift-finder/?maxPrice=25',
+        featuredGuideId: 'guide_little_things_2026',
       },
       {
-        id: 'her-under-50',
-        label: 'Under $50',
-        priceRangeLabel: 'Up to $50 USD',
+        id: 'her-25-to-50',
+        label: '$25 to $50',
+        priceRangeLabel: '$25–$50 USD',
+        minPrice: 25,
         maxPrice: 50,
         description:
-          'Two-tone bedside water carafes, Belgian linen five-year journals, and windowsill herb kits.',
-        giftFinderHref: '/gift-finder/?maxPrice=50',
+          'Memorable everyday rituals: hand-blown two-tone bedside carafes ($48), self-watering windowsill herb trios ($45), and five-year linen journals ($28).',
+        giftFinderHref: '/gift-finder/?minPrice=25&maxPrice=50',
+        featuredGuideId: 'guide_little_things_2026',
       },
       {
         id: 'her-50-to-100',
@@ -546,9 +796,28 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
         minPrice: 50,
         maxPrice: 100,
         description:
-          'Spouted Kyoto matcha bowls, custom framed star maps, and cloud-waffle Turkish cotton robes.',
+          'Generous gifts for birthdays, partners, and hosts: Kyoto matcha sets ($58), custom framed star maps ($68), and Turkish cotton waffle robes ($98).',
         giftFinderHref: '/gift-finder/?minPrice=50&maxPrice=100',
+        featuredGuideId: 'guide_hosts_and_gatherings_2026',
       },
+      {
+        id: 'her-100-plus',
+        label: '$100 and Above',
+        priceRangeLabel: '$100+ USD',
+        minPrice: 100,
+        description:
+          'Heirloom textiles and lasting keepsakes—led by our brushed merino lambswool reading throw ($115)—for milestone celebrations.',
+        giftFinderHref: '/gift-finder/?minPrice=100',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+    ],
+    occasionKeys: [
+      'birthday',
+      'holidays',
+      'anniversary',
+      'housewarming',
+      'thank-you',
+      'just-because',
     ],
     curatedGuideIds: [
       'guide_little_things_2026',
@@ -562,13 +831,110 @@ export const INITIAL_EDITORIAL_HUBS: Record<string, EditorialHubConfig> = {
       'prod_custom_star_map_04',
       'prod_wool_picnic_throw_13',
     ],
+    curatedProductPicks: [
+      {
+        productId: 'prod_fluted_bedside_carafe_09',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Hand-blown in rippled coastal blue and seafoam mint borosilicate glass; catches morning sunlight while keeping bedside water dust-free.',
+        bestForRelationship: 'Wives, Girlfriends, Sisters & Close Friends',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_cloud_waffle_robe_02',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Garment-washed Turkish cotton honeycomb weave that feels airy, soft, and broken-in from the very first slow Sunday morning.',
+        bestForRelationship: 'Wives, Partners & Moms',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_kyoto_matcha_bowl_03',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Pairs a spouted wheel-thrown ceramic chawan with a bamboo whisk and shade-grown Uji matcha so her morning ritual is complete out of the box.',
+        bestForRelationship: 'Sisters, Best Friends & Tea Lovers',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_five_year_memory_book_08',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'A low-pressure three-line daily time capsule bound in Belgian linen that takes thirty seconds before sleep and builds five years of memories.',
+        bestForRelationship: 'Best Friends, Sisters & New Parents',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_custom_star_map_04',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Maps the exact alignment of constellations overhead on a meaningful date and place, archival-printed on cotton rag paper in solid white oak.',
+        bestForRelationship: 'Wives, Girlfriends & Milestone Anniversaries',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+      {
+        productId: 'prod_wool_picnic_throw_13',
+        selectionSource: 'editorial-curation',
+        editorialNote:
+          'Generously sized herringbone merino lambswool reading throw that brings heirloom warmth to reading chairs and winter living rooms.',
+        bestForRelationship: 'Moms, Grandmothers & Milestone Celebrations',
+        featuredGuideId: 'guide_little_things_2026',
+      },
+    ],
+    finderCta: {
+      kicker: 'Interactive Gift Discovery',
+      heading: 'Still Not Sure What to Choose for Her?',
+      body: 'Use our interactive Gift Finder to filter by her exact relationship to you, your target budget, the occasion, or the everyday rituals she loves most.',
+      primaryLabel: 'Open the Gift Finder',
+      primaryHref: '/gift-finder/',
+      secondaryLabel: 'Take the 5-Step Guided Quiz',
+      secondaryHref: '/gift-finder/?mode=quiz',
+      presetLinks: [
+        {
+          label: 'Gifts for Mom Under $50',
+          href: '/gift-finder/?recipient=parent&maxPrice=50',
+        },
+        {
+          label: 'Wife & Anniversary Keepsakes',
+          href: '/gift-finder/?recipient=partner&occasion=anniversary',
+        },
+        {
+          label: 'Slow Morning & Tea Rituals',
+          href: '/gift-finder/?interest=Coffee%20%26%20Tea',
+        },
+        {
+          label: 'Sentimental & Personal Finds',
+          href: '/gift-finder/?trait=nostalgic-sentimental',
+        },
+      ],
+    },
     buyingAdvice: [
       {
         id: 'her-advice-specificity',
         heading: 'Trade Generic Luxury Sets for Personal Specificity',
         body: 'Behavioral research shows that an observant $28 gift tied to a specific shared memory or morning habit consistently outperforms a generic $120 department-store gift box.',
       },
+      {
+        id: 'her-advice-sentimental-courage',
+        heading: 'Don’t Shy Away From Sentimental Keepsakes When You Have Shared History',
+        body: 'Studies by Givi & Galak (2017) reveal that givers avoid sentimental gifts far too often out of self-consciousness, even though close friends, partners, and mothers rank personal keepsakes—like handwritten recipe cards or a custom star map—as their most treasured items.',
+      },
+      {
+        id: 'her-advice-zero-chore',
+        heading: 'Make Sure the Gift Creates Zero Extra Chores',
+        body: 'Just as uncut flowers force a busy dinner host to hunt for a vase at the door, an incomplete ritual gift leaves homework behind. Choose sets that arrive complete—like beeswax tapers with their own stoneware holder or a matcha bowl paired with the whisk and tea.',
+      },
+      {
+        id: 'her-advice-shared-ritual',
+        heading: 'Consider Objects That Spark Shared Moments Together',
+        body: 'Research by Chan & Mogilner (2017) demonstrates that gifts connected to lived experiences and shared rituals—morning tea, Sunday sourdough, or a two-player travel board game—deepen relationship closeness long after the occasion passes.',
+      },
     ],
+    relatedArticleIds: [
+      'art_price_vs_thoughtfulness_2026',
+      'art_bring_nothing_host_2026',
+    ],
+    companionHubSlug: 'gifts-for-men',
     minimumRequiredGuides: 3,
     minimumRequiredProducts: 8,
   },
@@ -730,7 +1096,14 @@ export function createContentRepository(store: LocalCMSContentStore = defaultSto
       slug: string,
       options?: { includeDrafts?: boolean }
     ): EditorialHubConfig | undefined {
-      const hub = editorialHubs[slug];
+      const aliasMap: Record<string, string> = {
+        'gifts-for-him': 'gifts-for-men',
+        'gifts-for-her': 'gifts-for-women',
+      };
+      const resolvedSlug = editorialHubs[slug]
+        ? slug
+        : aliasMap[slug] ?? slug;
+      const hub = editorialHubs[resolvedSlug];
       if (!hub) return undefined;
       if (!options?.includeDrafts && hub.status === 'draft') return undefined;
       return structuredClone(hub);
@@ -739,6 +1112,219 @@ export function createContentRepository(store: LocalCMSContentStore = defaultSto
     upsertEditorialHub(hub: EditorialHubConfig): EditorialHubConfig {
       editorialHubs[hub.slug] = structuredClone(hub);
       return structuredClone(hub);
+    },
+
+    /**
+     * Returns only editorial hubs that are BOTH published AND pass all quantitative
+     * and qualitative publication readiness checks (`isReadyToPublish && isIndexable`).
+     * Used by public directories, sitemaps, and navigation so thin/draft hubs never leak into public menus.
+     */
+    getPublishedReadyEditorialHubs(): EditorialHubConfig[] {
+      const catalog = this.getCatalogSnapshot({ includeDrafts: false });
+      return Object.values(editorialHubs)
+        .filter((hub) => {
+          const readiness = evaluateEditorialHubReadiness(hub, catalog);
+          return readiness.isReadyToPublish && readiness.isIndexable;
+        })
+        .map((h) => structuredClone(h));
+    },
+
+    /**
+     * Enriches an EditorialHubConfig with resolved relationship counts, interest categories,
+     * verified budget counts (never counting unknown-price items as under-budget),
+     * occasion discovery items, curated guides, curated products with provenance,
+     * related stories, and publication readiness evaluation.
+     */
+    getEnrichedEditorialHub(
+      slug: string,
+      options?: { includeDrafts?: boolean }
+    ): EnrichedEditorialHub | undefined {
+      const hub = this.getEditorialHubBySlug(slug, options);
+      if (!hub) return undefined;
+
+      const catalog = this.getCatalogSnapshot({ includeDrafts: false });
+      const readiness = evaluateEditorialHubReadiness(hub, catalog);
+      const guidesDir = this.getGiftGuidesDirectoryData();
+      const articlesDir = this.getArticlesDirectoryData();
+      const allPublishedProducts = this.getAllProducts({ includeDrafts: false });
+      const productsMap = this.getProductsMap({ includeDrafts: false });
+
+      // 1. Enrich Relationship Pathways with real archive links and catalog counts
+      const relationships: EnrichedEditorialHubRelationship[] =
+        hub.relationshipPathways.map((pathway) => {
+          const recipientArchive = guidesDir.recipientDiscovery.find(
+            (r) => r.recipient === pathway.recipientFilter
+          );
+          const archiveHref =
+            pathway.recipientArchiveHref ??
+            pathway.archiveHref ??
+            recipientArchive?.archiveHref ??
+            `/gift-guides/recipients/${pathway.recipientFilter ?? 'parent'}/`;
+          const iconKey =
+            (pathway.iconKey as CategoryIconKey | undefined) ??
+            resolveCategoryIconKey(
+              'recipient',
+              pathway.recipientFilter ?? 'parent'
+            );
+          return {
+            pathway,
+            iconKey,
+            archiveHref,
+            giftFinderHref: pathway.giftFinderHref,
+            matchingGuideCount: recipientArchive?.matchingGuides.length ?? 0,
+            matchingProductCount: recipientArchive?.productCount ?? 0,
+          };
+        });
+
+      // 2. Enrich Browse by Interest — only categories supported by actual published content
+      const configuredInterests = hub.interestSlugs
+        .map((interestSlug) =>
+          guidesDir.interestDiscovery.find((i) => i.slug === interestSlug)
+        )
+        .filter((item): item is InterestDiscoveryItem => Boolean(item));
+      const interests =
+        configuredInterests.length > 0
+          ? configuredInterests
+          : guidesDir.interestDiscovery;
+
+      // 3. Enrich Browse by Budget — strictly count only products with valid finite numeric prices > 0
+      const validPricedProducts = allPublishedProducts.filter((p) =>
+        hasValidNumericPrice(p)
+      );
+      const budgets: EnrichedEditorialHubBudget[] = hub.budgetBrackets
+        .map((bracket) => {
+          const matchingProducts = validPricedProducts.filter((p) => {
+            if (bracket.minPrice !== undefined && p.price < bracket.minPrice) {
+              return false;
+            }
+            if (bracket.maxPrice !== undefined && p.price > bracket.maxPrice) {
+              return false;
+            }
+            return true;
+          });
+          const matchingGuides = guidesDir.allGuides.filter((g) =>
+            g.referencedProducts.some(
+              (p) =>
+                hasValidNumericPrice(p) &&
+                (bracket.minPrice === undefined || p.price >= bracket.minPrice) &&
+                (bracket.maxPrice === undefined || p.price <= bracket.maxPrice)
+            )
+          );
+          const featuredGuide = bracket.featuredGuideId
+            ? guidesDir.allGuides.find(
+                (g) => g.guide.id === bracket.featuredGuideId
+              )
+            : undefined;
+          return {
+            bracket,
+            iconKey: resolveCategoryIconKey('budget', bracket.id),
+            matchingProductCount: matchingProducts.length,
+            matchingGuideCount: matchingGuides.length,
+            featuredGuide,
+          };
+        })
+        .filter(
+          (b) => b.matchingProductCount > 0 || b.matchingGuideCount > 0
+        );
+
+      // 4. Enrich Browse by Occasion — backed by real published occasion archives
+      const requestedOccasions: OccasionType[] =
+        hub.occasionKeys && hub.occasionKeys.length > 0
+          ? hub.occasionKeys
+          : [
+              'birthday',
+              'holidays',
+              'anniversary',
+              'housewarming',
+              'thank-you',
+              'just-because',
+            ];
+      const occasions: OccasionDiscoveryItem[] = requestedOccasions
+        .map((occKey) =>
+          guidesDir.occasionDiscovery.find((o) => o.occasion === occKey)
+        )
+        .filter((o): o is OccasionDiscoveryItem => Boolean(o));
+
+      // 5. Enrich Featured Editorial Gift Guides without duplication
+      const allCuratedGuides: EnrichedGiftGuide[] = Array.from(
+        new Set(hub.curatedGuideIds)
+      )
+        .map((guideId) =>
+          guidesDir.allGuides.find((g) => g.guide.id === guideId)
+        )
+        .filter((g): g is EnrichedGiftGuide => Boolean(g));
+      const leadFeaturedGuide = allCuratedGuides[0] ?? null;
+      const supportingFeaturedGuides = allCuratedGuides.slice(1);
+
+      // 6. Enrich Featured Individual Gifts with provenance (editorial-curation vs catalog-match)
+      const selectionEntries: EditorialHubProductSelection[] =
+        hub.curatedProductPicks && hub.curatedProductPicks.length > 0
+          ? hub.curatedProductPicks
+          : hub.featuredProductIds.map((productId) => ({
+              productId,
+              selectionSource: 'editorial-curation' as const,
+            }));
+
+      const seenProductIds = new Set<string>();
+      const curatedProducts: EnrichedEditorialHubProductPick[] = [];
+      for (const selection of selectionEntries) {
+        if (seenProductIds.has(selection.productId)) continue;
+        const product = productsMap[selection.productId];
+        if (!product) continue;
+        seenProductIds.add(selection.productId);
+
+        const appearances = this.getProductGuideAppearances(product.id);
+        const primaryGuide = selection.featuredGuideId
+          ? guidesDir.allGuides.find(
+              (g) => g.guide.id === selection.featuredGuideId
+            )
+          : appearances[0]
+          ? guidesDir.allGuides.find(
+              (g) => g.guide.id === appearances[0].guide.id
+            )
+          : undefined;
+
+        curatedProducts.push({
+          product,
+          selection,
+          featuredGuide: primaryGuide,
+          guideAppearancesCount: appearances.length,
+        });
+      }
+
+      // 7. Enrich Related Editorial Stories
+      const requestedArticleIds = hub.relatedArticleIds ?? [];
+      const relatedArticles: EnrichedArticle[] =
+        requestedArticleIds.length > 0
+          ? requestedArticleIds
+              .map((artId) =>
+                articlesDir.allArticles.find((a) => a.article.id === artId)
+              )
+              .filter((a): a is EnrichedArticle => Boolean(a))
+          : articlesDir.allArticles.slice(0, 2);
+
+      // 8. Companion Hub
+      const companionHub = hub.companionHubSlug
+        ? this.getEditorialHubBySlug(hub.companionHubSlug, {
+            includeDrafts: options?.includeDrafts ?? true,
+          })
+        : undefined;
+
+      return {
+        hub,
+        readiness,
+        relationships,
+        interests,
+        budgets,
+        occasions,
+        leadFeaturedGuide,
+        supportingFeaturedGuides,
+        allCuratedGuides,
+        curatedProducts,
+        relatedArticles,
+        recipientArchives: guidesDir.recipientDiscovery,
+        companionHub,
+      };
     },
 
     getAuthorById(authorId: string): Author | undefined {

@@ -46,6 +46,7 @@ const LISTS_CHANGED_EVENT = 'sog:gift-lists-changed';
 export const OPEN_PRODUCT_MODAL_EVENT = 'sog:open-product-modal';
 export const OPEN_SAVED_DRAWER_EVENT = 'sog:open-saved-drawer';
 export const OPEN_ARCH_MODAL_EVENT = 'sog:open-arch-modal';
+export const OPEN_SITE_SEARCH_EVENT = 'sog:open-site-search';
 
 function createDefaultGiftLists(
   seedIds: string[] = DEFAULT_SAVED_IDS,
@@ -729,6 +730,16 @@ export function dispatchOpenSavedDrawer(): void {
 export function dispatchOpenArchModal(): void {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new CustomEvent(OPEN_ARCH_MODAL_EVENT));
+  }
+}
+
+export function dispatchOpenSiteSearch(initialQuery?: string): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(
+      new CustomEvent(OPEN_SITE_SEARCH_EVENT, {
+        detail: initialQuery ? { initialQuery } : undefined,
+      })
+    );
   }
 }
 

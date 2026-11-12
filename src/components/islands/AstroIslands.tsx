@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Search,
   Heart,
+  Bookmark,
   ArrowRight,
   Sparkles,
   RotateCcw,
@@ -11,7 +12,11 @@ import {
   ShoppingBag,
   X,
 } from 'lucide-react';
-import { SHOP_EXTERNAL_URL } from '../../config/navigationConfig';
+import {
+  HeaderActiveSection,
+  SHOP_EXTERNAL_URL,
+  resolveEditorialHubHeaderLinks,
+} from '../../config/navigationConfig';
 import {
   Article,
   GiftGuide,
@@ -26,20 +31,25 @@ import {
   OPEN_ARCH_MODAL_EVENT,
   OPEN_PRODUCT_MODAL_EVENT,
   OPEN_SAVED_DRAWER_EVENT,
+  OPEN_SITE_SEARCH_EVENT,
   dispatchOpenArchModal,
   dispatchOpenProductModal,
   dispatchOpenSavedDrawer,
+  dispatchOpenSiteSearch,
   useSavedGiftsState,
 } from '../../utils/savedGiftsStore';
 import { PhotoImage } from '../ObjectIllustrations';
 import { ProductCard } from '../ProductCard';
 import { GiftGuideReaderView } from '../GiftGuideReaderView';
 import { ArticleReaderView } from '../ArticleReaderView';
+import { EnrichedEditorialHub } from '../../cms/contentRepository';
+import { EditorialDiscoveryHubView } from '../EditorialDiscoveryHubView';
 import {
   ProductDetailModal,
   SavedGiftsDrawer,
 } from '../ProductDetailAndSavedModal';
 import { ArchitectureAndSeoModal } from '../ArchitectureAndSeoModal';
+import { SiteSearchModal } from '../SiteSearchModal';
 
 type HomeBudgetFilter = 'all' | 'under-50' | '50-to-100' | '100-plus';
 
@@ -80,6 +90,24 @@ const OCCASION_PILLS: { value: OccasionType | 'all'; label: string }[] = [
   { value: 'just-because', label: 'Just Because' },
 ];
 
+export const HeaderSearchButtonIsland: React.FC = () => {
+  return (
+    <button
+      type="button"
+      onClick={() => dispatchOpenSiteSearch()}
+      aria-label="Search gifts, guides, and stories"
+      title="Search gifts, guides, and stories (⌘K)"
+      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-[#24282B] transition-colors hover:border-[#E3E1DB] hover:bg-[#F6F4EF] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer shrink-0"
+    >
+      <Search
+        aria-hidden="true"
+        strokeWidth={1.75}
+        className="h-[17px] w-[17px]"
+      />
+    </button>
+  );
+};
+
 export const HeaderSavedButtonIsland: React.FC<{
   variant?: 'desktop' | 'mobile';
 }> = ({ variant = 'desktop' }) => {
@@ -90,9 +118,14 @@ export const HeaderSavedButtonIsland: React.FC<{
       <button
         type="button"
         onClick={dispatchOpenSavedDrawer}
-        className="theme-nav-link whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+        className="theme-nav-link inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
       >
-        Saved Gifts ({savedProductIds.length})
+        <Bookmark
+          aria-hidden="true"
+          strokeWidth={1.75}
+          className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+        />
+        <span>Saved Gifts ({savedProductIds.length})</span>
       </button>
     );
   }
@@ -101,20 +134,32 @@ export const HeaderSavedButtonIsland: React.FC<{
     <button
       type="button"
       onClick={dispatchOpenSavedDrawer}
-      className="theme-nav-link text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+      className="theme-nav-link inline-flex items-center gap-1.5 text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
     >
-      Saved Gifts ({savedProductIds.length})
+      <Bookmark
+        aria-hidden="true"
+        strokeWidth={1.75}
+        className="h-[17px] w-[17px] shrink-0 text-[#1B3D5F]"
+      />
+      <span>Saved Gifts</span>
+      <span className="tabular-nums text-[#28537D] font-semibold">
+        ({savedProductIds.length})
+      </span>
     </button>
   );
 };
 
 export const MobileNavigationIsland: React.FC<{
-  activeSection?: 'home' | 'guides' | 'articles' | 'products' | 'finder';
-}> = ({ activeSection = 'home' }) => {
+  activeSection?: HeaderActiveSection;
+  isDevPreview?: boolean;
+}> = ({ activeSection = 'home', isDevPreview }) => {
   const [isOpen, setIsOpen] = useState(false);
   const { savedProductIds } = useSavedGiftsState();
   const toggleBtnRef = useRef<HTMLButtonElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const editorialHubLinks = resolveEditorialHubHeaderLinks(
+    isDevPreview !== undefined ? { isDevPreview } : undefined
+  );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -146,8 +191,22 @@ export const MobileNavigationIsland: React.FC<{
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="md:hidden">
+    <div ref={containerRef} className="lg:hidden">
       <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => dispatchOpenSiteSearch()}
+          aria-label="Search gifts, guides, and stories"
+          title="Search gifts, guides, and stories"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+        >
+          <Search
+            aria-hidden="true"
+            strokeWidth={1.75}
+            className="h-4 w-4"
+          />
+        </button>
+
         <button
           ref={toggleBtnRef}
           type="button"
@@ -173,7 +232,25 @@ export const MobileNavigationIsland: React.FC<{
           isOpen ? 'block' : 'hidden'
         } absolute left-0 right-0 top-full border-b border-[#E3E1DB] bg-[#FAF9F6] px-6 py-5 shadow-lg`}
       >
-        <ul className="space-y-3">
+        <ul className="space-y-2.5">
+          <li>
+            <button
+              type="button"
+              onClick={() => {
+                setIsOpen(false);
+                dispatchOpenSiteSearch();
+              }}
+              className="theme-nav-link flex w-full items-center gap-2.5 rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3 py-2.5 text-left text-sm text-[#636A6F] transition-colors hover:border-[#28537D] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+            >
+              <Search
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+              />
+              <span>Search gifts, guides, and stories...</span>
+            </button>
+          </li>
+
           <li>
             <a
               href="/gift-guides/"
@@ -188,6 +265,27 @@ export const MobileNavigationIsland: React.FC<{
               Gift Guides
             </a>
           </li>
+
+          {editorialHubLinks.map((hubLink) => {
+            const isCurrent = activeSection === hubLink.activeSection;
+            return (
+              <li key={hubLink.id}>
+                <a
+                  href={hubLink.href}
+                  aria-current={isCurrent ? 'page' : undefined}
+                  onClick={() => setIsOpen(false)}
+                  className={`theme-nav-link block rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                    isCurrent
+                      ? 'theme-nav-link-active bg-[#E5F3EC] font-semibold text-[#1B3D5F]'
+                      : 'text-[#24282B] hover:bg-[#F6F4EF]'
+                  }`}
+                >
+                  {hubLink.label}
+                </a>
+              </li>
+            );
+          })}
+
           <li>
             <a
               href="/articles/"
@@ -202,6 +300,7 @@ export const MobileNavigationIsland: React.FC<{
               Stories
             </a>
           </li>
+
           <li>
             <a
               href={SHOP_EXTERNAL_URL}
@@ -216,6 +315,7 @@ export const MobileNavigationIsland: React.FC<{
               <span>Shop</span>
             </a>
           </li>
+
           <li>
             <button
               type="button"
@@ -225,20 +325,33 @@ export const MobileNavigationIsland: React.FC<{
               }}
               className="theme-nav-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-[#24282B] transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
             >
-              <span>Saved Gifts</span>
+              <span className="inline-flex items-center gap-2">
+                <Bookmark
+                  aria-hidden="true"
+                  strokeWidth={1.75}
+                  className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+                />
+                <span>Saved Gifts</span>
+              </span>
               <span className="rounded-full bg-[#E5F3EC] px-2.5 py-0.5 text-xs font-semibold text-[#1B3D5F] tabular-nums">
                 {savedProductIds.length}
               </span>
             </button>
           </li>
+
           <li className="pt-2 border-t border-[#E3E1DB]">
             <a
               href="/gift-finder/"
               aria-current={activeSection === 'finder' ? 'page' : undefined}
               onClick={() => setIsOpen(false)}
-              className="theme-btn-primary theme-button-text flex w-full items-center justify-center rounded-lg bg-[#1B3D5F] px-4 py-2.5 text-xs font-semibold text-[#FFFFFF] transition-colors hover:bg-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
+              className="theme-btn-primary theme-button-text flex w-full items-center justify-center gap-2 rounded-lg bg-[#1B3D5F] px-4 py-2.5 text-xs font-semibold text-[#FFFFFF] transition-colors hover:bg-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
             >
-              Find a Gift
+              <Gift
+                aria-hidden="true"
+                strokeWidth={1.75}
+                className="h-4 w-4 shrink-0"
+              />
+              <span>Find a Gift</span>
             </a>
           </li>
         </ul>
@@ -292,6 +405,8 @@ export const GlobalOverlaysIsland: React.FC<{
   const [inspectedProduct, setInspectedProduct] = useState<Product | null>(null);
   const [isSavedDrawerOpen, setIsSavedDrawerOpen] = useState(false);
   const [isArchModalOpen, setIsArchModalOpen] = useState(false);
+  const [isSiteSearchOpen, setIsSiteSearchOpen] = useState(false);
+  const [initialSearchQuery, setInitialSearchQuery] = useState('');
 
   useEffect(() => {
     const onOpenProduct = (event: Event) => {
@@ -305,19 +420,40 @@ export const GlobalOverlaysIsland: React.FC<{
     };
     const onOpenSaved = () => setIsSavedDrawerOpen(true);
     const onOpenArch = () => setIsArchModalOpen(true);
+    const onOpenSearch = (event: Event) => {
+      const custom = event as CustomEvent<{ initialQuery?: string } | undefined>;
+      setInitialSearchQuery(custom.detail?.initialQuery ?? '');
+      setIsSiteSearchOpen(true);
+    };
+    const onGlobalKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setIsSiteSearchOpen((prev) => !prev);
+      }
+    };
 
     window.addEventListener(OPEN_PRODUCT_MODAL_EVENT, onOpenProduct);
     window.addEventListener(OPEN_SAVED_DRAWER_EVENT, onOpenSaved);
     window.addEventListener(OPEN_ARCH_MODAL_EVENT, onOpenArch);
+    window.addEventListener(OPEN_SITE_SEARCH_EVENT, onOpenSearch);
+    window.addEventListener('keydown', onGlobalKeyDown);
     return () => {
       window.removeEventListener(OPEN_PRODUCT_MODAL_EVENT, onOpenProduct);
       window.removeEventListener(OPEN_SAVED_DRAWER_EVENT, onOpenSaved);
       window.removeEventListener(OPEN_ARCH_MODAL_EVENT, onOpenArch);
+      window.removeEventListener(OPEN_SITE_SEARCH_EVENT, onOpenSearch);
+      window.removeEventListener('keydown', onGlobalKeyDown);
     };
   }, []);
 
   return (
     <>
+      <SiteSearchModal
+        isOpen={isSiteSearchOpen}
+        initialQuery={initialSearchQuery}
+        onClose={() => setIsSiteSearchOpen(false)}
+      />
+
       <ProductDetailModal
         product={inspectedProduct}
         isSaved={
@@ -345,6 +481,7 @@ export const GlobalOverlaysIsland: React.FC<{
     </>
   );
 };
+
 
 export const HomeHeroSpotlightIsland: React.FC<{
   product: Product;
@@ -877,4 +1014,17 @@ export const ProductDetailActionsIsland: React.FC<{
 
 export { GiftFinderExperience as GiftFinderInteractiveIsland } from '../GiftFinderExperience';
 
+export const EditorialHubInteractiveIsland: React.FC<{
+  enrichedHub: EnrichedEditorialHub;
+}> = ({ enrichedHub }) => {
+  const { savedProductIds, toggleSaveProduct } = useSavedGiftsState();
 
+  return (
+    <EditorialDiscoveryHubView
+      enrichedHub={enrichedHub}
+      savedProductIds={savedProductIds}
+      onToggleSave={toggleSaveProduct}
+      onSelectProduct={dispatchOpenProductModal}
+    />
+  );
+};

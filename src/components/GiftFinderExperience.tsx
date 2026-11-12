@@ -254,7 +254,6 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
     ) {
       return;
     }
-    const hasQueryParams = rawSearch.replace(/^\?/, '').trim().length > 0;
     const canonicalEl = document.querySelector('link[rel="canonical"]');
     if (canonicalEl) {
       canonicalEl.setAttribute('href', `${SITE_ORIGIN}/gift-finder/`);
@@ -263,11 +262,16 @@ export const GiftFinderExperience: React.FC<GiftFinderExperienceProps> = ({
     if (ogUrlEl) {
       ogUrlEl.setAttribute('content', `${SITE_ORIGIN}/gift-finder/`);
     }
+    // Ordinary filter URL variations consolidate via <link rel="canonical" href="https://www.scienceofgifts.com/gift-finder/">
+    // without injecting a conflicting client-side noindex signal.
+    const params = new URLSearchParams(rawSearch);
+    const isPrivateSavedView =
+      params.get('saved') === '1' || params.get('mode') === 'lists';
     const robotsEl = document.querySelector('meta[name="robots"]');
     if (robotsEl) {
       robotsEl.setAttribute(
         'content',
-        hasQueryParams ? 'noindex, follow' : 'index, follow'
+        isPrivateSavedView ? 'noindex, follow' : 'index, follow'
       );
     }
   };

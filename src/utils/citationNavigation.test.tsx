@@ -38,6 +38,7 @@ import {
   buildCategoryArchiveJsonLd,
   buildDefaultMetaDescription,
   buildDefaultSeoTitle,
+  buildEditorialHubJsonLd,
   buildGiftGuideJsonLd,
   buildGiftGuidesDirectoryJsonLd,
   buildProductJsonLd,
@@ -54,6 +55,7 @@ import {
   validateCatalogIntegrity,
   validateSeoAndIndexingSafety,
 } from './seoAndValidation';
+import { EditorialDiscoveryHubView } from '../components/EditorialDiscoveryHubView';
 import {
   PRODUCT_PHOTOGRAPHY_STANDARD,
   buildTransformedImageUrl,
@@ -114,6 +116,7 @@ import {
 } from '../components/GiftGuidesDirectoryView';
 import { ArticlesDirectoryView } from '../components/ArticlesDirectoryView';
 import {
+  HeaderSearchButtonIsland,
   HeaderSavedButtonIsland,
   MobileNavigationIsland,
   FooterSavedLinkIsland,
@@ -123,13 +126,22 @@ import { CategoryIcon } from '../components/CategoryIcon';
 import { CategoryArchiveView } from '../components/CategoryArchiveView';
 import { PublicationInfoPageView } from '../components/PublicationInfoPageView';
 import { SiteMapView } from '../components/SiteMapView';
+import { SiteSearchModal } from '../components/SiteSearchModal';
 import {
   AFFILIATE_DISCLOSURE_CONFIG,
   EDITORIAL_FOOTER_COLUMNS,
+  PRIMARY_CTA_LINK,
+  PRIMARY_NAV_LINKS,
   SHOP_EXTERNAL_URL,
   SHOP_RETURNS_FAQ_URL,
   resolveCategoryIconKey,
+  resolveEditorialHubHeaderLinks,
+  resolveHeaderEditorialNavLinks,
 } from '../config/navigationConfig';
+import {
+  buildSiteSearchIndex,
+  querySiteSearchIndex,
+} from './siteSearchEngine';
 
 test('1. buildArticleCitationMap assigns unique markerIds and maps multiple occurrences to the same reference', () => {
   const article = ARTICLES[0];
@@ -3690,9 +3702,12 @@ test('38. Complete SEO Infrastructure: decoupled H1 vs SEO titles, intelligent d
   assert.ok(
     !sitemapLocs.some(
       (url) =>
-        url.includes('/gifts-for-him/') || url.includes('/gifts-for-her/')
+        url.includes('/gifts-for-men/') ||
+        url.includes('/gifts-for-women/') ||
+        url.includes('/gifts-for-him/') ||
+        url.includes('/gifts-for-her/')
     ),
-    'Sitemap must exclude draft/unready /gifts-for-him/ and /gifts-for-her/ editorial hubs'
+    'Sitemap must exclude draft/unready /gifts-for-men/ and /gifts-for-women/ editorial hubs'
   );
 
   const xmlString = generateXmlSitemap({
@@ -3826,29 +3841,11 @@ test('38. Complete SEO Infrastructure: decoupled H1 vs SEO titles, intelligent d
     'Filtered Gift Finder query parameter state must resolve to noindex'
   );
 
-  // 16. Editorial Hubs (/gifts-for-him/ and /gifts-for-her/) readiness gating, legacy /gifts-for-men/ & /gifts-for-women/ preservation, and no broken nav links
-  assert.equal(PLANNED_LAUNCH_REDIRECT_MAPPINGS.length, 2);
-  assert.deepEqual(
-    PLANNED_LAUNCH_REDIRECT_MAPPINGS.map((m) => ({
-      from: m.fromPath,
-      to: m.toPath,
-      code: m.statusCode,
-      launchOnly: m.applyOnLaunchOnly,
-    })),
-    [
-      {
-        from: '/gifts-for-men/',
-        to: '/gifts-for-him/',
-        code: 301,
-        launchOnly: true,
-      },
-      {
-        from: '/gifts-for-women/',
-        to: '/gifts-for-her/',
-        code: 301,
-        launchOnly: true,
-      },
-    ]
+  // 16. Editorial Hubs (/gifts-for-men/ and /gifts-for-women/) readiness gating, direct production URL preservation, and no broken nav links
+  assert.equal(
+    PLANNED_LAUNCH_REDIRECT_MAPPINGS.length,
+    0,
+    'Because /gifts-for-men/ and /gifts-for-women/ are preserved directly as the canonical hub URLs, no redirect mappings are required'
   );
 
   const draftHubs = contentRepository.getAllEditorialHubs({
@@ -3861,6 +3858,11 @@ test('38. Complete SEO Infrastructure: decoupled H1 vs SEO titles, intelligent d
     0,
     'Draft editorial hubs must not be exposed as published hubs until ready'
   );
+  assert.equal(
+    contentRepository.getPublishedReadyEditorialHubs().length,
+    0,
+    'getPublishedReadyEditorialHubs must return empty array while hubs are in draft or below readiness threshold'
+  );
   for (const hub of draftHubs) {
     const readiness = evaluateEditorialHubReadiness(
       hub,
@@ -3871,9 +3873,9 @@ test('38. Complete SEO Infrastructure: decoupled H1 vs SEO titles, intelligent d
     assert.equal(
       readiness.legacyUrlPreservationConfigured,
       true,
-      `Hub ${hub.slug} must have legacy production URL redirect preservation configured`
+      `Hub ${hub.slug} must preserve existing production URL directly`
     );
-    assert.equal(readiness.plannedRedirectMappings.length, 1);
+    assert.equal(readiness.plannedRedirectMappings.length, 0);
     assert.ok(readiness.missingRequirements.length >= 2);
   }
 
@@ -3886,11 +3888,418 @@ test('38. Complete SEO Infrastructure: decoupled H1 vs SEO titles, intelligent d
     'utf-8'
   );
   assert.ok(
-    !baseLayoutSource.includes('/gifts-for-him') &&
-      !baseLayoutSource.includes('/gifts-for-her') &&
-      !footerSource.includes('/gifts-for-him') &&
-      !footerSource.includes('/gifts-for-her'),
-    'Navigation and footer must not contain broken links to unpublished /gifts-for-him/ or /gifts-for-her/ hubs'
+    !baseLayoutSource.includes('/gifts-for-men') &&
+      !baseLayoutSource.includes('/gifts-for-women') &&
+      !footerSource.includes('/gifts-for-men') &&
+      !footerSource.includes('/gifts-for-women'),
+    'Navigation and footer must not expose unpublished /gifts-for-men/ or /gifts-for-women/ hubs'
   );
 });
+
+test('39. Gifts for Him (/gifts-for-men/) and Gifts for Her (/gifts-for-women/) Editorial Discovery Hubs architecture, sections, SEO, and readiness', () => {
+  const himEnriched = contentRepository.getEnrichedEditorialHub(
+    'gifts-for-men',
+    { includeDrafts: true }
+  );
+  const herEnriched = contentRepository.getEnrichedEditorialHub(
+    'gifts-for-women',
+    { includeDrafts: true }
+  );
+
+  assert.ok(himEnriched, 'gifts-for-men enriched hub must resolve');
+  assert.ok(herEnriched, 'gifts-for-women enriched hub must resolve');
+
+  // Alias lookup also works seamlessly
+  const himAlias = contentRepository.getEditorialHubBySlug('gifts-for-him', {
+    includeDrafts: true,
+  });
+  const herAlias = contentRepository.getEditorialHubBySlug('gifts-for-her', {
+    includeDrafts: true,
+  });
+  assert.equal(himAlias?.routePath, '/gifts-for-men/');
+  assert.equal(herAlias?.routePath, '/gifts-for-women/');
+
+  // 1. Canonical URLs preserve existing production paths while visible H1s are "Gifts for Him" and "Gifts for Her"
+  assert.equal(himEnriched.hub.routePath, '/gifts-for-men/');
+  assert.equal(himEnriched.hub.seo.canonicalPath, '/gifts-for-men/');
+  assert.equal(himEnriched.hub.title, 'Gifts for Him');
+  assert.equal(
+    resolveCanonicalUrl(himEnriched.hub.seo.canonicalPath).canonicalUrl,
+    'https://www.scienceofgifts.com/gifts-for-men/'
+  );
+
+  assert.equal(herEnriched.hub.routePath, '/gifts-for-women/');
+  assert.equal(herEnriched.hub.seo.canonicalPath, '/gifts-for-women/');
+  assert.equal(herEnriched.hub.title, 'Gifts for Her');
+  assert.equal(
+    resolveCanonicalUrl(herEnriched.hub.seo.canonicalPath).canonicalUrl,
+    'https://www.scienceofgifts.com/gifts-for-women/'
+  );
+
+  // 2. Relationship pathways: 6 each covering Dad/Husband/Boyfriend/Brother/Grandpa/Male Friends and Mom/Wife/Girlfriend/Sister/Grandma/Female Friends
+  assert.equal(himEnriched.relationships.length, 6);
+  assert.deepEqual(
+    himEnriched.relationships.map((r) => r.pathway.shortLabel),
+    ['Dad', 'Husband', 'Boyfriend', 'Brother', 'Grandpa', 'Male Friends']
+  );
+  assert.equal(herEnriched.relationships.length, 6);
+  assert.deepEqual(
+    herEnriched.relationships.map((r) => r.pathway.shortLabel),
+    ['Mom', 'Wife', 'Girlfriend', 'Sister', 'Grandma', 'Female Friends']
+  );
+
+  // 3. Interests, Budgets, Occasions, Curated Guides, Curated Products, and Buying Advice
+  assert.ok(himEnriched.interests.length >= 6);
+  assert.equal(himEnriched.budgets.length, 4);
+  assert.deepEqual(
+    himEnriched.budgets.map((b) => b.bracket.label),
+    ['Under $25', '$25 to $50', '$50 to $100', '$100 and Above']
+  );
+  // Budget product counts strictly reflect valid numeric prices ($18-$24: 3, $25-$50: 5, $50-$100: 4, $100+: 1)
+  assert.deepEqual(
+    himEnriched.budgets.map((b) => b.matchingProductCount),
+    [3, 5, 4, 1]
+  );
+  assert.equal(himEnriched.occasions.length, 6);
+  assert.equal(himEnriched.allCuratedGuides.length, 2);
+  assert.equal(himEnriched.curatedProducts.length, 6);
+  assert.equal(himEnriched.hub.buyingAdvice.length, 4);
+  assert.equal(herEnriched.hub.buyingAdvice.length, 4);
+
+  // 4. Render both hubs to HTML and verify H1s, sections, links, and provenance badges
+  const himHtml = renderToStaticMarkup(
+    <EditorialDiscoveryHubView enrichedHub={himEnriched} />
+  );
+  assert.ok(himHtml.includes('<h1'), 'Gifts for Him hub must render H1');
+  assert.ok(himHtml.includes('Gifts for Him'));
+  assert.ok(himHtml.includes('Browse by Relationship'));
+  assert.ok(himHtml.includes('Browse by Interest'));
+  assert.ok(himHtml.includes('Browse by Budget'));
+  assert.ok(himHtml.includes('Browse by Occasion'));
+  assert.ok(himHtml.includes('Featured Gift Guides for Him'));
+  assert.ok(himHtml.includes('Featured Individual Gifts'));
+  assert.ok(himHtml.includes('Editor’s Selection'));
+  assert.ok(himHtml.includes('Still Not Sure What to Choose for Him?'));
+  assert.ok(himHtml.includes('How to Choose a Thoughtful Gift for Him'));
+  assert.ok(himHtml.includes('href="/gifts-for-women/"'));
+
+  const herHtml = renderToStaticMarkup(
+    <EditorialDiscoveryHubView enrichedHub={herEnriched} />
+  );
+  assert.ok(herHtml.includes('<h1'), 'Gifts for Her hub must render H1');
+  assert.ok(herHtml.includes('Gifts for Her'));
+  assert.ok(herHtml.includes('Featured Gift Guides for Her'));
+  assert.ok(herHtml.includes('Still Not Sure What to Choose for Her?'));
+  assert.ok(herHtml.includes('How to Choose a Thoughtful Gift for Her'));
+  assert.ok(herHtml.includes('href="/gifts-for-men/"'));
+
+  // 5. JSON-LD structured data for both hubs uses CollectionPage + BreadcrumbList + ItemList without fabricating Offers
+  const catalog = contentRepository.getCatalogSnapshot();
+  const himJsonLd = buildEditorialHubJsonLd(himEnriched.hub, catalog);
+  assert.equal(himJsonLd['@graph'][0]['@type'], 'BreadcrumbList');
+  assert.equal(
+    himJsonLd['@graph'][0].itemListElement[2]?.item,
+    'https://www.scienceofgifts.com/gifts-for-men/'
+  );
+  assert.equal(himJsonLd['@graph'][1]['@type'], 'CollectionPage');
+  assert.equal(
+    himJsonLd['@graph'][1].url,
+    'https://www.scienceofgifts.com/gifts-for-men/'
+  );
+  assert.equal(himJsonLd['@graph'][1].mainEntity?.['@type'], 'ItemList');
+});
+
+test('40. Premium Global Navigation (Desktop & Mobile 3-group structure, For Him/For Her dev preview visibility) and Site-Wide Search Engine & Modal', () => {
+  // 1. Desktop & Mobile Navbar configuration and exact destinations
+  const devNavLinks = resolveHeaderEditorialNavLinks({ isDevPreview: true });
+  assert.deepEqual(
+    devNavLinks.map((l) => ({ label: l.label, href: l.href })),
+    [
+      { label: 'Gift Guides', href: '/gift-guides/' },
+      { label: 'For Him', href: '/gifts-for-men/' },
+      { label: 'For Her', href: '/gifts-for-women/' },
+      { label: 'Stories', href: '/articles/' },
+      { label: 'Shop', href: 'https://shop.scienceofgifts.com/' },
+    ]
+  );
+  assert.equal(PRIMARY_NAV_LINKS.length, 5);
+  assert.equal(PRIMARY_CTA_LINK.label, 'Find a Gift');
+  assert.equal(PRIMARY_CTA_LINK.href, '/gift-finder/');
+
+  // 2. Safe development preview visibility vs strict public production gating for For Him & For Her
+  const strictPublicHubLinksWhenUnready = resolveEditorialHubHeaderLinks({
+    isDevPreview: false,
+    readyHubSlugs: [],
+  });
+  assert.equal(
+    strictPublicHubLinksWhenUnready.length,
+    0,
+    'In strict public production mode, unpublished/unready editorial hubs remain gated until ready'
+  );
+  const strictPublicNavWhenReady = resolveHeaderEditorialNavLinks({
+    isDevPreview: false,
+    readyHubSlugs: ['gifts-for-men', 'gifts-for-women'],
+  });
+  assert.equal(strictPublicNavWhenReady.length, 5);
+
+  // Confirm For Him and For Her hubs preserve their draft + noindex status while visible in dev preview nav
+  const himHub = contentRepository.getEditorialHubBySlug('gifts-for-men', {
+    includeDrafts: true,
+  });
+  const herHub = contentRepository.getEditorialHubBySlug('gifts-for-women', {
+    includeDrafts: true,
+  });
+  assert.equal(himHub?.status, 'draft');
+  assert.equal(himHub?.seo.noindex, true);
+  assert.equal(herHub?.status, 'draft');
+  assert.equal(herHub?.seo.noindex, true);
+
+  // 3. Header Search button, Saved Gifts button with Bookmark icon & live count, and Mobile Navigation Island
+  const searchBtnHtml = renderToStaticMarkup(<HeaderSearchButtonIsland />);
+  assert.match(searchBtnHtml, /aria-label="Search gifts, guides, and stories"/);
+
+  const savedBtnHtml = renderToStaticMarkup(<HeaderSavedButtonIsland />);
+  assert.match(savedBtnHtml, /Saved Gifts/);
+  assert.match(savedBtnHtml, /\(\d+\)/, 'Saved Gifts button must render dynamic count');
+  assert.match(savedBtnHtml, /<svg/, 'Saved Gifts button must include bookmark outline icon');
+
+  const mobileNavHtml = renderToStaticMarkup(
+    <MobileNavigationIsland activeSection="him" isDevPreview={true} />
+  );
+  assert.match(mobileNavHtml, /href="\/gift-guides\/"/);
+  assert.match(mobileNavHtml, /href="\/gifts-for-men\/"/);
+  assert.match(mobileNavHtml, /href="\/gifts-for-women\/"/);
+  assert.match(mobileNavHtml, /href="\/articles\/"/);
+  assert.match(mobileNavHtml, /https:\/\/shop\.scienceofgifts\.com\//);
+  assert.match(mobileNavHtml, /Saved Gifts/);
+  assert.match(mobileNavHtml, /href="\/gift-finder\/"/);
+  assert.match(mobileNavHtml, /Find a Gift/);
+  assert.match(mobileNavHtml, /Search gifts, guides, and stories/);
+
+  // 4. Site-Wide Search Index: Public mode vs Dev Preview mode, and strict exclusion of drafts & sample products in public mode
+  const baseCatalog = contentRepository.getCatalogSnapshot({
+    includeDrafts: true,
+  });
+  const sampleSeedProduct = contentRepository.getAllProducts()[0];
+  const verifiedRealProduct = {
+    ...sampleSeedProduct,
+    id: 'prod_verified_artisan_kettle',
+    slug: 'verified-artisan-copper-kettle',
+    title: 'Artisan Copper Pour-Over Kettle',
+    subtitle: 'Hand-hammered copper gooseneck kettle for slow mornings.',
+    vendor: 'Kyoto Copperworks',
+    productType: 'Tea & Coffee Kettles',
+    purchaseUrl: 'https://kyotocopperworks.example.com/kettle',
+    isPlaceholderLink: false,
+    isSampleProduct: false,
+    status: 'published' as const,
+  };
+  const draftProduct = {
+    ...verifiedRealProduct,
+    id: 'prod_draft_hidden_item',
+    slug: 'draft-secret-unreleased-gift',
+    title: 'Unreleased Secret Draft Gift',
+    status: 'draft' as const,
+  };
+  const draftGuide = {
+    ...baseCatalog.guides![0],
+    id: 'guide_draft_unreleased',
+    slug: 'unreleased-draft-gift-guide',
+    title: 'Unreleased Draft Gift Guide',
+    status: 'draft' as const,
+  };
+  const draftArticle = {
+    ...baseCatalog.articles![0],
+    id: 'art_draft_unreleased',
+    slug: 'unreleased-draft-story',
+    title: 'Unreleased Draft Story',
+    status: 'draft' as const,
+  };
+
+  const customCatalog = {
+    ...baseCatalog,
+    guides: [...(baseCatalog.guides ?? []), draftGuide],
+    articles: [...(baseCatalog.articles ?? []), draftArticle],
+    products: {
+      ...(baseCatalog.products ?? {}),
+      [verifiedRealProduct.id]: verifiedRealProduct,
+      [draftProduct.id]: draftProduct,
+    },
+  };
+
+  // Public search index (`includeDevSampleProducts: false`)
+  const publicSearchIndex = buildSiteSearchIndex({
+    catalog: customCatalog,
+    includeDevSampleProducts: false,
+    includeDevEditorialHubs: false,
+  });
+
+  // Never includes draft guide, draft article, or draft product
+  assert.ok(
+    !publicSearchIndex.some((i) => i.title.includes('Unreleased')),
+    'Public search index must strictly exclude draft guides, draft articles, and draft products'
+  );
+  // Excludes sample/placeholder products from seed catalog in public mode
+  assert.ok(
+    !publicSearchIndex.some((i) => i.id === `product:${sampleSeedProduct.id}`),
+    'Public search index must exclude sample/placeholder products'
+  );
+  // Includes verified real published product
+  assert.ok(
+    publicSearchIndex.some((i) => i.id === `product:${verifiedRealProduct.id}`),
+    'Public search index must include verified published products'
+  );
+
+  // Dev preview search index (`includeDevSampleProducts: true`)
+  const devSearchIndex = buildSiteSearchIndex({
+    catalog: customCatalog,
+    includeDevSampleProducts: true,
+    includeDevEditorialHubs: true,
+  });
+  assert.ok(
+    !devSearchIndex.some((i) => i.title.includes('Unreleased')),
+    'Dev preview search index must still exclude draft items'
+  );
+  const sampleInDevIndex = devSearchIndex.find(
+    (i) => i.id === `product:${sampleSeedProduct.id}`
+  );
+  assert.ok(
+    sampleInDevIndex && sampleInDevIndex.isSamplePreview === true,
+    'Dev preview search index includes sample products clearly flagged with isSamplePreview: true'
+  );
+
+  // 5. Querying across Guides, Stories, Products, and Categories + Title-Match Prioritization
+  const guideQueryRes = querySiteSearchIndex(publicSearchIndex, 'little things');
+  assert.ok(guideQueryRes.guides.length >= 1, 'Must find matching Gift Guide');
+  assert.equal(
+    guideQueryRes.guides[0].url,
+    '/gift-guides/thoughtful-gifts-for-people-who-appreciate-the-little-things/'
+  );
+
+  const storyQueryRes = querySiteSearchIndex(publicSearchIndex, 'expensive');
+  assert.ok(storyQueryRes.articles.length >= 1, 'Must find matching Story');
+  assert.equal(
+    storyQueryRes.articles[0].url,
+    '/articles/why-thoughtful-gifts-matter-more-than-expensive-ones/'
+  );
+
+  const productQueryRes = querySiteSearchIndex(
+    publicSearchIndex,
+    'copper kettle'
+  );
+  assert.equal(productQueryRes.products.length, 1);
+  assert.equal(
+    productQueryRes.products[0].url,
+    '/products/verified-artisan-copper-kettle/'
+  );
+
+  const categoryQueryRes = querySiteSearchIndex(
+    publicSearchIndex,
+    'parents'
+  );
+  assert.ok(
+    categoryQueryRes.categories.length >= 1,
+    'Must find matching Recipient Category'
+  );
+
+  // Title matches rank strictly above description-only matches
+  const rankingTestIndex = [
+    {
+      id: 'product:desc-match',
+      type: 'product' as const,
+      title: 'Classic Linen Table Runner',
+      subtitle: 'Woven Belgian flax linen',
+      description: 'Pairs wonderfully with a stoneware mug during breakfast.',
+      url: '/products/linen-table-runner/',
+      categoryLabel: 'Tabletop',
+      keywords: ['linen', 'dining'],
+    },
+    {
+      id: 'product:title-match',
+      type: 'product' as const,
+      title: 'Hand-Thrown Stoneware Mug',
+      subtitle: 'Speckled ceramic vessel',
+      description: 'Keeps morning coffee warm.',
+      url: '/products/stoneware-mug/',
+      categoryLabel: 'Ceramics',
+      keywords: ['ceramic', 'coffee'],
+    },
+  ];
+  const rankingRes = querySiteSearchIndex(rankingTestIndex, 'stoneware mug');
+  assert.equal(rankingRes.products.length, 2);
+  assert.equal(
+    rankingRes.products[0].id,
+    'product:title-match',
+    'Title match must rank ahead of description-only match'
+  );
+
+  // Empty query and no-results query handling
+  const emptyRes = querySiteSearchIndex(publicSearchIndex, '   ');
+  assert.equal(emptyRes.totalCount, 0);
+  const noMatchRes = querySiteSearchIndex(
+    publicSearchIndex,
+    'zzzznonexistentquantumwidget999'
+  );
+  assert.equal(noMatchRes.totalCount, 0);
+
+  // 6. Search Modal rendering (open state, grouped results, no-results state)
+  const openModalWithResultsHtml = renderToStaticMarkup(
+    <SiteSearchModal
+      isOpen={true}
+      onClose={() => {}}
+      initialQuery="thoughtful"
+      initialIndex={devSearchIndex}
+    />
+  );
+  assert.match(openModalWithResultsHtml, /role="dialog"/);
+  assert.match(
+    openModalWithResultsHtml,
+    /placeholder="Search gifts, guides, and stories\.\.\."/
+  );
+  assert.match(openModalWithResultsHtml, /Gift Guides/);
+  assert.match(openModalWithResultsHtml, /Stories/);
+
+  const openModalNoResultsHtml = renderToStaticMarkup(
+    <SiteSearchModal
+      isOpen={true}
+      onClose={() => {}}
+      initialQuery="zzzznonexistentquantumwidget999"
+      initialIndex={devSearchIndex}
+    />
+  );
+  assert.match(
+    openModalNoResultsHtml,
+    /No matching gifts, guides, stories, or categories found/
+  );
+  assert.match(openModalNoResultsHtml, /href="\/gift-finder\/"/);
+
+  // 7. Search performance with a simulated 1,200-item catalog
+  const largeIndex = [...devSearchIndex];
+  for (let i = 1; i <= 1200; i++) {
+    largeIndex.push({
+      id: `product:perf_${i}`,
+      type: 'product',
+      title: `Catalog Scale Test Item ${i} ${i % 50 === 0 ? 'Matcha Whisk' : 'Ceramic Vessel'}`,
+      subtitle: 'Artisanal small-batch object for daily rituals',
+      description: 'Thoughtful gift for hosts, parents, and close friends.',
+      url: `/products/scale-item-${i}/`,
+      categoryLabel: 'Home & Kitchen',
+      keywords: ['home', 'ritual', 'craft'],
+      price: 45,
+      currency: 'USD',
+      vendor: 'Atelier Scale',
+    });
+  }
+  const startMs = performance.now();
+  const perfRes = querySiteSearchIndex(largeIndex, 'matcha whisk');
+  const elapsedMs = performance.now() - startMs;
+  assert.ok(perfRes.totalProducts >= 24);
+  assert.equal(perfRes.products.length, 6, 'Per-group results cap at limitPerGroup (6)');
+  assert.ok(
+    elapsedMs < 150,
+    `Search across 1,200+ items must complete rapidly (took ${elapsedMs.toFixed(2)}ms)`
+  );
+});
+
+
 

@@ -479,10 +479,17 @@ export interface DirectoryOrCategorySEOEntry {
 export interface EditorialHubRelationshipPathway {
   id: string;
   label: string;
+  shortLabel?: string;
   relationshipSlug: string;
+  iconKey?: string;
   description: string;
+  editorialTip?: string;
   recipientFilter?: RecipientType;
+  ageRangeFilter?: AgeRange;
+  personalityFilter?: PersonalityTrait;
   interestFilter?: string;
+  archiveHref?: string;
+  recipientArchiveHref?: string;
   giftFinderHref: string;
 }
 
@@ -494,6 +501,49 @@ export interface EditorialHubBudgetBracket {
   minPrice?: number;
   description: string;
   giftFinderHref: string;
+  curatedGuideSlug?: string;
+  featuredGuideId?: string;
+}
+
+export interface EditorialHubProductSelection {
+  productId: string;
+  /** Distinguishes explicit human editorial curation from deterministic catalog matching */
+  selectionSource: 'editorial-curation' | 'catalog-match';
+  editorialHeadline?: string;
+  editorialRationale?: string;
+  editorialNote?: string;
+  bestForRelationship?: string;
+  featuredGuideId?: string;
+  highlightFormat?: 'lead-feature' | 'supporting-card' | 'compact-row';
+}
+
+export interface EditorialHubFinderCtaConfig {
+  kicker?: string;
+  heading: string;
+  body: string;
+  primaryButtonLabel?: string;
+  primaryLabel?: string;
+  primaryFinderHref?: string;
+  primaryHref?: string;
+  quizButtonLabel?: string;
+  secondaryLabel?: string;
+  quizHref?: string;
+  secondaryHref?: string;
+  quickPrompts?: Array<{
+    label: string;
+    href: string;
+  }>;
+  presetLinks?: Array<{
+    label: string;
+    href: string;
+  }>;
+}
+
+export interface EditorialHubHeroImage {
+  url: string;
+  alt: string;
+  caption?: string;
+  isSampleAsset?: boolean;
 }
 
 export interface PlannedRedirectMapping {
@@ -506,24 +556,41 @@ export interface PlannedRedirectMapping {
 
 export interface EditorialHubConfig {
   id: string;
-  slug: 'gifts-for-him' | 'gifts-for-her' | string;
+  slug: 'gifts-for-men' | 'gifts-for-women' | 'gifts-for-him' | 'gifts-for-her' | string;
   routePath: string;
-  /** Existing production URL paths (e.g. /gifts-for-men/, /gifts-for-women/) that must be preserved or 301-redirected on launch */
+  /** Existing production URL paths (e.g. /gifts-for-men/, /gifts-for-women/) preserved directly by routePath or mapped via redirect */
   legacyProductionPaths?: string[];
-  /** Recorded redirect mappings for future hub launch (recorded now, applied at launch) */
+  /** Recorded redirect mappings if any legacy path differs from routePath */
   plannedRedirectMappings?: PlannedRedirectMapping[];
+  /** Optional eyebrow kicker displayed above the H1 */
+  kicker?: string;
+  editorialKicker?: string;
+  /** Visible on-page H1 heading (e.g. "Gifts for Him", "Gifts for Her"), decoupled from routePath and seo.seoTitle */
   title: string;
+  /** Introductory lead paragraph displayed in the editorial hero */
   subtitle: string;
+  /** Optional secondary editorial framing paragraphs */
+  introParagraphs?: string[];
+  editorialLeadParagraphs?: string[];
   editorialPositioning: string;
+  /** Optional hero photograph; if omitted, the hero renders a strong typography-led composition */
+  heroImage?: EditorialHubHeroImage;
   status: ContentPublishStatus;
   seo: SEOConfig;
   relationshipPathways: EditorialHubRelationshipPathway[];
   interestSlugs: string[];
+  occasionKeys?: OccasionType[];
   budgetBrackets: EditorialHubBudgetBracket[];
   curatedGuideIds: string[];
   featuredProductIds: string[];
+  curatedProductPicks?: EditorialHubProductSelection[];
+  finderCta?: EditorialHubFinderCtaConfig;
+  buyingAdviceIntro?: string;
   buyingAdvice: GuideBuyingTip[];
+  relatedArticleIds?: string[];
+  companionHubSlug?: string;
   minimumRequiredGuides: number;
   minimumRequiredProducts: number;
 }
+
 

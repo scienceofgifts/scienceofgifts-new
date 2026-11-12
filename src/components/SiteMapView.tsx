@@ -18,7 +18,7 @@ import {
   OccasionDiscoveryItem,
   RecipientDiscoveryItem,
 } from '../cms/contentRepository';
-import { Product } from '../types/content';
+import { EditorialHubConfig, Product } from '../types/content';
 import {
   SHOP_EXTERNAL_URL,
   SHOP_RETURNS_FAQ_URL,
@@ -34,6 +34,7 @@ export interface SiteMapViewProps {
   articles: EnrichedArticle[];
   storyTopics: ArticleTopicDiscoveryItem[];
   products: Product[];
+  publishedEditorialHubs?: EditorialHubConfig[];
 }
 
 export const SiteMapView: React.FC<SiteMapViewProps> = ({
@@ -45,6 +46,7 @@ export const SiteMapView: React.FC<SiteMapViewProps> = ({
   articles,
   storyTopics,
   products,
+  publishedEditorialHubs = [],
 }) => {
   // Group canonical products by productType so large catalogs remain structured and scannable
   const productsByCategory = React.useMemo(() => {
@@ -226,6 +228,28 @@ export const SiteMapView: React.FC<SiteMapViewProps> = ({
                   /gift-guides/
                 </span>
               </li>
+
+              {publishedEditorialHubs.map((hub) => (
+                <li
+                  key={hub.slug}
+                  className="flex items-baseline justify-between gap-4 border-b border-[#E3E1DB]/60 pb-3"
+                >
+                  <div>
+                    <a
+                      href={hub.routePath}
+                      className="font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
+                    >
+                      {hub.title} — Editorial Discovery Hub
+                    </a>
+                    <p className="theme-caption mt-0.5 text-xs text-[#636A6F]">
+                      {hub.subtitle}
+                    </p>
+                  </div>
+                  <span className="font-mono text-xs text-[#636A6F]">
+                    {hub.routePath}
+                  </span>
+                </li>
+              ))}
 
               <li className="flex items-baseline justify-between gap-4 border-b border-[#E3E1DB]/60 pb-3">
                 <div>

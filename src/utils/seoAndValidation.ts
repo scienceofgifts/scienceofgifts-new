@@ -39,29 +39,13 @@ export const DEFAULT_OG_IMAGE_URL =
   'https://images.unsplash.com/photo-1513885535751-8b9238bd345a?auto=format&fit=crop&w=1400&q=80';
 
 /**
- * Recorded redirect mappings for legacy production URLs (/gifts-for-men/ and /gifts-for-women/)
- * to be applied when the planned editorial hubs (/gifts-for-him/ and /gifts-for-her/) launch.
- * Kept as a recorded launch specification (`applyOnLaunchOnly: true`) so existing live URLs
- * are documented and protected against silent migration breakage without prematurely redirecting now.
+ * Planned redirect mappings for launch.
+ * Because the existing live production URLs `/gifts-for-men/` and `/gifts-for-women/`
+ * are preserved directly as the canonical routes of the new editorial discovery hubs
+ * (with visible H1 headings "Gifts for Him" and "Gifts for Her"), no URL migration
+ * redirects to `/gifts-for-him/` or `/gifts-for-her/` are required.
  */
-export const PLANNED_LAUNCH_REDIRECT_MAPPINGS: PlannedRedirectMapping[] = [
-  {
-    fromPath: '/gifts-for-men/',
-    toPath: '/gifts-for-him/',
-    statusCode: 301,
-    applyOnLaunchOnly: true,
-    reason:
-      'Preserve existing live production URL /gifts-for-men/ when launching the /gifts-for-him/ editorial hub.',
-  },
-  {
-    fromPath: '/gifts-for-women/',
-    toPath: '/gifts-for-her/',
-    statusCode: 301,
-    applyOnLaunchOnly: true,
-    reason:
-      'Preserve existing live production URL /gifts-for-women/ when launching the /gifts-for-her/ editorial hub.',
-  },
-];
+export const PLANNED_LAUNCH_REDIRECT_MAPPINGS: PlannedRedirectMapping[] = [];
 
 export interface ProductCommerceReadiness {
   isSampleOrPlaceholderProduct: boolean;
@@ -1264,20 +1248,126 @@ export function syncHeadSeoMetadata(config: {
   setMeta('link[rel="canonical"]', 'href', canonicalUrl);
 }
 
-export function evaluateEditorialHubReadiness(
+export function buildEditorialHubJsonLd(
   hub: EditorialHubConfig,
   catalog?: CatalogDataOverride
-): {
+) {
+  const productsMap = catalog?.products ?? PRODUCTS;
+  const guidesList = catalog?.guides ?? GIFT_GUIDES;
+
+  const resolvedSeo = resolvePageSeoMetadata({
+    onPageTitle: hub.title,
+    subtitleOrSummary: hub.subtitle,
+    seo: hub.seo,
+    defaultCanonicalPath: hub.routePath,
+    defaultOgType: 'website',
+    defaultOgImage: hub.heroImage?.url ?? hub.seo?.ogImage,
+    contentType: 'directory',
+    status: hub.status,
+  });
+
+  const publishedGuides = hub.curatedGuideIds
+    .map((gid) => guidesList.find((g) => g.id === gid))
+    .filter((g): g is GiftGuide => Boolean(g && g.status !== 'draft'));
+
+  const verifiedProducts = hub.featuredProductIds
+    .map((pid) => productsMap[pid])
+    .filter((p): p is Product => {
+      if (!p || p.status === 'draft') return false;
+      const commerce = evaluateProductCommerceReadiness(p);
+      return commerce.canIndexProductPage;
+    });
+
+  const itemListElements = [
+    ...publishedGuides.map((guide, index) => ({
+      '@type': 'ListItem' as const,
+      position: index + 1,
+      name: guide.title,
+      url: `${SITE_ORIGIN}/gift-guides/${guide.slug}/`,
+      description: guide.subtitle,
+    })),
+    ...verifiedProducts.map((product, index) => ({
+      '@type': 'ListItem' as const,
+      position: publishedGuides.length + index + 1,
+      name: product.title,
+      url: `${SITE_ORIGIN}/products/${product.slug}/`,
+      description: product.subtitle,
+    })),
+  ];
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: 'Home',
+            item: `${SITE_ORIGIN}/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Gift Guides',
+            item: `${SITE_ORIGIN}/gift-guides/`,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: hub.title,
+            item: resolvedSeo.canonicalUrl,
+          },
+        ],
+      },
+      {
+        '@type': 'CollectionPage',
+        '@id': resolvedSeo.canonicalUrl,
+        name: resolvedSeo.seoTitle,
+        headline: hub.title,
+        description: resolvedSeo.metaDescription,
+        url: resolvedSeo.canonicalUrl,
+        isPartOf: {
+          '@type': 'WebSite',
+          '@id': `${SITE_ORIGIN}/#website`,
+          name: SITE_NAME,
+          url: SITE_ORIGIN,
+        },
+        mainEntity: {
+          '@type': 'ItemList',
+          name: `${hub.title} — Curated Gift Guides & Recommendations`,
+          numberOfItems: itemListElements.length,
+          itemListElement: itemListElements,
+        },
+      },
+    ] as const,
+  };
+}
+
+export interface EditorialHubReadinessEvaluation {
   isReadyToPublish: boolean;
   isIndexable: boolean;
   publishedGuidesCount: number;
   publishedProductsCount: number;
+  verifiedProductsCount: number;
+  sampleProductsCount: number;
+  relationshipPathwaysCount: number;
+  buyingAdviceTipsCount: number;
+  hasMeaningfulEditorialCopy: boolean;
+  hasValidInternalReferences: boolean;
   legacyUrlPreservationConfigured: boolean;
   plannedRedirectMappings: PlannedRedirectMapping[];
   missingRequirements: string[];
-} {
+}
+
+export function evaluateEditorialHubReadiness(
+  hub: EditorialHubConfig,
+  catalog?: CatalogDataOverride
+): EditorialHubReadinessEvaluation {
   const productsMap = catalog?.products ?? PRODUCTS;
   const guidesList = catalog?.guides ?? GIFT_GUIDES;
+  const articlesList = catalog?.articles ?? ARTICLES;
   const missingRequirements: string[] = [];
 
   const publishedGuidesCount = hub.curatedGuideIds.filter((gid) => {
@@ -1285,10 +1375,43 @@ export function evaluateEditorialHubReadiness(
     return Boolean(g && g.status !== 'draft');
   }).length;
 
-  const publishedProductsCount = hub.featuredProductIds.filter((pid) => {
-    const p = productsMap[pid];
-    return Boolean(p && p.status !== 'draft');
-  }).length;
+  const referencedProducts = hub.featuredProductIds
+    .map((pid) => productsMap[pid])
+    .filter((p): p is Product => Boolean(p && p.status !== 'draft'));
+
+  const publishedProductsCount = referencedProducts.length;
+  const verifiedProductsCount = referencedProducts.filter(
+    (p) => !evaluateProductCommerceReadiness(p).isSampleOrPlaceholderProduct
+  ).length;
+  const sampleProductsCount =
+    publishedProductsCount - verifiedProductsCount;
+
+  // Check for broken guide, product, or article IDs
+  let hasValidInternalReferences = true;
+  for (const gid of hub.curatedGuideIds) {
+    if (!guidesList.some((g) => g.id === gid)) {
+      hasValidInternalReferences = false;
+      missingRequirements.push(
+        `Editorial hub "${hub.slug}" references unknown guide ID "${gid}".`
+      );
+    }
+  }
+  for (const pid of hub.featuredProductIds) {
+    if (!productsMap[pid]) {
+      hasValidInternalReferences = false;
+      missingRequirements.push(
+        `Editorial hub "${hub.slug}" references unknown product ID "${pid}".`
+      );
+    }
+  }
+  for (const aid of hub.relatedArticleIds ?? []) {
+    if (!articlesList.some((a) => a.id === aid)) {
+      hasValidInternalReferences = false;
+      missingRequirements.push(
+        `Editorial hub "${hub.slug}" references unknown article ID "${aid}".`
+      );
+    }
+  }
 
   const legacyPaths = hub.legacyProductionPaths ?? [];
   const plannedRedirects = hub.plannedRedirectMappings ?? [];
@@ -1311,6 +1434,24 @@ export function evaluateEditorialHubReadiness(
     }
   }
 
+  const hasSubstantialIntro =
+    Boolean(hub.title?.trim()) &&
+    Boolean(hub.subtitle && hub.subtitle.trim().length >= 50) &&
+    Boolean(hub.editorialPositioning?.trim());
+  const validPathways = (hub.relationshipPathways ?? []).filter(
+    (p) =>
+      Boolean(p.label?.trim()) &&
+      Boolean(p.description?.trim()) &&
+      Boolean(p.archiveHref?.trim() || p.giftFinderHref?.trim())
+  );
+  const validBuyingAdvice = (hub.buyingAdvice ?? []).filter(
+    (tip) => Boolean(tip.heading?.trim()) && Boolean(tip.body?.trim().length >= 40)
+  );
+  const hasMeaningfulEditorialCopy =
+    hasSubstantialIntro &&
+    validPathways.length >= 4 &&
+    validBuyingAdvice.length >= 3;
+
   if (hub.status !== 'published') {
     missingRequirements.push(
       `Editorial hub "${hub.slug}" status is "${hub.status}" (must be "published" before public indexing).`
@@ -1326,9 +1467,19 @@ export function evaluateEditorialHubReadiness(
       `Editorial hub "${hub.slug}" has ${publishedProductsCount} featured products (requires at least ${hub.minimumRequiredProducts}).`
     );
   }
-  if (!hub.relationshipPathways.length) {
+  if (verifiedProductsCount < hub.minimumRequiredProducts) {
     missingRequirements.push(
-      `Editorial hub "${hub.slug}" requires at least 1 relationship discovery pathway.`
+      `Editorial hub "${hub.slug}" has ${verifiedProductsCount} verified production products and ${sampleProductsCount} sample preview products (requires at least ${hub.minimumRequiredProducts} verified non-sample products before publication).`
+    );
+  }
+  if (!hasSubstantialIntro) {
+    missingRequirements.push(
+      `Editorial hub "${hub.slug}" requires a substantive introductory lead and editorial positioning statement.`
+    );
+  }
+  if (validPathways.length < 4) {
+    missingRequirements.push(
+      `Editorial hub "${hub.slug}" has ${validPathways.length} relationship discovery pathways (requires at least 4 functioning relationship pathways).`
     );
   }
   if (!hub.budgetBrackets.length) {
@@ -1336,9 +1487,9 @@ export function evaluateEditorialHubReadiness(
       `Editorial hub "${hub.slug}" requires at least 1 budget bracket.`
     );
   }
-  if (!hub.buyingAdvice.length) {
+  if (validBuyingAdvice.length < 3) {
     missingRequirements.push(
-      `Editorial hub "${hub.slug}" requires editorial buying advice.`
+      `Editorial hub "${hub.slug}" has ${validBuyingAdvice.length} editorial buying advice sections (requires at least 3 distinct buying advice tips).`
     );
   }
 
@@ -1353,6 +1504,12 @@ export function evaluateEditorialHubReadiness(
     isIndexable,
     publishedGuidesCount,
     publishedProductsCount,
+    verifiedProductsCount,
+    sampleProductsCount,
+    relationshipPathwaysCount: validPathways.length,
+    buyingAdviceTipsCount: validBuyingAdvice.length,
+    hasMeaningfulEditorialCopy,
+    hasValidInternalReferences,
     legacyUrlPreservationConfigured,
     plannedRedirectMappings: plannedRedirects,
     missingRequirements,

@@ -6,6 +6,8 @@ import { SiteMapView } from '../../components/SiteMapView';
 const guidesDir = contentRepository.getGiftGuidesDirectoryData();
 const articlesDir = contentRepository.getArticlesDirectoryData();
 const products = contentRepository.getAllProducts();
+const publishedEditorialHubs =
+  contentRepository.getPublishedReadyEditorialHubs();
 ---
 
 <BaseLayout
@@ -23,5 +25,6 @@ const products = contentRepository.getAllProducts();
     articles={articlesDir.allArticles}
     storyTopics={articlesDir.topicDiscovery}
     products={products}
+    publishedEditorialHubs={publishedEditorialHubs}
   />
 </BaseLayout>
