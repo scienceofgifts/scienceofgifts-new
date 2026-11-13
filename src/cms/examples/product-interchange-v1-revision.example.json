@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "1.0",
+  "format": "science-of-gifts/product-interchange",
+  "mode": "revision",
+  "targetProduct": {
+    "canonicalProductId": "prod_fictional_kiso_hinoki_tea_caddy",
+    "slug": "fictional-kiso-hinoki-tea-caddy"
+  },
+  "revisionControl": {
+    "clearFields": [
+      "identity.calloutTag",
+      "editorialProfile.testingNote"
+    ],
+    "allowOverwriteVerifiedFacts": false,
+    "revisionNotes": "Fictional revision test: sharpened the Gift Verdict and Best-For summary for holiday shoppers, cleared the temporary calloutTag and testingNote, and preserved verified pricing, inventory, photography, and product relationships."
+  },
+  "editorialProfile": {
+    "bestForSummary": "Best for loose-leaf tea purists and design-conscious hosts who prize quiet Japanese woodwork on their morning counter.",
+    "giftVerdict": {
+      "editorialAssessment": "Revised for winter gifting: an heirloom-grade Kiso hinoki and cherry bark canister that transforms daily loose-leaf storage into a tactile morning ritual.",
+      "standoutReason": "Hand-fitted double wooden lids lock in delicate leaf aromatics without plastic gaskets, paired with a carved cypress scoop that nests inside.",
+      "recipientDelight": "The whisper-quiet pneumatic slide of the cherry bark lid and the subtle scent of Japanese cypress on first unboxing.",
+      "importantCaveat": "Best dedicated to unflavored green, white, or oolong teas so the natural hinoki interior stays neutral over decades."
+    }
+  },
+  "taxonomy": {
+    "recipients": ["partner", "parent", "friend", "host"],
+    "occasions": ["birthday", "housewarming", "holidays", "anniversary"],
+    "interests": [
+      "Coffee & Tea",
+      "Slow Mornings",
+      "Cozy Sanctuary",
+      "Japanese Joinery",
+      "Wabi-Sabi Countertop"
+    ],
+    "personalityTraits": ["everyday-ritual", "cozy-homebody", "nostalgic-sentimental"],
+    "ageRanges": ["adult", "parents-grandparents"]
+  }
+}

@@ -394,7 +394,26 @@ export function resolveProductImageDelivery(
       rawUrl = landscapeOverride;
       usedOverrideUrl = 'landscape';
     } else {
-      rawUrl = (image.url ?? '').trim();
+      rawUrl = (image.url ?? (image as any).externalUrl ?? '').trim();
+    }
+
+    if (!rawUrl) {
+      const assetRef =
+        (typeof image.sanityAssetId === 'string' && image.sanityAssetId.trim()) ||
+        (typeof image.asset?.asset?._ref === 'string' && image.asset.asset._ref.trim()) ||
+        (typeof (image.asset as any)?._ref === 'string' && (image.asset as any)._ref.trim()) ||
+        '';
+      const match = /^image-([a-zA-Z0-9_]+)-(\d+x\d+)-([a-zA-Z0-9]+)$/.exec(assetRef);
+      if (match) {
+        const [, assetHash, dimensions, format] = match;
+        const proj =
+          (typeof process !== 'undefined' && process.env?.SANITY_STUDIO_PROJECT_ID) ||
+          'c1y2qdje';
+        const ds =
+          (typeof process !== 'undefined' && process.env?.SANITY_STUDIO_DATASET) ||
+          'production';
+        rawUrl = `https://cdn.sanity.io/images/${proj}/${ds}/${assetHash}-${dimensions}.${format}`;
+      }
     }
   }
 

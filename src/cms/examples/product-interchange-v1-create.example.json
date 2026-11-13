@@ -1,0 +1,175 @@
+{
+  "schemaVersion": "1.0",
+  "format": "science-of-gifts/product-interchange",
+  "mode": "create",
+  "targetProduct": {
+    "canonicalProductId": "prod_fictional_kiso_hinoki_tea_caddy",
+    "slug": "fictional-kiso-hinoki-tea-caddy",
+    "sourceUrl": "https://atelier-kiso-fictional-test.jp/products/hinoki-bark-tea-caddy"
+  },
+  "factualContext": {
+    "sourceUrl": "https://atelier-kiso-fictional-test.jp/products/hinoki-bark-tea-caddy",
+    "vendor": "Fictional Kiso Woodwork Studio (Test Fixture)",
+    "price": 68,
+    "currency": "USD",
+    "inStock": true,
+    "availabilityNote": "Fictional test fixture: ships in 3-5 business days in a cedar presentation box.",
+    "commerceProvider": "affiliate",
+    "fulfillmentClassification": "affiliate_redirect",
+    "externalProductId": "FICT-KISO-TC-08",
+    "affiliateUrl": "https://atelier-kiso-fictional-test.jp/products/hinoki-bark-tea-caddy?ref=scienceofgifts",
+    "fourthwallUrl": null,
+    "priceVerification": {
+      "verified": true,
+      "source": "retailer_live_check",
+      "verifiedAt": "2026-11-12T10:00:00.000Z",
+      "evidenceNote": "Fictional test fixture verifying $68 USD retail price on studio product page."
+    },
+    "inventoryVerification": {
+      "verified": true,
+      "source": "retailer_live_check",
+      "verifiedAt": "2026-11-12T10:00:00.000Z"
+    },
+    "specifications": [
+      {
+        "label": "Materials",
+        "value": "Sustainably harvested Kiso hinoki cypress interior with hand-polished mountain cherry bark exterior"
+      },
+      {
+        "label": "Capacity & Dimensions",
+        "value": "Holds 120 g of loose-leaf tea; 8.2 cm diameter x 11.8 cm height"
+      },
+      {
+        "label": "Included Accessories",
+        "value": "Matching carved hinoki measuring scoop (15 ml) and inner airtight lid"
+      },
+      {
+        "label": "Origin",
+        "value": "Nagiso, Nagano Prefecture, Japan (Fictional Test Profile)"
+      },
+      {
+        "label": "Care Instructions",
+        "value": "Wipe dry with a soft linen cloth; never submerge in water or place in a dishwasher"
+      }
+    ]
+  },
+  "identity": {
+    "title": "[Fictional Test] Kiso Hinoki & Cherry Bark Tea Caddy",
+    "slug": "fictional-kiso-hinoki-tea-caddy",
+    "subtitle": "Dual-lid Japanese cypress and wild cherry bark canister for loose-leaf tea rituals",
+    "productType": "Tea & Coffee Rituals",
+    "calloutTag": "Small-Batch Woodwork"
+  },
+  "editorialProfile": {
+    "whyToGiveIt": "Most tea drinkers store prized loose-leaf teas in crumpled foil pouches because standard kitchen canisters leak aroma and light. This fictional Kiso hinoki and cherry bark tea caddy turns an everyday countertop habit into a tactile ritual: the double-fitted wooden lid slides shut with a quiet pneumatic seal, preserving delicate green and oolong leaves while aging into a deeper amber patina each winter.",
+    "bestForSummary": "Best for devoted loose-leaf tea drinkers and slow-morning minimalists who appreciate tactile Japanese woodwork.",
+    "detailsAndCare": "Hand-formed from seasoned Kiso hinoki cypress and wild mountain cherry bark (kabazaiku), featuring an inner aroma-sealing lid and carved wooden tea scoop. Wipe exterior with a dry cloth only; keep away from direct steam.",
+    "giftVerdict": {
+      "editorialAssessment": "An heirloom-grade countertop vessel that elevates daily tea preparation without requiring the recipient to learn a complicated new brewing method.",
+      "standoutReason": "Precision-friction double wooden lids create an airtight microclimate that tin or glass jars rarely match, and the included hinoki scoop nests directly inside the rim.",
+      "recipientDelight": "The unmistakable friction-fit slide of the outer lid and the faint, resinous scent of hinoki cypress the first time the box is opened.",
+      "importantCaveat": "Because natural wood absorbs strong aromatics, it is best dedicated to unflavored green, white, or oolong teas rather than heavily spiced masala chai blends."
+    },
+    "idealRecipientProfile": {
+      "headline": "The Countertop Ritualist Who Notices Material Craft",
+      "narrative": "Designed for someone whose morning begins with a kettle rather than an alarm—the friend or partner who keeps an electric gooseneck kettle on the counter and values quiet, tactile objects built to last decades.",
+      "lifestyleNotes": [
+        "Brews loose-leaf sencha, genmaicha, or oolong at least three mornings a week",
+        "Prefers natural timber, stoneware, and linen over polished chrome kitchen gadgets",
+        "Appreciates compact functional objects that earn permanent counter space"
+      ],
+      "relationshipFit": [
+        "Partner or spouse milestone birthday ($68 sweet spot)",
+        "Thoughtful housewarming gift for a tea-loving host",
+        "Parent who enjoys quiet afternoon reading and tea rituals"
+      ]
+    },
+    "extendedGiftRationale": [
+      "From a gifting psychology perspective, vessels and storage pieces succeed when they upgrade an activity the recipient already performs daily. Instead of asking the recipient to adopt a new hobby, this caddy refines the first thirty seconds of their existing tea ritual.",
+      "The combination of smooth cherry bark and warm hinoki grain makes the object feel substantial in the hand the moment it is lifted from its cedar presentation box, signaling care and permanence without feeling ostentatious."
+    ],
+    "buyingConsiderations": [
+      {
+        "label": "Best Tea Pairings",
+        "detail": "Ideal for non-aromatized loose leaves (sencha, gyokuro, roasted hojicha, or high-mountain oolong). Avoid storing smoky lapsang souchong or bergamot-heavy Earl Grey in the same wood canister."
+      },
+      {
+        "label": "Countertop Footprint",
+        "detail": "At under 9 cm wide, it fits comfortably on narrow apartment shelves or beside an electric kettle without crowding small kitchens."
+      },
+      {
+        "label": "Humidity & Care",
+        "detail": "Natural bark and cypress respond best to dry hands and room-temperature storage away from stovetop steam vents."
+      }
+    ],
+    "occasionContextNotes": [
+      {
+        "occasion": "housewarming",
+        "label": "New Kitchen Anchor",
+        "note": "Pair with a 50 g tin of first-harvest sencha so the recipient can fill the caddy on their very first morning in the new home."
+      },
+      {
+        "occasion": "birthday",
+        "label": "Personal Daily Upgrade",
+        "note": "Hits the $50-$100 birthday sweet spot for a close friend, sibling, or parent who rarely splurges on artisan storage for themselves."
+      },
+      {
+        "occasion": "holidays",
+        "label": "Winter Sanctuary Gift",
+        "note": "Arrives in a ribboned cedar box that feels winter-ready without needing elaborate wrapping paper."
+      }
+    ],
+    "editorialRating": 4.8,
+    "testingNote": "Fictional test fixture: evaluated lid air-seal tolerance and scoop ergonomics across 30 daily uses."
+  },
+  "taxonomy": {
+    "recipients": ["partner", "parent", "friend", "host"],
+    "occasions": ["birthday", "housewarming", "holidays", "thank-you"],
+    "interests": ["Coffee & Tea", "Slow Mornings", "Cozy Sanctuary", "Home Decor"],
+    "personalityTraits": ["everyday-ritual", "cozy-homebody"],
+    "ageRanges": ["adult", "parents-grandparents"],
+    "budgetTier": "50-to-100",
+    "guidePriceBucket": "25-to-75"
+  },
+  "media": {
+    "images": [
+      {
+        "id": "img_fictional_kiso_hinoki_tea_caddy_01",
+        "url": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1600&q=85",
+        "alt": "Handcrafted Japanese cherry bark and hinoki wood tea caddy resting beside a ceramic teacup on a linen cloth",
+        "caption": "Fictional test fixture: Kiso hinoki interior paired with hand-polished mountain cherry bark.",
+        "fitMode": "cover",
+        "fallbackColor": "#F6F4EF",
+        "focalPoint": {
+          "x": 0.5,
+          "y": 0.52
+        },
+        "width": 2400,
+        "height": 2400
+      }
+    ]
+  },
+  "relationships": {
+    "similarGiftComparisons": [
+      {
+        "productId": "prod_matcha_whisk_bowl",
+        "comparisonAngle": "Ceremonial Matcha Preparation Alternative ($64)",
+        "summary": "Choose the ceramic matcha bowl and bamboo whisk set if your recipient prefers whisked ceremonial matcha rather than steeped loose-leaf teas.",
+        "distinctionLabel": "Best for Whisked Matcha",
+        "comparisonNote": "Both celebrate Japanese tea craft around the $65 mark, but serve different brewing styles."
+      }
+    ],
+    "citationIds": ["cit_experiential_material_2016"],
+    "relatedProductIds": ["prod_matcha_whisk_bowl", "prod_hinoki_mug_warmer"],
+    "relatedGuideIds": ["guide_quiet_luxury_rituals"]
+  },
+  "seo": {
+    "seoTitle": "Kiso Hinoki & Cherry Bark Tea Caddy Review | Science of Gifts",
+    "metaDescription": "Editorial review of the fictional Kiso Hinoki & Cherry Bark Tea Caddy ($68): why this airtight Japanese wooden tea canister is a standout gift for tea lovers.",
+    "canonicalPath": "/products/fictional-kiso-hinoki-tea-caddy",
+    "ogTitle": "Kiso Hinoki & Cherry Bark Tea Caddy — Editorial Gift Verdict",
+    "ogDescription": "An heirloom-grade Japanese wooden tea canister with a friction-fit double lid and carved hinoki scoop.",
+    "ogImage": "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1600&q=85",
+    "indexing": "index,follow"
+  }
+}

@@ -84,6 +84,30 @@ export type ProductImageFitMode = 'cover' | 'contain';
 
 export type ProductImageAspectRatio = '1:1' | '4:5' | '4:3' | '16:10';
 
+export type ProductImageSourceType = 'sanity-upload' | 'external-url' | 'fourthwall-synced';
+
+export interface SanityImageAssetReference {
+  _type: 'image';
+  asset: {
+    _type: 'reference';
+    _ref: string;
+  };
+  hotspot?: {
+    _type?: 'sanity.imageHotspot';
+    x: number;
+    y: number;
+    width?: number;
+    height?: number;
+  };
+  crop?: {
+    _type?: 'sanity.imageCrop';
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  };
+}
+
 export interface ProductImage {
   id: string;
   url: string;
@@ -91,6 +115,20 @@ export interface ProductImage {
   alt: string;
   caption?: string;
   isSampleAsset?: boolean;
+  /** Persistent Sanity image asset document ID (e.g. "image-<hash>-<width>x<height>-<ext>") */
+  sanityAssetId?: string;
+  /** Native Sanity image field with asset reference and hotspot/crop */
+  asset?: SanityImageAssetReference;
+  /** Origin of the photograph so editorial uploads and Fourthwall synced images coexist cleanly */
+  sourceType?: ProductImageSourceType;
+  /** Optional Fourthwall variant or external image identifier */
+  fourthwallVariantId?: string;
+  /** Original uploaded filename for editor reference */
+  originalFilename?: string;
+  /** Image MIME type (e.g. image/jpeg, image/webp) */
+  mimeType?: string;
+  /** Intrinsic width/height aspect ratio */
+  aspectRatio?: number;
   /** Normalized focal point (0 to 1) used for automatic aspect-ratio cropping and CSS object-position */
   focalPoint?: ImageFocalPoint;
   /** Optional Sanity-compatible crop bounds */
@@ -188,6 +226,21 @@ export interface Product {
   occasionContextNotes?: ProductOccasionNote[];
   specifications?: ProductSpecificationItem[];
   similarGiftComparisons?: ProductSimilarComparison[];
+  fulfillmentClassification?: 'affiliate_redirect' | 'fourthwall_merch' | 'digital_download' | 'direct_editorial';
+  externalProductId?: string;
+  affiliateUrl?: string;
+  fourthwallUrl?: string;
+  availabilityNote?: string;
+  priceVerificationSource?: 'retailer_live_check' | 'brand_catalog_sheet' | 'fourthwall_api' | 'unverified';
+  priceVerifiedAt?: string;
+  priceVerificationEvidenceNote?: string;
+  inventoryVerificationSource?: 'retailer_live_check' | 'fourthwall_stock_feed' | 'manual_editor_check' | 'unverified';
+  inventoryVerifiedAt?: string;
+  editorialRating?: number;
+  testingNote?: string;
+  relatedProductIds?: string[];
+  relatedGuideIds?: string[];
+  editorialApproved?: boolean;
 }
 
 export type GuidePresentationStyle =

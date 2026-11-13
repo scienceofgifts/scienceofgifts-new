@@ -19,6 +19,7 @@ import {
   Scale,
 } from 'lucide-react';
 import { PhotoImage } from '../ObjectIllustrations';
+import { ProductMediaGallery } from './ProductMediaGallery';
 
 export interface ProductGuideAppearance {
   guide: GiftGuide;
@@ -254,38 +255,17 @@ export const EditorialProductProfile: React.FC<
 
           {/* Main Hero Split */}
           <div className="grid grid-cols-1 gap-10 py-8 sm:py-12 lg:grid-cols-12 lg:items-start lg:gap-12">
-            {/* Left Column: Accurate Single-Image Editorial Frame */}
+            {/* Left Column: Editorial Product Gallery (Single or Multi-Image) */}
             <div className="lg:col-span-6">
-              <figure className="overflow-hidden rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF]">
-                <div
-                  className="aspect-[4/3] w-full overflow-hidden bg-[#F6F4EF]"
-                  style={{
-                    backgroundColor: primaryImage.fallbackColor || '#F6F4EF',
-                  }}
-                >
-                  <PhotoImage
-                    image={primaryImage}
-                    preset="hero-landscape"
-                    aspectRatio="4:3"
-                    width={840}
-                    height={630}
-                    loading="eager"
-                    fetchPriority="high"
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-                <figcaption className="flex flex-wrap items-center justify-between gap-2 border-t border-[#E3E1DB] bg-[#FFFFFF] px-5 py-3 text-xs text-[#636A6F]">
-                  <span>
-                    {primaryImage.caption ||
-                      `${product.title} (${product.productType})`}
-                  </span>
-                  {Boolean(primaryImage.isSampleAsset) && (
-                    <span className="text-[11px] text-[#636A6F]">
-                      Sample preview photography
-                    </span>
-                  )}
-                </figcaption>
-              </figure>
+              <ProductMediaGallery
+                images={
+                  Array.isArray(product.images) && product.images.length > 0
+                    ? product.images
+                    : [primaryImage]
+                }
+                productTitle={product.title}
+                productType={product.productType}
+              />
             </div>
 
             {/* Right Column: Title, Standfirst, Verdict Preview & Refined Purchase Box */}

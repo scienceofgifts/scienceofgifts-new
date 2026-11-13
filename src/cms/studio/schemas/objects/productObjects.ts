@@ -255,6 +255,14 @@ export const productSimilarComparisonObject = defineType({
       type: 'string',
       validation: (Rule) => Rule.optional().max(60),
     }),
+    defineField({
+      name: 'comparisonNote',
+      title: 'Extended Comparison Note (Optional)',
+      type: 'text',
+      description:
+        'Optional secondary comparative note displayed alongside or in place of the primary summary.',
+      validation: (Rule) => Rule.optional().max(360),
+    }),
   ],
   preview: {
     select: {

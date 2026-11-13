@@ -1,0 +1,516 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://scienceofgifts.com/schemas/product-interchange.v1.schema.json",
+  "title": "Science of Gifts Canonical Product Interchange Schema v1.0",
+  "description": "Versioned, self-contained JSON interchange contract for creating and revising editorial product profiles in Science of Gifts via external AI writing workflows (ChatGPT, Claude, Gemini) and importing into Sanity CMS.",
+  "type": "object",
+  "required": ["schemaVersion", "format", "mode"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "Must be \"1.0\". Used to reject incompatible payload versions."
+    },
+    "format": {
+      "type": "string",
+      "const": "science-of-gifts/product-interchange",
+      "description": "Fixed format identifier \"science-of-gifts/product-interchange\"."
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["create", "revision"],
+      "description": "\"create\" requires a complete product profile. \"revision\" updates selected fields on an existing product while preserving omitted fields and canonical IDs."
+    },
+    "targetProduct": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "canonicalProductId": {
+          "type": "string",
+          "pattern": "^prod_[a-z0-9_]+$"
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "sourceUrl": {
+          "type": "string",
+          "pattern": "^https://"
+        }
+      }
+    },
+    "revisionControl": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clearFields": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "identity.calloutTag",
+              "factualContext.availabilityNote",
+              "factualContext.externalProductId",
+              "factualContext.affiliateUrl",
+              "factualContext.fourthwallUrl",
+              "factualContext.priceVerification.verifiedAt",
+              "factualContext.priceVerification.evidenceNote",
+              "factualContext.inventoryVerification.verifiedAt",
+              "editorialProfile.giftVerdict.importantCaveat",
+              "editorialProfile.extendedGiftRationale",
+              "editorialProfile.buyingConsiderations",
+              "editorialProfile.occasionContextNotes",
+              "editorialProfile.editorialRating",
+              "editorialProfile.testingNote",
+              "relationships.similarGiftComparisons",
+              "relationships.citationIds",
+              "relationships.relatedProductIds",
+              "relationships.relatedGuideIds",
+              "seo.ogTitle",
+              "seo.ogDescription",
+              "seo.ogImage"
+            ]
+          }
+        },
+        "allowOverwriteVerifiedFacts": {
+          "type": "boolean",
+          "default": false
+        },
+        "revisionNotes": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "factualContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sourceUrl": {
+          "type": ["string", "null"],
+          "pattern": "^https://"
+        },
+        "vendor": {
+          "type": ["string", "null"],
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "price": {
+          "type": ["number", "null"],
+          "minimum": 0
+        },
+        "currency": {
+          "type": "string",
+          "const": "USD"
+        },
+        "inStock": {
+          "type": ["boolean", "null"]
+        },
+        "availabilityNote": {
+          "type": ["string", "null"],
+          "maxLength": 140
+        },
+        "commerceProvider": {
+          "type": "string",
+          "enum": ["affiliate", "fourthwall", "digital", "direct"]
+        },
+        "fulfillmentClassification": {
+          "type": "string",
+          "enum": ["affiliate_redirect", "fourthwall_merch", "digital_download", "direct_editorial"]
+        },
+        "externalProductId": {
+          "type": ["string", "null"],
+          "maxLength": 120
+        },
+        "affiliateUrl": {
+          "type": ["string", "null"],
+          "pattern": "^https://"
+        },
+        "fourthwallUrl": {
+          "type": ["string", "null"],
+          "pattern": "^https://"
+        },
+        "priceVerification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["verified", "source"],
+          "properties": {
+            "verified": { "type": "boolean" },
+            "source": {
+              "type": "string",
+              "enum": ["retailer_live_check", "brand_catalog_sheet", "fourthwall_api", "unverified"]
+            },
+            "verifiedAt": { "type": ["string", "null"] },
+            "evidenceNote": { "type": ["string", "null"], "maxLength": 240 }
+          }
+        },
+        "inventoryVerification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["verified", "source"],
+          "properties": {
+            "verified": { "type": "boolean" },
+            "source": {
+              "type": "string",
+              "enum": ["retailer_live_check", "fourthwall_stock_feed", "manual_editor_check", "unverified"]
+            },
+            "verifiedAt": { "type": ["string", "null"] }
+          }
+        },
+        "specifications": {
+          "type": "array",
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "value"],
+            "properties": {
+              "label": { "type": "string", "minLength": 2, "maxLength": 60 },
+              "value": { "type": "string", "minLength": 2, "maxLength": 220 }
+            }
+          }
+        }
+      }
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": { "type": "string", "minLength": 4, "maxLength": 110 },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+          "minLength": 3,
+          "maxLength": 96
+        },
+        "subtitle": { "type": "string", "minLength": 10, "maxLength": 160 },
+        "productType": {
+          "type": "string",
+          "enum": [
+            "Tabletop & Glassware",
+            "Kitchen & Pantry",
+            "Tea & Coffee Rituals",
+            "Keepsakes & Stationery",
+            "Home & Textiles",
+            "Games & Gathering",
+            "Print & Custom Art",
+            "Apparel & Wearables",
+            "Drinkware & Mugs",
+            "Stationery & Desk",
+            "Prints & Wall Art",
+            "Books & Reading",
+            "Decor & Accents"
+          ]
+        },
+        "merchandiseType": { "type": ["string", "null"], "maxLength": 80 },
+        "calloutTag": { "type": ["string", "null"], "maxLength": 42 }
+      }
+    },
+    "editorialProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "whyToGiveIt": { "type": "string", "minLength": 60, "maxLength": 750 },
+        "bestForSummary": { "type": "string", "minLength": 18, "maxLength": 180 },
+        "detailsAndCare": { "type": "string", "minLength": 25, "maxLength": 500 },
+        "giftVerdict": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "editorialAssessment": { "type": "string", "minLength": 40, "maxLength": 420 },
+            "standoutReason": { "type": "string", "minLength": 25, "maxLength": 300 },
+            "recipientDelight": { "type": "string", "minLength": 25, "maxLength": 300 },
+            "importantCaveat": { "type": ["string", "null"], "maxLength": 280 }
+          }
+        },
+        "idealRecipientProfile": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "headline": { "type": "string", "minLength": 10, "maxLength": 120 },
+            "narrative": { "type": "string", "minLength": 40, "maxLength": 460 },
+            "lifestyleNotes": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "items": { "type": "string", "minLength": 8, "maxLength": 160 }
+            },
+            "relationshipFit": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 5,
+              "items": { "type": "string", "minLength": 4, "maxLength": 90 }
+            }
+          }
+        },
+        "extendedGiftRationale": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "items": { "type": "string", "minLength": 40, "maxLength": 520 }
+        },
+        "buyingConsiderations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["label", "detail"],
+            "properties": {
+              "label": { "type": "string", "minLength": 3, "maxLength": 80 },
+              "detail": { "type": "string", "minLength": 15, "maxLength": 320 }
+            }
+          }
+        },
+        "occasionContextNotes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["occasion", "label", "note"],
+            "properties": {
+              "occasion": {
+                "type": "string",
+                "enum": ["birthday", "housewarming", "anniversary", "thank-you", "holidays", "just-because"]
+              },
+              "label": { "type": "string", "minLength": 3, "maxLength": 70 },
+              "note": { "type": "string", "minLength": 15, "maxLength": 280 }
+            }
+          }
+        },
+        "editorialRating": {
+          "type": ["number", "null"],
+          "minimum": 1,
+          "maximum": 5
+        },
+        "testingNote": {
+          "type": ["string", "null"],
+          "maxLength": 320
+        }
+      }
+    },
+    "taxonomy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recipients": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["partner", "parent", "friend", "host", "kids", "coworker"]
+          }
+        },
+        "occasions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["birthday", "housewarming", "anniversary", "thank-you", "holidays", "just-because"]
+          }
+        },
+        "interests": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "Coffee & Tea",
+              "Cooking & Hosting",
+              "Home Decor",
+              "Cozy Sanctuary",
+              "Slow Mornings",
+              "Dinner Parties",
+              "Journaling & Reading",
+              "Gardening",
+              "Board Games",
+              "Psychology & Human Behavior",
+              "Cognitive Science & Neuroscience",
+              "Behavioral Economics",
+              "Mindfulness & Mental Health",
+              "History & Antiquity",
+              "Military History & Strategy",
+              "Archaeology & Heritage",
+              "Philosophy & Ethics",
+              "Classic Literature & Poetry",
+              "Mythology & Folklore",
+              "Creative Writing",
+              "Filmmaking & Cinema",
+              "Photography & Visual Arts",
+              "Architecture & Design",
+              "Typography & Printmaking",
+              "Astronomy & Space",
+              "Mathematics & Logic",
+              "Physics & Natural Sciences",
+              "Botanical & Earth Sciences",
+              "Artisan Craft & Woodworking",
+              "Nature & Outdoors",
+              "Puzzles & Logic Games"
+            ]
+          }
+        },
+        "personalityTraits": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": [
+              "foodie-host",
+              "cozy-homebody",
+              "curious-creative",
+              "outdoors-nature",
+              "nostalgic-sentimental",
+              "everyday-ritual"
+            ]
+          }
+        },
+        "ageRanges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["kids", "young-adult", "adult", "parents-grandparents", "all-ages"]
+          }
+        },
+        "budgetTier": {
+          "type": ["string", "null"],
+          "enum": ["under-50", "50-to-100", "100-plus", null]
+        },
+        "guidePriceBucket": {
+          "type": ["string", "null"],
+          "enum": ["under-25", "25-to-75", "over-75", null]
+        },
+        "suggestedUnmappedTags": {
+          "type": "array",
+          "maxItems": 10,
+          "items": { "type": "string", "minLength": 2, "maxLength": 60 }
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "images": {
+          "type": "array",
+          "minItems": 0,
+          "maxItems": 12,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "alt"],
+            "properties": {
+              "id": { "type": "string", "maxLength": 80 },
+              "url": { "type": "string", "pattern": "^https://" },
+              "alt": { "type": "string", "minLength": 10, "maxLength": 220 },
+              "caption": { "type": ["string", "null"], "maxLength": 240 },
+              "sanityAssetId": { "type": ["string", "null"], "maxLength": 160 },
+              "sourceType": {
+                "type": ["string", "null"],
+                "enum": ["sanity-upload", "external-url", "fourthwall-synced", null]
+              },
+              "fourthwallVariantId": { "type": ["string", "null"], "maxLength": 120 },
+              "originalFilename": { "type": ["string", "null"], "maxLength": 180 },
+              "mimeType": { "type": ["string", "null"], "maxLength": 60 },
+              "aspectRatio": { "type": ["number", "null"], "minimum": 0.1, "maximum": 10 },
+              "fitMode": { "type": "string", "enum": ["cover", "contain"] },
+              "fallbackColor": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$" },
+              "focalPoint": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["x", "y"],
+                "properties": {
+                  "x": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "y": { "type": "number", "minimum": 0, "maximum": 1 }
+                }
+              },
+              "crop": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["top", "bottom", "left", "right"],
+                "properties": {
+                  "top": { "type": "number", "minimum": 0, "maximum": 0.5 },
+                  "bottom": { "type": "number", "minimum": 0, "maximum": 0.5 },
+                  "left": { "type": "number", "minimum": 0, "maximum": 0.5 },
+                  "right": { "type": "number", "minimum": 0, "maximum": 0.5 }
+                }
+              },
+              "landscapeOverrideUrl": { "type": ["string", "null"], "pattern": "^https://" },
+              "portraitOverrideUrl": { "type": ["string", "null"], "pattern": "^https://" },
+              "width": { "type": "integer", "minimum": 100 },
+              "height": { "type": "integer", "minimum": 100 }
+            }
+          }
+        }
+      }
+    },
+    "relationships": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "similarGiftComparisons": {
+          "type": "array",
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["productId", "comparisonAngle", "summary"],
+            "properties": {
+              "productId": { "type": "string", "pattern": "^prod_[a-z0-9_]+$" },
+              "comparisonAngle": { "type": "string", "minLength": 4, "maxLength": 110 },
+              "summary": { "type": "string", "minLength": 15, "maxLength": 360 },
+              "distinctionLabel": { "type": ["string", "null"], "maxLength": 60 },
+              "comparisonNote": { "type": ["string", "null"], "maxLength": 360 }
+            }
+          }
+        },
+        "citationIds": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^cit_[a-z0-9_]+$" }
+        },
+        "relatedProductIds": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^prod_[a-z0-9_]+$" }
+        },
+        "relatedGuideIds": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^guide_[a-z0-9_]+$" }
+        }
+      }
+    },
+    "seo": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "seoTitle": { "type": "string", "minLength": 15, "maxLength": 65 },
+        "metaDescription": { "type": "string", "minLength": 50, "maxLength": 160 },
+        "canonicalPath": { "type": "string", "pattern": "^/products/[a-z0-9-]+$" },
+        "ogTitle": { "type": ["string", "null"], "maxLength": 70 },
+        "ogDescription": { "type": ["string", "null"], "maxLength": 200 },
+        "ogImage": { "type": ["string", "null"], "pattern": "^https://" },
+        "indexing": { "type": "string", "enum": ["index,follow", "noindex,follow"] }
+      }
+    }
+  }
+}

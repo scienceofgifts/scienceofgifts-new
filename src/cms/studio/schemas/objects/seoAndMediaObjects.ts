@@ -92,6 +92,14 @@ export const productImageObject = defineType({
   ],
   fields: [
     defineField({
+      name: 'id',
+      title: 'Stable Image Identifier (Optional)',
+      type: 'string',
+      description:
+        'Stable identifier for gallery image tracking across revisions (e.g. "img_hinoki_carafe_01").',
+      validation: (Rule) => Rule.optional().max(80),
+    }),
+    defineField({
       name: 'asset',
       title: 'Sanity Master Square Image Asset (2400×2400px 1:1)',
       type: 'image',
@@ -216,11 +224,67 @@ export const productImageObject = defineType({
         'Enable only for temporary development sample photography.',
       validation: (Rule) => Rule.optional(),
     }),
+    defineField({
+      name: 'sanityAssetId',
+      title: 'Sanity Image Asset Document ID',
+      type: 'string',
+      fieldset: 'framingAndOverrides',
+      description:
+        'Persistent Sanity Content Lake image asset identifier (e.g. "image-<hash>-<width>x<height>-<ext>").',
+      validation: (Rule) => Rule.optional().max(160),
+    }),
+    defineField({
+      name: 'sourceType',
+      title: 'Image Source Classification',
+      type: 'string',
+      fieldset: 'framingAndOverrides',
+      initialValue: 'sanity-upload',
+      description:
+        'Distinguishes editorial Sanity uploads from external CDN URLs and Fourthwall-synced product photography.',
+      options: {
+        list: [
+          { title: 'Sanity Native Asset Upload (sanity-upload)', value: 'sanity-upload' },
+          { title: 'External HTTPS CDN URL (external-url)', value: 'external-url' },
+          { title: 'Fourthwall Merch Synced Image (fourthwall-synced)', value: 'fourthwall-synced' },
+        ],
+      },
+      validation: (Rule) => Rule.optional(),
+    }),
+    defineField({
+      name: 'fourthwallVariantId',
+      title: 'Fourthwall Variant / Image ID (Optional)',
+      type: 'string',
+      fieldset: 'framingAndOverrides',
+      description:
+        'Optional Fourthwall variant or external image ID so editorial gallery photographs and Fourthwall synced images coexist cleanly.',
+      validation: (Rule) => Rule.optional().max(120),
+    }),
+    defineField({
+      name: 'originalFilename',
+      title: 'Original Uploaded Filename (Optional)',
+      type: 'string',
+      fieldset: 'framingAndOverrides',
+      validation: (Rule) => Rule.optional().max(180),
+    }),
+    defineField({
+      name: 'mimeType',
+      title: 'MIME Type (Optional)',
+      type: 'string',
+      fieldset: 'framingAndOverrides',
+      validation: (Rule) => Rule.optional().max(60),
+    }),
+    defineField({
+      name: 'aspectRatio',
+      title: 'Intrinsic Aspect Ratio (Optional)',
+      type: 'number',
+      fieldset: 'framingAndOverrides',
+      validation: (Rule) => Rule.optional().positive(),
+    }),
   ],
   validation: (Rule) =>
     Rule.custom((val: Record<string, any> | undefined) => {
       if (!val) return true;
-      const hasAsset = Boolean(val.asset);
+      const hasAsset = Boolean(val.asset || val.sanityAssetId);
       const hasUrl = typeof val.url === 'string' && val.url.trim().length > 0;
       if (!hasAsset && !hasUrl) {
         return 'Provide either a Sanity image asset or a valid HTTPS master image URL.';

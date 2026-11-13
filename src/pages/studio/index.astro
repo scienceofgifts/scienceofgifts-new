@@ -1,9 +1,18 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import { resolveSanityEnvironmentConfig } from '../../cms/studio/sanityCore';
+import {
+  isStudioDevelopmentEnvironmentAllowed,
+  issueStudioEditorSessionCredentials,
+} from '../../cms/studio/sanityStudioAuth';
 import { SanityStudioWorkspace } from '../../components/studio/SanityStudioWorkspace';
 
+const isDevStudioAllowed =
+  import.meta.env.DEV && isStudioDevelopmentEnvironmentAllowed();
 const envConfig = resolveSanityEnvironmentConfig();
+const sessionCredentials = isDevStudioAllowed
+  ? issueStudioEditorSessionCredentials()
+  : null;
 ---
 
 <BaseLayout
@@ -12,6 +21,24 @@ const envConfig = resolveSanityEnvironmentConfig();
   canonicalPath="/studio/"
   noindex={true}
 >
-  <SanityStudioWorkspace client:load envConfig={envConfig} />
+  {
+    isDevStudioAllowed && sessionCredentials ? (
+      <SanityStudioWorkspace
+        client:load
+        envConfig={envConfig}
+        sessionCredentials={sessionCredentials}
+      />
+    ) : (
+      <main class="max-w-2xl mx-auto px-6 py-24 text-center space-y-4">
+        <h1 class="text-2xl font-serif font-semibold text-[#0F172A]">
+          Editorial Studio Restricted to Development Environment
+        </h1>
+        <p class="text-sm text-[#475569] leading-relaxed">
+          The Science of Gifts Sanity Editorial Studio and its draft mutation
+          APIs are disabled in public production builds to protect dataset
+          security.
+        </p>
+      </main>
+    )
+  }
 </BaseLayout>
-
