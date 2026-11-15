@@ -1,11 +1,11 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
+import '../../styles/studio-scoped.css';
 import { resolveSanityEnvironmentConfig } from '../../cms/studio/sanityCore';
 import {
   isStudioDevelopmentEnvironmentAllowed,
   issueStudioEditorSessionCredentials,
 } from '../../cms/studio/sanityStudioAuth';
-import { SanityStudioWorkspace } from '../../components/studio/SanityStudioWorkspace';
+import { OfficialSanityStudioApp } from '../../components/studio/OfficialSanityStudioApp';
 
 const isDevStudioAllowed =
   import.meta.env.DEV && isStudioDevelopmentEnvironmentAllowed();
@@ -15,30 +15,40 @@ const sessionCredentials = isDevStudioAllowed
   : null;
 ---
 
-<BaseLayout
-  title="Science of Gifts — Sanity Editorial Studio"
-  description="Science of Gifts Sanity Studio editorial interface for managing canonical products, gift guides, stories, discovery hubs, and publication settings."
-  canonicalPath="/studio/"
-  noindex={true}
->
-  {
-    isDevStudioAllowed && sessionCredentials ? (
-      <SanityStudioWorkspace
-        client:load
-        envConfig={envConfig}
-        sessionCredentials={sessionCredentials}
-      />
-    ) : (
-      <main class="max-w-2xl mx-auto px-6 py-24 text-center space-y-4">
-        <h1 class="text-2xl font-serif font-semibold text-[#0F172A]">
-          Editorial Studio Restricted to Development Environment
-        </h1>
-        <p class="text-sm text-[#475569] leading-relaxed">
-          The Science of Gifts Sanity Editorial Studio and its draft mutation
-          APIs are disabled in public production builds to protect dataset
-          security.
-        </p>
-      </main>
-    )
-  }
-</BaseLayout>
+<!doctype html>
+<html lang="en" class="sog-studio-html">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Science of Gifts — Official Sanity Studio</title>
+    <meta
+      name="description"
+      content="Science of Gifts Official Sanity Studio and AI Product Authoring workspace for managing canonical products, gift guides, stories, discovery hubs, and AI writing profiles."
+    />
+    <meta name="robots" content="noindex, nofollow" />
+  </head>
+  <body class="sog-studio-body">
+    {
+      isDevStudioAllowed && sessionCredentials ? (
+        <OfficialSanityStudioApp
+          client:load
+          envConfig={envConfig}
+          sessionCredentials={sessionCredentials}
+        />
+      ) : (
+        <main
+          style="max-width: 42rem; margin: 0 auto; padding: 6rem 1.5rem; text-align: center; font-family: system-ui, -apple-system, sans-serif; color: #0F172A;"
+        >
+          <h1 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 1rem;">
+            Editorial Studio Restricted to Development Environment
+          </h1>
+          <p style="font-size: 0.875rem; color: #475569; line-height: 1.6;">
+            The Science of Gifts Sanity Editorial Studio and its draft mutation
+            APIs are disabled in public production builds to protect dataset
+            security.
+          </p>
+        </main>
+      )
+    }
+  </body>
+</html>

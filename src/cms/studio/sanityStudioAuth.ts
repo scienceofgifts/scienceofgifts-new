@@ -385,3 +385,65 @@ export function verifyStudioApiRequestAuthorization(
     message: 'Authorized Studio editor request.',
   };
 }
+
+const PREVIEW_TICKET_TTL_MS = 15 * 60 * 1000; // 15 minutes
+
+/**
+ * Issues a signed, short-lived, document-scoped preview ticket so authenticated
+ * Studio editors can open `/api/studio/sanity/preview-product` in an iframe or new tab
+ * without exposing session tokens in static HTML. Disabled in production.
+ */
+export function issueStudioPreviewTicket(
+  documentId: string,
+  envOverride?: Record<string, string | undefined>
+): { ticket: string; expiresAtMs: number } | null {
+  if (!isStudioDevelopmentEnvironmentAllowed(envOverride)) {
+    return null;
+  }
+  const cleanId = String(documentId || '').trim();
+  if (!cleanId) return null;
+
+  const expiresAtMs = Date.now() + PREVIEW_TICKET_TTL_MS;
+  const nonce = crypto.randomBytes(12).toString('hex');
+  const payload = `${expiresAtMs}.${nonce}`;
+  const sig = computeHmacHex(`preview:${cleanId}:${payload}`);
+  return {
+    ticket: `${payload}.${sig}`,
+    expiresAtMs,
+  };
+}
+
+export function verifyStudioPreviewTicket(
+  rawTicket: string | undefined | null,
+  documentId: string,
+  envOverride?: Record<string, string | undefined>
+): { valid: boolean; reason?: string } {
+  if (!isStudioDevelopmentEnvironmentAllowed(envOverride)) {
+    return { valid: false, reason: 'Studio preview is disabled in production.' };
+  }
+  const cleanId = String(documentId || '').trim();
+  if (!cleanId) {
+    return { valid: false, reason: 'Missing document ID.' };
+  }
+  if (!rawTicket || typeof rawTicket !== 'string') {
+    return { valid: false, reason: 'Missing preview ticket.' };
+  }
+  const parts = rawTicket.trim().split('.');
+  if (parts.length !== 3) {
+    return { valid: false, reason: 'Malformed preview ticket.' };
+  }
+  const [expiresAtStr, nonce, providedSig] = parts;
+  const expiresAtMs = Number(expiresAtStr);
+  if (!Number.isFinite(expiresAtMs) || !/^[a-f0-9]{24}$/.test(nonce)) {
+    return { valid: false, reason: 'Invalid preview ticket claims.' };
+  }
+  if (Date.now() > expiresAtMs) {
+    return { valid: false, reason: 'Preview ticket expired. Re-open preview from Studio.' };
+  }
+  const expectedSig = computeHmacHex(`preview:${cleanId}:${expiresAtStr}.${nonce}`);
+  if (!safeTimingEqualHex(providedSig, expectedSig)) {
+    return { valid: false, reason: 'Invalid preview ticket signature.' };
+  }
+  return { valid: true };
+}
+

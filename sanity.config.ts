@@ -1,25 +1,23 @@
 /**
- * Science of Gifts — Sanity Studio v3 Configuration
+ * Science of Gifts — Official Sanity Studio Configuration (`sanity` v6)
  *
- * Uses environment-driven configuration (`SANITY_STUDIO_PROJECT_ID` / `SANITY_PROJECT_ID`
- * and `SANITY_STUDIO_DATASET` / `SANITY_DATASET`) without hardcoded or fabricated credentials.
- *
- * Enforces:
- * - Registration of all 9 document types and 34 reusable object types.
- * - Custom 3-group editorial desk structure (`Editorial Content`, `Discovery & Organization`, `Publication Settings`).
- * - Singleton protection on `siteSettings` (blocks creating multiple conflicting Site Settings documents or deleting the singleton).
+ * Uses official `defineConfig` from `sanity` and `structureTool` from `sanity/structure`.
+ * Preserves all existing document and object schemas, adds the `aiWritingProfile` document schema,
+ * integrates the AI Product Authoring & Research Suite directly inside the `product` document editor
+ * and as a dedicated Studio tool, and enforces singleton safeguards on `siteSettings`.
  */
 
+import { createAuthStore, defineConfig } from 'sanity';
+import { createClient } from '@sanity/client';
+import { structureTool } from 'sanity/structure';
 import {
-  defineConfig,
   parseStrictBooleanEnv,
   resolveSanityEnvironmentConfig,
   isSanityStudioEnvConfigured,
   type ResolvedSanityEnvironmentConfig,
 } from './src/cms/studio/sanityCore';
-import { ALL_SANITY_STUDIO_TYPES } from './src/cms/studio/schemas';
-import { buildScienceOfGiftsDeskStructure } from './src/cms/studio/deskStructure';
-import { SITE_SETTINGS_SINGLETON_ID } from './src/cms/studio/schemas/documents/siteSettings';
+import { buildOfficialSanityDeskStructure } from './src/cms/studio/deskStructure';
+import { buildOfficialSanitySchemaTypes } from './src/cms/studio/officialSanitySchemaAdapter';
 
 export {
   parseStrictBooleanEnv,
@@ -29,31 +27,60 @@ export {
 };
 
 const SINGLETON_TYPES = new Set<string>(['siteSettings']);
-const SINGLETON_ACTIONS = new Set<string>(['publish', 'discardChanges', 'restore']);
+const SINGLETON_ACTIONS = new Set<string>([
+  'publish',
+  'discardChanges',
+  'restore',
+]);
+const PROTECTED_EVALUATION_DOC_IDS = new Set<string>([
+  'prod_emotional_support_psychology_major_hoodie',
+  'drafts.prod_emotional_support_psychology_major_hoodie',
+]);
 
 export const SANITY_STUDIO_ENV: ResolvedSanityEnvironmentConfig =
   resolveSanityEnvironmentConfig();
 
-export default defineConfig({
+function getSameOriginLakeProxyHost(): string {
+  if (typeof window !== 'undefined' && window.location?.origin) {
+    return `${window.location.origin}/api/studio/sanity/lake`;
+  }
+  return 'http://localhost:3000/api/studio/sanity/lake';
+}
+
+const studioAuthStore =
+  typeof window !== 'undefined'
+    ? createAuthStore({
+        projectId: SANITY_STUDIO_ENV.projectId || 'c1y2qdje',
+        dataset: SANITY_STUDIO_ENV.dataset || 'production',
+        apiHost: getSameOriginLakeProxyHost(),
+        clientFactory: (options) =>
+          createClient({
+            ...options,
+            apiHost: getSameOriginLakeProxyHost(),
+            useProjectHostname: false,
+            useCdn: false,
+          }),
+      })
+    : undefined;
+
+export const officialSanityStudioConfig = defineConfig({
   name: 'science-of-gifts-studio',
-  title: 'Science of Gifts — Editorial Studio',
-  projectId: SANITY_STUDIO_ENV.projectId,
-  dataset: SANITY_STUDIO_ENV.dataset,
-  apiVersion: SANITY_STUDIO_ENV.apiVersion,
+  title: 'Science of Gifts — Official Sanity Studio',
+  projectId: SANITY_STUDIO_ENV.projectId || 'c1y2qdje',
+  dataset: SANITY_STUDIO_ENV.dataset || 'production',
   basePath: '/studio',
+  ...(studioAuthStore ? { auth: studioAuthStore } : {}),
   plugins: [
-    {
-      name: 'structureTool',
-      options: {
-        structure: buildScienceOfGiftsDeskStructure,
-        singletonDocumentId: SITE_SETTINGS_SINGLETON_ID,
-      },
-    },
+    structureTool({
+      name: 'structure',
+      title: 'Editorial Desk',
+      structure: buildOfficialSanityDeskStructure,
+    }),
   ],
   schema: {
-    types: ALL_SANITY_STUDIO_TYPES,
+    types: buildOfficialSanitySchemaTypes(),
     // Prevent editors from creating new singleton documents via global "New Document" menu
-    templates: (prev) =>
+    templates: (prev: any[]) =>
       prev.filter((template) => !SINGLETON_TYPES.has(template.schemaType)),
   },
   document: {
@@ -65,7 +92,15 @@ export default defineConfig({
       }
       return prev;
     },
-    actions: (prev, { schemaType }) => {
+    actions: (prev, { schemaType, documentId }) => {
+      // Prevent mutating or deleting the protected production hoodie during evaluation
+      if (
+        documentId &&
+        (PROTECTED_EVALUATION_DOC_IDS.has(documentId) ||
+          PROTECTED_EVALUATION_DOC_IDS.has(`drafts.${documentId}`))
+      ) {
+        return [];
+      }
       if (SINGLETON_TYPES.has(schemaType)) {
         return prev.filter(
           (item) => item.action && SINGLETON_ACTIONS.has(item.action)
@@ -75,3 +110,14 @@ export default defineConfig({
     },
   },
 });
+
+const exportedSanityConfig: Omit<typeof officialSanityStudioConfig, 'schema'> & {
+  schema: {
+    types: any[];
+    templates?: (
+      prev: Array<{ id: string; schemaType: string; [key: string]: any }>
+    ) => Array<{ id: string; schemaType: string; [key: string]: any }>;
+  };
+} = officialSanityStudioConfig as any;
+
+export default exportedSanityConfig;

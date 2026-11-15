@@ -389,3 +389,117 @@ export function buildScienceOfGiftsDeskStructure(): DeskListNode {
     ],
   };
 }
+
+/**
+ * Builds the official Sanity v3/v6 `StructureBuilder` (`S`) desk tree from
+ * `buildScienceOfGiftsDeskStructure()` and adds the native **AI Writing Profiles**
+ * management section so editors can edit AI authoring instructions directly in Studio.
+ */
+export function buildOfficialSanityDeskStructure(S: any): any {
+  const baseTree = buildScienceOfGiftsDeskStructure();
+
+  const convertNodeToStructureItem = (node: DeskListNode): any => {
+    if (node.type === 'document' && node.schemaType && node.documentId) {
+      return S.listItem()
+        .id(node.id)
+        .title(node.title)
+        .child(
+          S.document()
+            .schemaType(node.schemaType)
+            .documentId(node.documentId)
+            .title(node.title)
+        );
+    }
+
+    if (node.type === 'documentList' && node.schemaType) {
+      return S.listItem()
+        .id(node.id)
+        .title(node.title)
+        .schemaType(node.schemaType)
+        .child(
+          S.documentList()
+            .id(`${node.id}-list`)
+            .title(node.title)
+            .schemaType(node.schemaType)
+            .apiVersion('2025-02-01')
+            .filter(node.filter || `_type == "${node.schemaType}"`)
+            .params(node.params || {})
+        );
+    }
+
+    const childNodes = Array.isArray(node.items) ? node.items : [];
+    const extraItems: any[] = [];
+
+    if (node.id === 'editorial-content') {
+      extraItems.push(
+        S.divider(),
+        S.listItem()
+          .id('ai-writing-profiles-editorial')
+          .title('AI Writing Profiles')
+          .schemaType('aiWritingProfile')
+          .child(
+            S.documentTypeList('aiWritingProfile')
+              .id('ai-writing-profiles-list')
+              .title('AI Writing Profiles (Editorial Voice & Prompt Instructions)')
+          )
+      );
+    }
+
+    if (node.id === 'publication-settings') {
+      extraItems.push(
+        S.divider(),
+        S.listItem()
+          .id('default-product-ai-writing-profile')
+          .title('Default Product AI Writing Profile')
+          .child(
+            S.document()
+              .schemaType('aiWritingProfile')
+              .documentId('ai_profile_science_of_gifts_product_editorial')
+              .title('Science of Gifts Product Editorial (Default Profile)')
+          ),
+        S.listItem()
+          .id('all-ai-writing-profiles-settings')
+          .title('All AI Writing Profiles')
+          .schemaType('aiWritingProfile')
+          .child(
+            S.documentTypeList('aiWritingProfile')
+              .id('all-ai-writing-profiles-settings-list')
+              .title('AI Writing Profiles')
+          )
+      );
+    }
+
+    return S.listItem()
+      .id(node.id)
+      .title(node.title)
+      .child(
+        S.list()
+          .id(`${node.id}-sublist`)
+          .title(node.title)
+          .items([
+            ...childNodes.map(convertNodeToStructureItem),
+            ...extraItems,
+          ])
+      );
+  };
+
+  const rootItems = (baseTree.items || []).map(convertNodeToStructureItem);
+
+  return S.list()
+    .id('science-of-gifts-root')
+    .title(baseTree.title)
+    .items([
+      ...rootItems,
+      S.divider(),
+      S.listItem()
+        .id('ai-writing-profiles-top')
+        .title('AI Writing Profiles')
+        .schemaType('aiWritingProfile')
+        .child(
+          S.documentTypeList('aiWritingProfile')
+            .id('ai-writing-profiles-root-list')
+            .title('AI Writing Profiles')
+        ),
+    ]);
+}
+

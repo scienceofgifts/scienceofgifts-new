@@ -3707,14 +3707,14 @@ export function validateAndNormalizeProductInterchange(
     if (seoIn.canonicalPath !== undefined && seoIn.canonicalPath !== null) {
       if (
         typeof seoIn.canonicalPath !== 'string' ||
-        !/^\/products\/[a-z0-9-]+$/.test(seoIn.canonicalPath.trim())
+        !/^\/products\/[a-z0-9-]+\/?$/.test(seoIn.canonicalPath.trim())
       ) {
         errors.push({
           path: 'seo.canonicalPath',
           code: 'INVALID_SLUG_FORMAT',
           severity: 'error',
           message:
-            'seo.canonicalPath must be a relative product path matching "^/products/[a-z0-9-]+$".',
+            'seo.canonicalPath must be a relative product path matching "^/products/[a-z0-9-]+/?$".',
         });
       } else {
         normalizedSeo.canonicalPath = seoIn.canonicalPath.trim();
@@ -4053,6 +4053,11 @@ export function mapInterchangeToSanityProductDraft(
       ? canonicalProductId
       : `drafts.${canonicalProductId}`);
 
+  const hasKnownPrice =
+    typeof doc.factualContext.price === 'number' &&
+    Number.isFinite(doc.factualContext.price) &&
+    doc.factualContext.price > 0;
+
   const sanityDoc: Record<string, any> = {
     _id: draftId,
     _type: 'product',
@@ -4069,12 +4074,28 @@ export function mapInterchangeToSanityProductDraft(
     calloutTag: astroProduct.calloutTag,
     productType: astroProduct.productType,
     vendor: doc.factualContext.vendor || (astroProduct.vendor !== 'unknown' ? astroProduct.vendor : undefined),
-    price: typeof doc.factualContext.price === 'number' && doc.factualContext.price > 0 ? doc.factualContext.price : undefined,
+    price: hasKnownPrice ? doc.factualContext.price : undefined,
     currency: 'USD',
-    budgetTier: astroProduct.budgetTier,
-    guidePriceBucket: astroProduct.guidePriceBucket,
-    commerceProvider: astroProduct.commerceProvider,
-    fulfillmentClassification: astroProduct.fulfillmentClassification,
+    budgetTier: hasKnownPrice ? astroProduct.budgetTier : undefined,
+    guidePriceBucket: hasKnownPrice ? astroProduct.guidePriceBucket : undefined,
+    commerceProvider:
+      (astroProduct.purchaseUrl || '').toLowerCase().includes('shop.scienceofgifts.com') ||
+      (astroProduct.purchaseUrl || '').toLowerCase().includes('fourthwall.com')
+        ? 'fourthwall'
+        : astroProduct.commerceProvider,
+    fulfillmentClassification:
+      (astroProduct.purchaseUrl || '').toLowerCase().includes('shop.scienceofgifts.com') ||
+      (astroProduct.purchaseUrl || '').toLowerCase().includes('fourthwall.com') ||
+      astroProduct.commerceProvider === 'fourthwall' ||
+      astroProduct.fulfillmentClassification === 'fourthwall_merch'
+        ? 'owned-fourthwall-merch'
+        : astroProduct.commerceProvider === 'digital' ||
+          astroProduct.fulfillmentClassification === 'digital_download'
+        ? 'owned-digital-product'
+        : astroProduct.commerceProvider === 'direct' ||
+          astroProduct.fulfillmentClassification === 'direct_editorial'
+        ? 'editorial-non-monetized'
+        : 'affiliate-partner',
     externalProductId: astroProduct.externalProductId,
     purchaseUrl: astroProduct.purchaseUrl,
     affiliateUrl: astroProduct.affiliateUrl,
@@ -4082,11 +4103,23 @@ export function mapInterchangeToSanityProductDraft(
     inStock: typeof doc.factualContext.inStock === 'boolean' ? doc.factualContext.inStock : undefined,
     availabilityNote: astroProduct.availabilityNote,
     priceVerified: Boolean(doc.factualContext.priceVerification?.verified && typeof doc.factualContext.price === 'number' && doc.factualContext.price > 0),
-    priceVerificationSource: astroProduct.priceVerificationSource,
+    priceVerificationSource:
+      astroProduct.priceVerificationSource === 'fourthwall_api'
+        ? 'fourthwall-catalog'
+        : astroProduct.priceVerificationSource === 'retailer_live_check' ||
+          astroProduct.priceVerificationSource === 'brand_catalog_sheet'
+        ? 'manual-merchant-check'
+        : 'unverified',
     priceVerifiedAt: astroProduct.priceVerifiedAt,
     priceVerificationEvidenceNote: astroProduct.priceVerificationEvidenceNote,
     inventoryVerified: Boolean(doc.factualContext.inventoryVerification?.verified && typeof doc.factualContext.inStock === 'boolean'),
-    inventoryVerificationSource: astroProduct.inventoryVerificationSource,
+    inventoryVerificationSource:
+      astroProduct.inventoryVerificationSource === 'fourthwall_stock_feed'
+        ? 'fourthwall-catalog'
+        : astroProduct.inventoryVerificationSource === 'retailer_live_check' ||
+          astroProduct.inventoryVerificationSource === 'manual_editor_check'
+        ? 'manual-merchant-check'
+        : 'unverified',
     inventoryVerifiedAt: astroProduct.inventoryVerifiedAt,
     whyToGiveIt: astroProduct.whyToGiveIt,
     bestForSummary: astroProduct.bestForSummary,
@@ -4182,10 +4215,10 @@ export function mapInterchangeToSanityProductDraft(
         _ref: comp.productId,
         _weak: true,
       },
-      comparisonAngle: comp.comparisonAngle,
-      summary: comp.summary,
-      distinctionLabel: comp.distinctionLabel,
-      comparisonNote: comp.comparisonNote,
+      comparisonAngle: comp.comparisonAngle || comp.distinctionLabel || 'Alternative Pick',
+      summary: comp.summary || comp.comparisonNote || '',
+      distinctionLabel: comp.distinctionLabel || comp.comparisonAngle,
+      comparisonNote: comp.comparisonNote || comp.summary,
     })),
     citationRefs: (astroProduct.citationIds || []).map((citId, idx) => ({
       _type: 'reference',
@@ -4425,7 +4458,10 @@ export function mapExistingProductToInterchangeV1(
         verifiedAt: record.inventoryVerifiedAt ?? null,
       },
       specifications: Array.isArray(record.specifications)
-        ? record.specifications.map((s: any) => ({ label: s.label, value: s.value }))
+        ? record.specifications.map((s: any) => ({
+            label: s?.label ?? s?.key ?? '',
+            value: s?.value ?? '',
+          }))
         : [],
     },
     identity: {
@@ -4441,27 +4477,53 @@ export function mapExistingProductToInterchangeV1(
       detailsAndCare: record.detailsAndCare || '',
       giftVerdict: {
         editorialAssessment:
-          record.giftVerdict?.editorialAssessment || record.giftVerdict?.summary || '',
+          record.giftVerdict?.editorialAssessment ||
+          record.giftVerdict?.summary ||
+          record.giftVerdictAssessment ||
+          '',
         standoutReason:
-          record.giftVerdict?.standoutReason || record.giftVerdict?.distinctDifference || '',
+          record.giftVerdict?.standoutReason ||
+          record.giftVerdict?.distinctDifference ||
+          record.giftVerdictTactileQuality ||
+          '',
         recipientDelight:
-          record.giftVerdict?.recipientDelight || record.giftVerdict?.whyEnjoyReceiving || '',
+          record.giftVerdict?.recipientDelight ||
+          record.giftVerdict?.whyEnjoyReceiving ||
+          record.giftVerdictBehavioralLogic ||
+          '',
         importantCaveat:
-          record.giftVerdict?.importantCaveat ?? record.giftVerdict?.caveat ?? null,
+          record.giftVerdict?.importantCaveat ??
+          record.giftVerdict?.caveat ??
+          record.giftVerdictPracticalCaveats ??
+          null,
       },
-      idealRecipientProfile: {
-        headline: record.idealRecipientProfile?.headline || '',
-        narrative: record.idealRecipientProfile?.narrative || '',
-        lifestyleNotes: Array.isArray(record.idealRecipientProfile?.lifestyleNotes)
-          ? [...record.idealRecipientProfile.lifestyleNotes]
-          : [],
-        relationshipFit: Array.isArray(record.idealRecipientProfile?.relationshipFit)
-          ? [...record.idealRecipientProfile.relationshipFit]
-          : [],
-      },
+      idealRecipientProfile:
+        typeof record.idealRecipientProfile === 'string'
+          ? {
+              headline: '',
+              narrative: record.idealRecipientProfile,
+              lifestyleNotes: [],
+              relationshipFit: [],
+            }
+          : {
+              headline: record.idealRecipientProfile?.headline || '',
+              narrative: record.idealRecipientProfile?.narrative || '',
+              lifestyleNotes: Array.isArray(record.idealRecipientProfile?.lifestyleNotes)
+                ? [...record.idealRecipientProfile.lifestyleNotes]
+                : [],
+              relationshipFit: Array.isArray(record.idealRecipientProfile?.relationshipFit)
+                ? [...record.idealRecipientProfile.relationshipFit]
+                : [],
+            },
       extendedGiftRationale: Array.isArray(record.extendedGiftRationale)
         ? [...record.extendedGiftRationale]
-        : [],
+        : typeof record.extendedGiftRationale === 'string' &&
+            record.extendedGiftRationale.trim()
+          ? record.extendedGiftRationale
+              .split(/\n{2,}/)
+              .map((p: string) => p.trim())
+              .filter(Boolean)
+          : [],
       buyingConsiderations: Array.isArray(record.buyingConsiderationsList)
         ? record.buyingConsiderationsList.map((b: any) => ({
             label: b.label,
@@ -4490,11 +4552,11 @@ export function mapExistingProductToInterchangeV1(
       budgetTier:
         price !== null
           ? (deriveBudgetTierFromPrice(price) as BudgetTierValue)
-          : record.budgetTier ?? null,
+          : null,
       guidePriceBucket:
         price !== null
           ? (deriveGuidePriceBucketFromPrice(price) as GuidePriceBucketValue)
-          : record.guidePriceBucket ?? null,
+          : null,
       suggestedUnmappedTags: unmappedInterests.length > 0 ? unmappedInterests : undefined,
     },
     media: {
@@ -4710,8 +4772,9 @@ export function applyProductInterchangeRevision(
     baseInterchange.factualContext.inventoryVerification.verified && !allowOverwriteVerifiedFacts;
 
   if (
-    revFc?.price !== undefined &&
-    revFc.price !== baseInterchange.factualContext.price
+    clearSet.has('factualContext.price') ||
+    (revFc?.price !== undefined &&
+      revFc.price !== baseInterchange.factualContext.price)
   ) {
     if (priceIsLocked) {
       warnings.push({
@@ -4719,7 +4782,7 @@ export function applyProductInterchangeRevision(
         code: 'VERIFIED_FACT_OVERWRITE_BLOCKED',
         severity: 'warning',
         message: `Blocked overwrite of verified price ($${baseInterchange.factualContext.price}) with ${String(
-          revFc.price
+          revFc?.price
         )}. Set revisionControl.allowOverwriteVerifiedFacts=true to override verified commerce facts.`,
       });
       recordDiff(
@@ -4730,20 +4793,30 @@ export function applyProductInterchangeRevision(
         'Existing price is verified; overwrite blocked.'
       );
     } else {
-      merged.factualContext.price = revFc.price;
+      const nextPrice = clearSet.has('factualContext.price') ? null : revFc?.price ?? null;
+      merged.factualContext.price = nextPrice;
       recordDiff(
         'factualContext.price',
-        'updated',
+        nextPrice === null ? 'cleared' : 'updated',
         baseInterchange.factualContext.price,
-        revFc.price
+        nextPrice
       );
-      if (typeof revFc.price === 'number' && revFc.price > 0) {
+      if (typeof nextPrice === 'number' && nextPrice > 0) {
         merged.taxonomy.budgetTier = deriveBudgetTierFromPrice(
-          revFc.price
+          nextPrice
         ) as BudgetTierValue;
         merged.taxonomy.guidePriceBucket = deriveGuidePriceBucketFromPrice(
-          revFc.price
+          nextPrice
         ) as GuidePriceBucketValue;
+      } else {
+        merged.taxonomy.budgetTier = null;
+        merged.taxonomy.guidePriceBucket = null;
+        merged.factualContext.priceVerification = {
+          verified: false,
+          source: 'unverified',
+          verifiedAt: null,
+          evidenceNote: null,
+        };
       }
     }
   } else {
@@ -4792,8 +4865,9 @@ export function applyProductInterchangeRevision(
   }
 
   if (
-    revFc?.inStock !== undefined &&
-    revFc.inStock !== baseInterchange.factualContext.inStock
+    clearSet.has('factualContext.inStock') ||
+    (revFc?.inStock !== undefined &&
+      revFc.inStock !== baseInterchange.factualContext.inStock)
   ) {
     if (stockIsLocked) {
       warnings.push({
@@ -4812,13 +4886,21 @@ export function applyProductInterchangeRevision(
         'Existing inventory state is verified; overwrite blocked.'
       );
     } else {
-      merged.factualContext.inStock = revFc.inStock;
+      const nextStock = clearSet.has('factualContext.inStock') ? null : revFc?.inStock ?? null;
+      merged.factualContext.inStock = nextStock;
       recordDiff(
         'factualContext.inStock',
-        'updated',
+        nextStock === null ? 'cleared' : 'updated',
         baseInterchange.factualContext.inStock,
-        revFc.inStock
+        nextStock
       );
+      if (nextStock === null) {
+        merged.factualContext.inventoryVerification = {
+          verified: false,
+          source: 'unverified',
+          verifiedAt: null,
+        };
+      }
     }
   } else {
     recordDiff(
@@ -5218,23 +5300,50 @@ export function validateProductPublicationReadiness(
     });
   }
 
-  if (typeof rawPrice !== 'number' || !Number.isFinite(rawPrice) || rawPrice <= 0) {
-    blockers.push({
-      field: 'price',
-      message: 'A verified positive numeric price is required for publication. Missing prices remain drafts only.',
-    });
+  const hasValidPositivePrice =
+    typeof rawPrice === 'number' && Number.isFinite(rawPrice) && rawPrice > 0;
+
+  if (!hasValidPositivePrice) {
+    if (priceVerified) {
+      blockers.push({
+        field: 'priceVerification',
+        message: 'Price cannot be marked verified (priceVerified: true) without a positive numeric price.',
+      });
+    } else {
+      warnings.push({
+        field: 'price',
+        message:
+          'Price is missing or unverified. The editorial profile can still publish, but Schema.org Offer data and search indexing (noindex,follow) remain suppressed until verified.',
+      });
+    }
   } else if (!priceVerified || priceVerificationSource === 'unverified') {
-    blockers.push({
-      field: 'priceVerification',
-      message: 'Price must be verified with supporting evidence (priceVerified: true) before public release.',
-    });
+    if (priceVerified && priceVerificationSource === 'unverified') {
+      blockers.push({
+        field: 'priceVerification',
+        message:
+          'Price verification requires selecting a valid priceVerificationSource rather than checking verified without evidence.',
+      });
+    } else {
+      warnings.push({
+        field: 'priceVerification',
+        message:
+          'Price is not yet marked verified with supporting evidence; Schema.org Offer structured data and search indexing remain suppressed (noindex,follow).',
+      });
+    }
   }
 
   if (typeof rawStock !== 'boolean') {
-    blockers.push({
-      field: 'inStock',
-      message: 'In-stock availability status must be explicitly verified as true or false.',
-    });
+    if (inventoryVerified) {
+      blockers.push({
+        field: 'inventoryVerification',
+        message: 'Inventory cannot be marked verified when inStock status is unknown.',
+      });
+    } else {
+      warnings.push({
+        field: 'inStock',
+        message: 'Stock availability is unverified; availability badges and Schema.org InStock/OutOfStock claims will be suppressed automatically.',
+      });
+    }
   } else if (!inventoryVerified || inventoryVerificationSource === 'unverified') {
     warnings.push({
       field: 'inventoryVerification',

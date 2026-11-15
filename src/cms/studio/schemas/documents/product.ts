@@ -317,7 +317,49 @@ export const productDocument = defineType({
       options: {
         list: COMMERCE_PROVIDER_OPTIONS,
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().custom((val, context) => {
+          const doc = context?.document as Record<string, any> | undefined;
+          if (
+            !doc ||
+            typeof val !== 'string' ||
+            !['affiliate', 'fourthwall', 'digital', 'direct'].includes(val)
+          ) {
+            return true;
+          }
+          const purchaseUrl = String(doc.purchaseUrl || '').trim().toLowerCase();
+          const isFwUrl =
+            purchaseUrl.includes('shop.scienceofgifts.com') ||
+            purchaseUrl.includes('fourthwall.com');
+          if (isFwUrl && val !== 'fourthwall') {
+            return 'Purchase URL points to the Science of Gifts Fourthwall storefront; Commerce Provider must be "fourthwall".';
+          }
+          if (
+            doc.fulfillmentClassification === 'owned-fourthwall-merch' &&
+            val !== 'fourthwall'
+          ) {
+            return 'Commerce Provider must be "fourthwall" when Fulfillment Classification is "owned-fourthwall-merch".';
+          }
+          if (
+            doc.fulfillmentClassification === 'affiliate-partner' &&
+            val !== 'affiliate'
+          ) {
+            return 'Commerce Provider must be "affiliate" when Fulfillment Classification is "affiliate-partner".';
+          }
+          if (
+            doc.fulfillmentClassification === 'owned-digital-product' &&
+            val !== 'digital'
+          ) {
+            return 'Commerce Provider must be "digital" when Fulfillment Classification is "owned-digital-product".';
+          }
+          if (
+            doc.fulfillmentClassification === 'editorial-non-monetized' &&
+            val !== 'direct'
+          ) {
+            return 'Commerce Provider must be "direct" when Fulfillment Classification is "editorial-non-monetized".';
+          }
+          return true;
+        }),
     }),
     defineField({
       name: 'fulfillmentClassification',
@@ -333,7 +375,54 @@ export const productDocument = defineType({
           { title: 'Editorial Non-Monetized Pick (editorial-non-monetized)', value: 'editorial-non-monetized' },
         ],
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) =>
+        Rule.required().custom((val, context) => {
+          const doc = context?.document as Record<string, any> | undefined;
+          if (
+            !doc ||
+            typeof val !== 'string' ||
+            ![
+              'affiliate-partner',
+              'owned-fourthwall-merch',
+              'owned-digital-product',
+              'editorial-non-monetized',
+            ].includes(val)
+          ) {
+            return true;
+          }
+          const purchaseUrl = String(doc.purchaseUrl || '').trim().toLowerCase();
+          const isFwUrl =
+            purchaseUrl.includes('shop.scienceofgifts.com') ||
+            purchaseUrl.includes('fourthwall.com');
+          if (isFwUrl && val !== 'owned-fourthwall-merch') {
+            return 'Purchase URL points to the Science of Gifts Fourthwall storefront; Fulfillment Classification must be "owned-fourthwall-merch".';
+          }
+          if (
+            doc.commerceProvider === 'fourthwall' &&
+            val !== 'owned-fourthwall-merch'
+          ) {
+            return 'Fulfillment Classification must be "owned-fourthwall-merch" when Commerce Provider is "fourthwall".';
+          }
+          if (
+            doc.commerceProvider === 'affiliate' &&
+            val !== 'affiliate-partner'
+          ) {
+            return 'Fulfillment Classification must be "affiliate-partner" when Commerce Provider is "affiliate".';
+          }
+          if (
+            doc.commerceProvider === 'digital' &&
+            val !== 'owned-digital-product'
+          ) {
+            return 'Fulfillment Classification must be "owned-digital-product" when Commerce Provider is "digital".';
+          }
+          if (
+            doc.commerceProvider === 'direct' &&
+            val !== 'editorial-non-monetized'
+          ) {
+            return 'Fulfillment Classification must be "editorial-non-monetized" when Commerce Provider is "direct".';
+          }
+          return true;
+        }),
     }),
     defineField({
       name: 'externalProductId',
@@ -379,7 +468,7 @@ export const productDocument = defineType({
       group: 'commerce',
       description:
         'Retail price in USD. Never guess or fabricate prices; leave unverified until confirmed against the merchant page.',
-      validation: (Rule) => Rule.required().positive(),
+      validation: (Rule) => Rule.optional().positive(),
     }),
     defineField({
       name: 'currency',
@@ -398,11 +487,11 @@ export const productDocument = defineType({
       type: 'string',
       group: 'commerce',
       description:
-        'Must align with retail price: Under $50 (< $50), $50 to $100 ($50–$100), or $100+ (> $100).',
+        'Must align with retail price: Under $50 (< $50), $50 to $100 ($50–$100), or $100+ (> $100). Optional while price is unverified.',
       options: {
         list: PRODUCT_BUDGET_TIER_OPTIONS,
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.optional(),
     }),
     defineField({
       name: 'guidePriceBucket',
@@ -410,19 +499,20 @@ export const productDocument = defineType({
       type: 'string',
       group: 'commerce',
       description:
-        'Must align with retail price: Under $25 (< $25), $25 to $75 ($25–$75), or Over $75 (> $75).',
+        'Must align with retail price: Under $25 (< $25), $25 to $75 ($25–$75), or Over $75 (> $75). Optional while price is unverified.',
       options: {
         list: GUIDE_PRICE_BUCKET_OPTIONS,
       },
-      validation: (Rule) => Rule.required(),
+      validation: (Rule) => Rule.optional(),
     }),
     defineField({
       name: 'inStock',
       title: 'Currently Available / In Stock at Merchant',
       type: 'boolean',
       group: 'commerce',
-      initialValue: true,
-      validation: (Rule) => Rule.required(),
+      description:
+        'Optional while merchant inventory status has not yet been confirmed.',
+      validation: (Rule) => Rule.optional(),
     }),
     defineField({
       name: 'availabilityNote',

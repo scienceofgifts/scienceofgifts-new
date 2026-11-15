@@ -26,10 +26,14 @@ export interface ContentLibraryViewProps {
   currentSection: EditorialStudioSection;
   documents: SanityStudioDocument[];
   persistenceStateByDocId: Record<string, string>;
+  openingDraftDocId?: string | null;
+  persistenceError?: string | null;
+  onDismissPersistenceError?: () => void;
   onSelectDocument: (doc: SanityStudioDocument) => void;
   onNewProduct: () => void;
   onExportBriefForProduct: (product: SanityStudioDocument) => void;
   onCloneReferenceToDraft: (doc: SanityStudioDocument) => void;
+  onOpenDraftPreview?: (doc: SanityStudioDocument) => void;
   onDeleteSanityDraft: (docId: string) => Promise<void>;
 }
 
@@ -37,16 +41,23 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
   currentSection,
   documents,
   persistenceStateByDocId,
+  openingDraftDocId,
+  persistenceError,
+  onDismissPersistenceError,
   onSelectDocument,
   onNewProduct,
   onExportBriefForProduct,
   onCloneReferenceToDraft,
+  onOpenDraftPreview,
   onDeleteSanityDraft,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [productOriginFilter, setProductOriginFilter] = useState<'all' | 'drafts' | 'references'>('all');
+  const [productOriginFilter, setProductOriginFilter] = useState<
+    'all' | 'drafts' | 'published' | 'references'
+  >('all');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [deletingDocId, setDeletingDocId] = useState<string | null>(null);
+  const [confirmDeleteDocId, setConfirmDeleteDocId] = useState<string | null>(null);
 
   // Section titles and descriptions
   const sectionMeta = useMemo(() => {
@@ -119,12 +130,19 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
     const drafts = products.filter(
       (d) => d._id.startsWith('drafts.') || d._sourceOrigin === 'sanity-content-lake'
     );
+    const published = products.filter(
+      (d) => !d._id.startsWith('drafts.') && d._sourceOrigin === 'sanity-published'
+    );
     const references = products.filter(
-      (d) => !d._id.startsWith('drafts.') && d._sourceOrigin !== 'sanity-content-lake'
+      (d) =>
+        !d._id.startsWith('drafts.') &&
+        d._sourceOrigin !== 'sanity-content-lake' &&
+        d._sourceOrigin !== 'sanity-published'
     );
     return {
       all: products.length,
       drafts: drafts.length,
+      published: published.length,
       references: references.length,
     };
   }, [documents]);
@@ -165,8 +183,12 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
         const isDraft =
           doc._id.startsWith('drafts.') ||
           doc._sourceOrigin === 'sanity-content-lake';
+        const isPublishedSanity =
+          !isDraft && doc._sourceOrigin === 'sanity-published';
         if (productOriginFilter === 'drafts' && !isDraft) return false;
-        if (productOriginFilter === 'references' && isDraft) return false;
+        if (productOriginFilter === 'published' && !isPublishedSanity) return false;
+        if (productOriginFilter === 'references' && (isDraft || isPublishedSanity))
+          return false;
         if (selectedCategory !== 'all' && doc.productType !== selectedCategory)
           return false;
       }
@@ -181,11 +203,9 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
     selectedCategory,
   ]);
 
-  const handleDeleteDraftClick = async (e: React.MouseEvent, docId: string) => {
+  const handleConfirmDeleteDraft = async (e: React.MouseEvent, docId: string) => {
     e.stopPropagation();
-    if (!confirm(`Delete Sanity draft ${docId}? This removes it from Sanity Content Lake.`)) {
-      return;
-    }
+    setConfirmDeleteDocId(null);
     setDeletingDocId(docId);
     try {
       await onDeleteSanityDraft(docId);
@@ -279,6 +299,17 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
                 </button>
                 <button
                   type="button"
+                  onClick={() => setProductOriginFilter('published')}
+                  className={`px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
+                    productOriginFilter === 'published'
+                      ? 'bg-[#1B3D5F] text-white shadow-xs font-semibold'
+                      : 'text-[#1B3D5F] hover:bg-[#1B3D5F]/10'
+                  }`}
+                >
+                  Published ({productCounts.published})
+                </button>
+                <button
+                  type="button"
                   onClick={() => setProductOriginFilter('references')}
                   className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                     productOriginFilter === 'references'
@@ -310,7 +341,28 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
       </div>
 
       {/* Main Content List / Table */}
-      <div className="max-w-6xl mx-auto w-full px-8 py-6">
+      <div className="max-w-6xl mx-auto w-full px-8 py-6 space-y-4">
+        {persistenceError && (
+          <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-start justify-between gap-3">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold">Studio Action Failed</p>
+                <p className="mt-0.5">{persistenceError}</p>
+              </div>
+            </div>
+            {onDismissPersistenceError && (
+              <button
+                type="button"
+                onClick={onDismissPersistenceError}
+                className="text-xs font-semibold text-red-700 hover:underline shrink-0"
+              >
+                Dismiss
+              </button>
+            )}
+          </div>
+        )}
+
         {filteredDocuments.length === 0 ? (
           <div className="bg-white border border-[#E2E8F0] rounded-xl p-12 text-center">
             <Package className="w-10 h-10 text-[#94A3B8] mx-auto mb-3" />
@@ -339,7 +391,13 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
               const isSanityDraft =
                 doc._id.startsWith('drafts.') ||
                 doc._sourceOrigin === 'sanity-content-lake';
-              const pState = persistenceStateByDocId[doc._id] || (isSanityDraft ? 'saved' : 'idle');
+              const isPublishedSanity =
+                !isSanityDraft && doc._sourceOrigin === 'sanity-published';
+              const isLocalReference = !isSanityDraft && !isPublishedSanity;
+              const isBusyOpening = openingDraftDocId === doc._id;
+              const pState =
+                persistenceStateByDocId[doc._id] ||
+                (isSanityDraft || isPublishedSanity ? 'saved' : 'idle');
               const title =
                 doc.title || doc.name || doc.publicationTitle || doc._id;
               const subtitle =
@@ -353,14 +411,25 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
                   ? doc.slug
                   : doc.slug?.current || '';
               const firstImage =
+                doc.images?.[0]?.url ||
                 doc.images?.[0]?.externalUrl ||
+                doc.heroImage?.url ||
                 doc.heroImage?.externalUrl ||
                 doc.avatarUrl;
 
               return (
                 <div
                   key={doc._id}
-                  onClick={() => onSelectDocument(doc)}
+                  onClick={() => {
+                    if (
+                      currentSection === 'products' &&
+                      (isPublishedSanity || isLocalReference)
+                    ) {
+                      onCloneReferenceToDraft(doc);
+                    } else {
+                      onSelectDocument(doc);
+                    }
+                  }}
                   className="group bg-white hover:bg-[#FAF9F6] border border-[#E2E8F0] hover:border-[#CBD5E1] rounded-xl p-4 transition-all duration-150 cursor-pointer shadow-xs hover:shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
                   <div className="flex items-start gap-4 min-w-0 flex-1">
@@ -385,7 +454,20 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         {/* Origin Badge */}
-                        {isSanityDraft ? (
+                        {isSanityDraft && doc._hasPublishedPartner ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            Published · Unpublished Changes (
+                            {pState === 'saved'
+                              ? 'Saved Draft'
+                              : pState === 'unsaved'
+                              ? 'Unsaved'
+                              : pState === 'saving'
+                              ? 'Saving...'
+                              : 'Sync Error'}
+                            )
+                          </span>
+                        ) : isSanityDraft ? (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                             Sanity Draft ·{' '}
@@ -395,7 +477,14 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
                               ? 'Unsaved'
                               : pState === 'saving'
                               ? 'Saving...'
+                              : pState === 'error'
+                              ? 'Sync Error'
                               : 'Lake'}
+                          </span>
+                        ) : isPublishedSanity ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-[#1B3D5F] border border-blue-200">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Published in Sanity
                           </span>
                         ) : (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#F1F5F9] text-[#475569] border border-[#E2E8F0]">
@@ -427,17 +516,19 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
 
                       {/* Fact & Taxonomy summary row */}
                       <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#64748B] mt-2">
-                        {typeof doc.price === 'number' && (
+                        {typeof doc.price === 'number' && doc.price > 0 ? (
                           <span className="font-medium text-[#0F172A]">
                             ${doc.price}
                           </span>
+                        ) : (
+                          <span className="text-[#94A3B8]">Price unverified</span>
                         )}
                         {doc.priceVerified && (
                           <span className="inline-flex items-center gap-0.5 text-emerald-700 text-[10px]">
                             <CheckCircle2 className="w-3 h-3" /> Verified Price
                           </span>
                         )}
-                        {doc.inStock !== undefined && (
+                        {typeof doc.inStock === 'boolean' && (
                           <span
                             className={
                               doc.inStock
@@ -474,40 +565,129 @@ export const ContentLibraryView: React.FC<ContentLibraryViewProps> = ({
                       </button>
                     )}
 
-                    {!isSanityDraft && currentSection === 'products' && (
+                    {currentSection === 'products' &&
+                      (isSanityDraft || isPublishedSanity) &&
+                      onOpenDraftPreview && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenDraftPreview(doc);
+                          }}
+                          className="px-2.5 py-1.5 text-xs text-[#1B3D5F] hover:bg-[#EBF3FE] rounded-lg transition-colors font-medium flex items-center gap-1"
+                          title="Preview rendered product page"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Preview</span>
+                        </button>
+                      )}
+
+                    {currentSection === 'products' &&
+                      (isPublishedSanity || doc._hasPublishedPartner) &&
+                      slugStr && (
+                        <a
+                          href={`/products/${slugStr}/`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-2.5 py-1.5 text-xs text-[#28537D] hover:bg-[#EBF3FE] rounded-lg transition-colors font-medium flex items-center gap-1"
+                          title="Open live website product page"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                          <span>Live</span>
+                        </a>
+                      )}
+
+                    {isLocalReference && currentSection === 'products' && (
                       <button
                         type="button"
+                        disabled={isBusyOpening}
                         onClick={(e) => {
                           e.stopPropagation();
                           onCloneReferenceToDraft(doc);
                         }}
-                        className="px-2.5 py-1.5 text-xs text-[#2A5A48] hover:bg-[#2A5A48]/10 rounded-lg transition-colors font-medium flex items-center gap-1"
-                        title="Create an editable Sanity Draft from this local reference"
+                        className="px-3 py-1.5 text-xs bg-[#FAF9F6] group-hover:bg-[#2A5A48] group-hover:text-white text-[#2A5A48] border border-[#CBD5E1] group-hover:border-[#2A5A48] disabled:opacity-50 rounded-lg transition-colors font-semibold flex items-center gap-1.5"
+                        title="Open this catalog product as an editable Sanity Draft"
                       >
                         <Copy className="w-3.5 h-3.5" />
-                        <span>Create Draft</span>
+                        <span>{isBusyOpening ? 'Opening Draft...' : 'Edit'}</span>
+                      </button>
+                    )}
+
+                    {isPublishedSanity && currentSection === 'products' && (
+                      <button
+                        type="button"
+                        disabled={isBusyOpening}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onCloneReferenceToDraft(doc);
+                        }}
+                        className="px-3 py-1.5 text-xs bg-[#FAF9F6] group-hover:bg-[#2A5A48] group-hover:text-white text-[#0F172A] font-semibold rounded-lg border border-[#E2E8F0] group-hover:border-[#2A5A48] transition-colors flex items-center gap-1"
+                      >
+                        <span>{isBusyOpening ? 'Opening...' : 'Edit Draft'}</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     )}
 
                     {isSanityDraft && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteDraftClick(e, doc._id)}
-                        disabled={deletingDocId === doc._id}
-                        className="p-1.5 text-[#94A3B8] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete Sanity Draft from Lake"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <>
+                        {confirmDeleteDocId === doc._id ? (
+                          <div
+                            className="flex items-center gap-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              onClick={(e) => handleConfirmDeleteDraft(e, doc._id)}
+                              disabled={deletingDocId === doc._id}
+                              className="px-2 py-1 text-[11px] bg-red-600 hover:bg-red-700 text-white rounded-md font-semibold"
+                            >
+                              {deletingDocId === doc._id ? 'Deleting...' : 'Confirm'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setConfirmDeleteDocId(null);
+                              }}
+                              className="px-2 py-1 text-[11px] bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#475569] rounded-md font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setConfirmDeleteDocId(doc._id);
+                            }}
+                            disabled={deletingDocId === doc._id}
+                            className="p-1.5 text-[#94A3B8] hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Sanity Draft from Lake"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="px-3 py-1.5 text-xs bg-[#FAF9F6] group-hover:bg-[#2A5A48] group-hover:text-white text-[#0F172A] font-semibold rounded-lg border border-[#E2E8F0] group-hover:border-[#2A5A48] transition-colors flex items-center gap-1"
+                        >
+                          <span>Review & Edit</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </>
                     )}
 
-                    <button
-                      type="button"
-                      className="px-3 py-1.5 text-xs bg-[#FAF9F6] group-hover:bg-[#2A5A48] group-hover:text-white text-[#0F172A] font-semibold rounded-lg border border-[#E2E8F0] group-hover:border-[#2A5A48] transition-colors flex items-center gap-1"
-                    >
-                      <span>Review & Edit</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    {currentSection !== 'products' && !isSanityDraft && (
+                      <button
+                        type="button"
+                        className="px-3 py-1.5 text-xs bg-[#FAF9F6] group-hover:bg-[#2A5A48] group-hover:text-white text-[#0F172A] font-semibold rounded-lg border border-[#E2E8F0] group-hover:border-[#2A5A48] transition-colors flex items-center gap-1"
+                      >
+                        <span>Review & Edit</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
                 </div>
               );

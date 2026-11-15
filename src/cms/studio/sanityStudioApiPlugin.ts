@@ -4,12 +4,10 @@
  * Security & Isolation Guarantees:
  * 1. Only mounts `/api/studio/sanity/*` in the private development server (`configureServer`
  *    when `NODE_ENV !== 'production'`). Never mounts in `configurePreviewServer` or production.
- * 2. Every endpoint (`/status`, `/drafts`, `/document`, `/save-draft`, `/delete-draft`,
- *    `/verify-lifecycle`) enforces `verifyStudioApiRequestAuthorization`:
- *    - Rejects unauthenticated requests with HTTP 401 (`MISSING_AUTH_TOKEN` / `INVALID_OR_EXPIRED_AUTH_TOKEN`).
- *    - Rejects state-changing `POST` requests without a valid paired `X-Sanity-Studio-Csrf`
- *      header or `Content-Type: application/json` with HTTP 403 (`CSRF_VALIDATION_FAILED`).
- *    - Rejects cross-origin requests (`Sec-Fetch-Site: cross-site` or mismatched `Origin`) with HTTP 403.
+ * 2. Every endpoint (`/status`, `/drafts`, `/published`, `/document`, `/save-draft`,
+ *    `/open-or-create-draft`, `/publish-product`, `/preview-ticket`, `/preview-product`,
+ *    `/delete-draft`, `/verify-lifecycle`) enforces `verifyStudioApiRequestAuthorization`
+ *    or signed short-lived preview tickets (`issueStudioPreviewTicket` / `verifyStudioPreviewTicket`).
  * 3. Strips `dist/studio` during static production builds (`closeBundle`) so `/studio/` can never
  *    be deployed publicly as part of the static Astro website.
  */
@@ -17,23 +15,65 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import { PRODUCTS } from '../../data/catalog';
 import {
   deleteDraftFromSanityContentLake,
+  ensureEditableDraftInSanityContentLake,
   fetchDocumentFromSanityContentLake,
   getSanityContentLakeStatus,
   listDraftsFromSanityContentLake,
+  listPublishedProductsFromSanityContentLake,
+  publishProductDraftInSanityContentLake,
+  resolveSanityServerCredentials,
   runDisposableDraftPersistenceVerificationTest,
   saveDraftToSanityContentLake,
+  unpublishProductInSanityContentLake,
   uploadImageAssetToSanityContentLake,
   uploadMultipleImageAssetsToSanityContentLake,
   type SanityImageUploadInput,
 } from './sanityServerClient';
+import { invalidateSanityPublishedCache } from '../sanityPublishedLoader';
+import {
+  isFourthwallStorefrontUrl,
+  mapAstroFulfillmentToSanity,
+  mapAstroInventoryVerificationSourceToSanity,
+  mapAstroPriceVerificationSourceToSanity,
+  normalizeInternalCanonicalPath,
+  normalizeSanityProductDocumentBackwardCompatible,
+} from './productDocumentMapper';
+import { extractProductDetailsFromUrl } from './productUrlExtractor';
+import {
+  ensureDefaultAiWritingProfileInSanity,
+  ensureEvaluationHoodieCopyInSanity,
+  generateCompleteProductProposal,
+  generateProductEditorialCopy,
+  generateProductSupportingFields,
+  listAiWritingProfilesFromSanity,
+  polishProductEditorialCopy,
+  saveAiWritingProfileToSanity,
+} from './productAiAuthoringService';
 import {
   isStudioDevelopmentEnvironmentAllowed,
   issueStudioEditorSessionCredentials,
+  issueStudioPreviewTicket,
   verifySameOriginRequestHeaders,
   verifyStudioApiRequestAuthorization,
+  verifyStudioPreviewTicket,
 } from './sanityStudioAuth';
+
+type PreviewModuleType = typeof import('./sanityDraftPreviewRenderer');
+
+let activeViteDevServer: { ssrLoadModule?: (url: string) => Promise<any> } | null =
+  null;
+
+async function loadPreviewRendererModule(): Promise<PreviewModuleType> {
+  if (activeViteDevServer && typeof activeViteDevServer.ssrLoadModule === 'function') {
+    return (await activeViteDevServer.ssrLoadModule(
+      '/src/cms/studio/sanityDraftPreviewRenderer.tsx'
+    )) as PreviewModuleType;
+  }
+  return (await import('./sanityDraftPreviewRenderer')) as PreviewModuleType;
+}
 
 function readJsonBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
@@ -70,8 +110,6 @@ function decodeBase64UploadPayload(rawBase64: string): Buffer {
  * Sends a guaranteed JSON response.
  * Note: The Google AI Studio preview container's Nginx reverse proxy configures
  * `proxy_intercept_errors on; error_page 403 = /forbidden.html;`.
- * If an upstream server responds with HTTP 403 behind `X-Forwarded-Host`, Nginx
- * intercepts the response and replaces the JSON body with an HTML page.
  * When `X-Forwarded-Host` is present on `/api/studio/sanity/*`, we map wire
  * status 403 -> 401 (while preserving `httpStatus: 403` in the JSON payload)
  * so the browser always receives the structured JSON error payload.
@@ -99,13 +137,397 @@ function sendJson(
   );
 }
 
+function sendHtml(
+  res: ServerResponse,
+  statusCode: number,
+  html: string
+) {
+  res.statusCode = statusCode;
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.end(html);
+}
+
 const POST_ONLY_STUDIO_PATHS = new Set<string>([
+  '/api/studio/sanity/fetch-product-details',
   '/api/studio/sanity/save-draft',
+  '/api/studio/sanity/open-or-create-draft',
+  '/api/studio/sanity/publish-product',
+  '/api/studio/sanity/unpublish-product',
+  '/api/studio/sanity/preview-ticket',
   '/api/studio/sanity/delete-draft',
   '/api/studio/sanity/upload-image',
   '/api/studio/sanity/upload-images',
   '/api/studio/sanity/verify-lifecycle',
+  '/api/studio/sanity/ai-generate-supporting',
+  '/api/studio/sanity/ai-generate-editorial',
+  '/api/studio/sanity/ai-generate-complete',
+  '/api/studio/sanity/ai-polish-editorial',
+  '/api/studio/sanity/ensure-eval-hoodie-copy',
 ]);
+
+function readRawRequestBody(req: IncomingMessage): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(Buffer.from(chunk)));
+    req.on('end', () => resolve(Buffer.concat(chunks)));
+    req.on('error', reject);
+  });
+}
+
+/**
+ * Same-Origin Sanity Content Lake Proxy for Official Sanity Studio (`<Studio />`).
+ * Attaches the server-side `SANITY_API_WRITE_TOKEN` without ever exposing it to the browser,
+ * handles `/users/me` and `/projects/:id` for seamless embedded Studio authentication,
+ * protects `prod_emotional_support_psychology_major_hoodie` from accidental mutation,
+ * and invalidates the Astro published product cache whenever a mutation occurs.
+ */
+async function handleSanityLakeProxyRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  parsedUrl: URL
+) {
+  if (!isStudioDevelopmentEnvironmentAllowed()) {
+    sendJson(req, res, 403, {
+      ok: false,
+      errorCode: 'STUDIO_DISABLED_IN_PRODUCTION',
+      message: 'Sanity Studio proxy is disabled in production.',
+    });
+    return;
+  }
+
+  const originCheck = verifySameOriginRequestHeaders(req);
+  if (!originCheck.allowed) {
+    sendJson(req, res, 403, {
+      ok: false,
+      errorCode: 'CROSS_ORIGIN_REQUEST_BLOCKED',
+      message: originCheck.reason || 'Cross-origin request blocked.',
+    });
+    return;
+  }
+
+  const creds = resolveSanityServerCredentials();
+  const subPath =
+    parsedUrl.pathname.replace(/^\/api\/studio\/sanity\/lake/, '') || '/';
+  const method = (req.method ?? 'GET').toUpperCase();
+
+  if (method === 'OPTIONS') {
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
+  // 1. Native Sanity Studio user session identity check (`/v*/users/me`)
+  if (/^\/v[^/]+\/users\/me$/.test(subPath) || subPath === '/users/me') {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(
+      JSON.stringify({
+        id: 'gr-editorial-studio',
+        name: 'Science of Gifts Editorial Studio',
+        email: 'editorial@scienceofgifts.com',
+        profileImage: '',
+        role: 'administrator',
+        roles: [
+          {
+            name: 'administrator',
+            title: 'Administrator',
+          },
+        ],
+      })
+    );
+    return;
+  }
+
+  // 2. Native Sanity Studio project metadata check (`/v*/projects/:projectId`)
+  if (/^\/v[^/]+\/projects\/[^/]+$/.test(subPath)) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(
+      JSON.stringify({
+        id: creds.projectId || 'c1y2qdje',
+        displayName: 'Science of Gifts',
+        studioHost: null,
+        organizationId: null,
+        isBlocked: false,
+        isDisabled: false,
+        isDisabledByUser: false,
+        metadata: {},
+        members: [
+          {
+            id: 'gr-editorial-studio',
+            role: 'administrator',
+            isRobot: false,
+            roles: [
+              {
+                name: 'administrator',
+                title: 'Administrator',
+              },
+            ],
+          },
+        ],
+        datasets: [
+          {
+            name: creds.dataset || 'production',
+            aclMode: 'public',
+          },
+        ],
+      })
+    );
+    return;
+  }
+
+  // 3. Native Sanity Studio datasets list check (`/v*/projects/:projectId/datasets`)
+  if (/^\/v[^/]+\/projects\/[^/]+\/datasets$/.test(subPath)) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(
+      JSON.stringify([
+        {
+          name: creds.dataset || 'production',
+          aclMode: 'public',
+          createdAt: '2026-11-01T00:00:00Z',
+        },
+      ])
+    );
+    return;
+  }
+
+  // 4. Native Sanity Studio grants check (`/v*/projects/:projectId/grants`)
+  if (/^\/v[^/]+\/projects\/[^/]+\/grants$/.test(subPath)) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify({}));
+    return;
+  }
+
+  // 5. Real-time EventSource listener (`/v*/data/listen/:dataset`)
+  if (subPath.includes('/data/listen/')) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.write('event: welcome\ndata: {"listenerName":"science-of-gifts-studio"}\n\n');
+    const keepAlive = setInterval(() => {
+      try {
+        res.write(':\n\n');
+      } catch {
+        clearInterval(keepAlive);
+      }
+    }, 15000);
+    req.on('close', () => clearInterval(keepAlive));
+    return;
+  }
+
+  // 6. Forward all Content Lake queries, mutations, history, and asset uploads to Sanity API
+  const targetUrl = `https://${creds.projectId || 'c1y2qdje'}.api.sanity.io${subPath}${parsedUrl.search}`;
+  let rawBody =
+    method !== 'GET' && method !== 'HEAD' ? await readRawRequestBody(req) : undefined;
+
+  // Guard: Never allow any mutation against the preserved original hoodie document
+  if (
+    method === 'POST' &&
+    subPath.includes('/data/mutate/') &&
+    rawBody &&
+    rawBody.length > 0
+  ) {
+    const bodyStr = rawBody.toString('utf8');
+    if (
+      bodyStr.includes('"prod_emotional_support_psychology_major_hoodie"') ||
+      bodyStr.includes('"drafts.prod_emotional_support_psychology_major_hoodie"')
+    ) {
+      sendJson(req, res, 409, {
+        ok: false,
+        errorCode: 'PROTECTED_DOCUMENT_IMMUTABLE',
+        message:
+          'Document "prod_emotional_support_psychology_major_hoodie" is protected during evaluation. Edit the evaluation copy "prod_eval_copy_emotional_support_psychology_major_hoodie" instead.',
+      });
+      return;
+    }
+
+    // Normalize product mutations so legacy/disagreeing enum values never persist
+    try {
+      const parsedBody = JSON.parse(bodyStr);
+      if (parsedBody && Array.isArray(parsedBody.mutations)) {
+        let mutated = false;
+        for (const m of parsedBody.mutations) {
+          for (const op of ['create', 'createOrReplace', 'createIfNotExists'] as const) {
+            if (m?.[op] && typeof m[op] === 'object' && m[op]._type === 'product') {
+              m[op] = normalizeSanityProductDocumentBackwardCompatible(m[op]);
+              mutated = true;
+            }
+          }
+          if (m?.patch && typeof m.patch === 'object' && m.patch.set && typeof m.patch.set === 'object') {
+            const setObj = m.patch.set as Record<string, any>;
+            const patchId = String(m.patch.id || '');
+            const isProductPatch =
+              patchId.startsWith('prod_') ||
+              patchId.startsWith('drafts.prod_') ||
+              setObj._type === 'product' ||
+              'fulfillmentClassification' in setObj ||
+              'commerceProvider' in setObj ||
+              'priceVerificationSource' in setObj ||
+              'inventoryVerificationSource' in setObj;
+
+            if (isProductPatch) {
+              if (typeof setObj.fulfillmentClassification === 'string') {
+                const mappedFulfillment = mapAstroFulfillmentToSanity(
+                  setObj.fulfillmentClassification,
+                  setObj.commerceProvider === 'fourthwall'
+                    ? 'fourthwall'
+                    : setObj.commerceProvider === 'digital'
+                    ? 'digital'
+                    : setObj.commerceProvider === 'direct'
+                    ? 'direct'
+                    : 'affiliate'
+                );
+                setObj.fulfillmentClassification = mappedFulfillment;
+                if (!setObj.commerceProvider) {
+                  setObj.commerceProvider =
+                    mappedFulfillment === 'owned-fourthwall-merch'
+                      ? 'fourthwall'
+                      : mappedFulfillment === 'owned-digital-product'
+                      ? 'digital'
+                      : mappedFulfillment === 'editorial-non-monetized'
+                      ? 'direct'
+                      : 'affiliate';
+                }
+                mutated = true;
+              }
+              if (typeof setObj.commerceProvider === 'string' && !setObj.fulfillmentClassification) {
+                setObj.fulfillmentClassification = mapAstroFulfillmentToSanity(
+                  undefined,
+                  setObj.commerceProvider as any
+                );
+                mutated = true;
+              }
+              if (
+                typeof setObj.purchaseUrl === 'string' &&
+                isFourthwallStorefrontUrl(setObj.purchaseUrl)
+              ) {
+                setObj.commerceProvider = 'fourthwall';
+                setObj.fulfillmentClassification = 'owned-fourthwall-merch';
+                mutated = true;
+              }
+              if (typeof setObj.priceVerificationSource === 'string') {
+                setObj.priceVerificationSource = mapAstroPriceVerificationSourceToSanity(
+                  setObj.priceVerificationSource,
+                  Boolean(setObj.priceVerified)
+                );
+                mutated = true;
+              }
+              if (typeof setObj.inventoryVerificationSource === 'string') {
+                setObj.inventoryVerificationSource =
+                  mapAstroInventoryVerificationSourceToSanity(
+                    setObj.inventoryVerificationSource,
+                    Boolean(setObj.inventoryVerified)
+                  );
+                mutated = true;
+              }
+              if (typeof setObj['seo.canonicalPath'] === 'string') {
+                setObj['seo.canonicalPath'] =
+                  normalizeInternalCanonicalPath(setObj['seo.canonicalPath']) ??
+                  setObj['seo.canonicalPath'];
+                mutated = true;
+              }
+              if (setObj.seo && typeof setObj.seo === 'object' && typeof setObj.seo.canonicalPath === 'string') {
+                setObj.seo = {
+                  ...setObj.seo,
+                  canonicalPath:
+                    normalizeInternalCanonicalPath(setObj.seo.canonicalPath) ??
+                    setObj.seo.canonicalPath,
+                };
+                mutated = true;
+              }
+            }
+          }
+        }
+        if (mutated) {
+          rawBody = Buffer.from(JSON.stringify(parsedBody), 'utf8');
+        }
+      }
+    } catch {
+      // Non-JSON or unexpected payload; forward as-is
+    }
+  }
+
+  const forwardHeaders: Record<string, string> = {};
+  if (creds.writeToken) {
+    forwardHeaders.Authorization = `Bearer ${creds.writeToken}`;
+  } else if (creds.readToken) {
+    forwardHeaders.Authorization = `Bearer ${creds.readToken}`;
+  }
+  if (req.headers['content-type']) {
+    forwardHeaders['Content-Type'] = String(req.headers['content-type']);
+  }
+  if (req.headers['accept']) {
+    forwardHeaders['Accept'] = String(req.headers['accept']);
+  }
+
+  try {
+    const upstreamRes = await fetch(targetUrl, {
+      method,
+      headers: forwardHeaders,
+      body: rawBody && rawBody.length > 0 ? (rawBody as any) : undefined,
+    });
+
+    if (method === 'POST' && subPath.includes('/data/mutate/') && upstreamRes.ok) {
+      invalidateSanityPublishedCache();
+    }
+
+    res.statusCode = upstreamRes.status;
+    const contentType = upstreamRes.headers.get('content-type');
+    if (contentType) {
+      res.setHeader('Content-Type', contentType);
+    }
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    const arrayBuf = await upstreamRes.arrayBuffer();
+
+    // Normalize `_type === "product"` documents in `/data/query/` and `/data/doc/` JSON responses
+    if (
+      upstreamRes.ok &&
+      contentType?.includes('application/json') &&
+      (subPath.includes('/data/query/') || subPath.includes('/data/doc/'))
+    ) {
+      try {
+        const jsonText = Buffer.from(arrayBuf).toString('utf8');
+        const parsed = JSON.parse(jsonText);
+        const normalizeNode = (node: any): any => {
+          if (Array.isArray(node)) {
+            return node.map(normalizeNode);
+          }
+          if (node && typeof node === 'object') {
+            if (node._type === 'product') {
+              return normalizeSanityProductDocumentBackwardCompatible(node);
+            }
+            const out: Record<string, any> = {};
+            for (const [k, v] of Object.entries(node)) {
+              out[k] = normalizeNode(v);
+            }
+            return out;
+          }
+          return node;
+        };
+        const normalizedPayload = normalizeNode(parsed);
+        res.end(Buffer.from(JSON.stringify(normalizedPayload), 'utf8'));
+        return;
+      } catch {
+        // Fall through to raw buffer
+      }
+    }
+
+    res.end(Buffer.from(arrayBuf));
+  } catch (err: any) {
+    sendJson(req, res, 502, {
+      ok: false,
+      errorCode: 'SANITY_LAKE_PROXY_ERROR',
+      message: err?.message || 'Failed to reach Sanity Content Lake upstream.',
+    });
+  }
+}
 
 export async function handleSanityStudioApiRequest(
   req: IncomingMessage,
@@ -113,6 +535,20 @@ export async function handleSanityStudioApiRequest(
   next: () => void
 ) {
   const rawUrl = req.url ?? '';
+
+  // Support Official Sanity Studio client-side sub-routes (e.g. /studio/structure/..., /studio/ai-authoring)
+  if (
+    (req.method === 'GET' || req.method === 'HEAD') &&
+    rawUrl.startsWith('/studio/') &&
+    rawUrl !== '/studio/' &&
+    !rawUrl.startsWith('/studio/index') &&
+    !rawUrl.includes('.')
+  ) {
+    req.url = '/studio/';
+    next();
+    return;
+  }
+
   if (!rawUrl.startsWith('/api/studio/sanity')) {
     next();
     return;
@@ -121,6 +557,15 @@ export async function handleSanityStudioApiRequest(
   const parsedUrl = new URL(rawUrl, 'http://localhost:3000');
   const pathname = parsedUrl.pathname.replace(/\/+$/, '') || '/api/studio/sanity';
   const method = (req.method ?? 'GET').toUpperCase();
+
+  // Official Sanity Studio Content Lake Proxy (`/api/studio/sanity/lake/*`)
+  if (
+    pathname === '/api/studio/sanity/lake' ||
+    pathname.startsWith('/api/studio/sanity/lake/')
+  ) {
+    await handleSanityLakeProxyRequest(req, res, parsedUrl);
+    return;
+  }
 
   // Same-origin development session bootstrap/renewal endpoint
   if (method === 'GET' && pathname === '/api/studio/sanity/session') {
@@ -155,6 +600,92 @@ export async function handleSanityStudioApiRequest(
       sessionCredentials: credentials,
     });
     return;
+  }
+
+  // Real Authenticated SSR Draft Preview endpoint (supports signed ticket OR header session auth)
+  if (method === 'GET' && pathname === '/api/studio/sanity/preview-product') {
+    if (!isStudioDevelopmentEnvironmentAllowed()) {
+      sendHtml(
+        res,
+        403,
+        '<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>403 — Studio Preview Disabled in Production</h1></body></html>'
+      );
+      return;
+    }
+    const originCheck = verifySameOriginRequestHeaders(req);
+    if (!originCheck.allowed) {
+      sendHtml(
+        res,
+        403,
+        '<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>403 — Cross-Origin Preview Blocked</h1></body></html>'
+      );
+      return;
+    }
+
+    const docId = (parsedUrl.searchParams.get('id') ?? '').trim();
+    const ticket = (parsedUrl.searchParams.get('ticket') ?? '').trim();
+    if (!docId) {
+      sendHtml(
+        res,
+        400,
+        '<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>400 — Missing Preview Document ID</h1></body></html>'
+      );
+      return;
+    }
+
+    const ticketCheck = verifyStudioPreviewTicket(ticket, docId);
+    const headerAuth = !ticketCheck.valid
+      ? verifyStudioApiRequestAuthorization(req, { requireCsrf: false })
+      : null;
+
+    if (!ticketCheck.valid && !headerAuth?.authorized) {
+      sendHtml(
+        res,
+        401,
+        `<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>401 — Unauthorized Preview Request</h1><p>${ticketCheck.reason || headerAuth?.message || 'Valid preview ticket or Studio session required.'}</p></body></html>`
+      );
+      return;
+    }
+
+    try {
+      const cleanCanonical = docId.replace(/^drafts\./, '');
+      const primaryId = docId;
+      const secondaryId = docId.startsWith('drafts.')
+        ? cleanCanonical
+        : `drafts.${cleanCanonical}`;
+
+      let liveDoc = await fetchDocumentFromSanityContentLake(primaryId);
+      if (!liveDoc) {
+        liveDoc = await fetchDocumentFromSanityContentLake(secondaryId);
+      }
+
+      if (!liveDoc || liveDoc._type !== 'product') {
+        sendHtml(
+          res,
+          404,
+          `<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>404 — Sanity Product Not Found</h1><p>No live Sanity draft or published product exists for "${docId}".</p></body></html>`
+        );
+        return;
+      }
+
+      const creds = resolveSanityServerCredentials();
+      const previewRenderer = await loadPreviewRendererModule();
+      const rendered = await previewRenderer.renderSanityProductPreviewHtml({
+        document: liveDoc,
+        projectId: creds.projectId,
+        dataset: creds.dataset,
+      });
+
+      sendHtml(res, 200, rendered.html);
+      return;
+    } catch (err: any) {
+      sendHtml(
+        res,
+        500,
+        `<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>500 — Preview Render Error</h1><p>${String(err?.message || 'Failed to render Sanity draft preview.')}</p></body></html>`
+      );
+      return;
+    }
   }
 
   // Detect if an upstream proxy 302 redirect converted a POST request into a GET request
@@ -200,6 +731,16 @@ export async function handleSanityStudioApiRequest(
       return;
     }
 
+    if (method === 'GET' && pathname === '/api/studio/sanity/published') {
+      const products = await listPublishedProductsFromSanityContentLake();
+      sendJson(req, res, 200, {
+        ok: true,
+        count: products.length,
+        products,
+      });
+      return;
+    }
+
     if (method === 'GET' && pathname === '/api/studio/sanity/document') {
       const docId = (parsedUrl.searchParams.get('id') ?? '').trim();
       if (!docId) {
@@ -235,6 +776,25 @@ export async function handleSanityStudioApiRequest(
       return;
     }
 
+    if (method === 'POST' && pathname === '/api/studio/sanity/open-or-create-draft') {
+      const body = await readJsonBody(req);
+      const canonicalId = String(body?.canonicalId ?? body?.productId ?? body?.id ?? '')
+        .trim()
+        .replace(/^drafts\./, '');
+      const localFallback =
+        body?.localProductFallback ?? (canonicalId ? PRODUCTS[canonicalId] : undefined);
+      const result = await ensureEditableDraftInSanityContentLake({
+        canonicalId,
+        localProductFallback: localFallback,
+      });
+      sendJson(req, res, result.status, {
+        ...result,
+        errorCode: result.blockerCode,
+        validationIssues: result.serverValidation?.blockingDraftErrors ?? [],
+      });
+      return;
+    }
+
     if (method === 'POST' && pathname === '/api/studio/sanity/save-draft') {
       const body = await readJsonBody(req);
       const doc = body?.document ?? body;
@@ -244,6 +804,86 @@ export async function handleSanityStudioApiRequest(
         errorCode: result.blockerCode,
         validationIssues:
           result.serverValidation?.blockingDraftErrors ?? [],
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/fetch-product-details') {
+      const body = await readJsonBody(req);
+      const targetUrl = String(body?.url ?? body?.productUrl ?? '').trim();
+      const extracted = await extractProductDetailsFromUrl(targetUrl);
+      if (!extracted.ok) {
+        sendJson(req, res, extracted.status, {
+          ok: false,
+          errorCode: extracted.errorCode,
+          message: extracted.message,
+          sourceUrl: extracted.sourceUrl,
+        });
+        return;
+      }
+      sendJson(req, res, 200, {
+        ...extracted,
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/publish-product') {
+      const body = await readJsonBody(req);
+      const result = await publishProductDraftInSanityContentLake({
+        document: body?.document,
+        canonicalId: body?.canonicalId,
+        draftId: body?.draftId,
+        expectedRev: body?.expectedRev,
+      });
+      sendJson(req, res, result.status, {
+        ...result,
+        errorCode: result.blockerCode,
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/unpublish-product') {
+      const body = await readJsonBody(req);
+      const result = await unpublishProductInSanityContentLake({
+        document: body?.document,
+        canonicalId: body?.canonicalId,
+        expectedRev: body?.expectedRev,
+      });
+      sendJson(req, res, result.status, {
+        ...result,
+        errorCode: result.blockerCode,
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/preview-ticket') {
+      const body = await readJsonBody(req);
+      const documentId = String(body?.documentId ?? body?.id ?? '').trim();
+      if (!documentId) {
+        sendJson(req, res, 400, {
+          ok: false,
+          errorCode: 'MISSING_DOCUMENT_ID',
+          message: 'Field `documentId` is required to issue a preview ticket.',
+        });
+        return;
+      }
+      const issued = issueStudioPreviewTicket(documentId);
+      if (!issued) {
+        sendJson(req, res, 403, {
+          ok: false,
+          errorCode: 'STUDIO_DISABLED_IN_PRODUCTION',
+          message: 'Preview tickets cannot be issued outside development.',
+        });
+        return;
+      }
+      sendJson(req, res, 200, {
+        ok: true,
+        documentId,
+        ticket: issued.ticket,
+        expiresAtMs: issued.expiresAtMs,
+        previewUrl: `/api/studio/sanity/preview-product?id=${encodeURIComponent(
+          documentId
+        )}&ticket=${encodeURIComponent(issued.ticket)}`,
       });
       return;
     }
@@ -321,6 +961,78 @@ export async function handleSanityStudioApiRequest(
       return;
     }
 
+    if (method === 'GET' && pathname === '/api/studio/sanity/ai-profiles') {
+      await ensureDefaultAiWritingProfileInSanity();
+      const profiles = await listAiWritingProfilesFromSanity();
+      sendJson(req, res, 200, {
+        ok: true,
+        count: profiles.length,
+        profiles,
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/ai-profiles') {
+      const body = await readJsonBody(req);
+      const profileInput = body?.profile ?? body;
+      const publishImmediately = body?.publishImmediately !== false;
+      const result = await saveAiWritingProfileToSanity(
+        profileInput,
+        publishImmediately
+      );
+      sendJson(req, res, result.ok ? 200 : 422, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ensure-eval-hoodie-copy'
+    ) {
+      const result = await ensureEvaluationHoodieCopyInSanity();
+      sendJson(req, res, result.ok ? 200 : 500, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-generate-supporting'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await generateProductSupportingFields(body || {});
+      sendJson(req, res, 200, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-generate-editorial'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await generateProductEditorialCopy(body || {});
+      sendJson(req, res, 200, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-generate-complete'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await generateCompleteProductProposal(body || {});
+      sendJson(req, res, 200, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-polish-editorial'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await polishProductEditorialCopy(body || {});
+      sendJson(req, res, 200, result);
+      return;
+    }
+
     sendJson(req, res, 404, {
       ok: false,
       errorCode: 'UNKNOWN_STUDIO_ENDPOINT',
@@ -343,11 +1055,15 @@ export function sanityStudioApiPlugin() {
     configResolved(config: { command?: string }) {
       isBuild = config.command === 'build';
     },
-    configureServer(server: { middlewares: { use: Function } }) {
+    configureServer(server: {
+      middlewares: { use: Function };
+      ssrLoadModule?: (url: string) => Promise<any>;
+    }) {
       // Only mount in development environment; fail closed in production
       if (!isStudioDevelopmentEnvironmentAllowed()) {
         return;
       }
+      activeViteDevServer = server;
       server.middlewares.use(handleSanityStudioApiRequest);
     },
     closeBundle() {

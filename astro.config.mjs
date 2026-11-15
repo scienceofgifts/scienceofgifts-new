@@ -17,7 +17,47 @@ const studioProductionIsolationIntegration = () => ({
           fs.rmSync(studioOutDir, { recursive: true, force: true });
         }
       } catch {}
+      setTimeout(() => {
+        process.exit(0);
+      }, 150);
     },
+  },
+});
+
+const STUDIO_BUILD_STUB_ID = '\0virtual:sanity-studio-build-stub';
+
+/**
+ * Since `/studio` is strictly restricted to development (`import.meta.env.DEV`) and removed
+ * from production output by `studioProductionIsolationIntegration`, avoid bundling the massive
+ * `sanity` Studio UI tree during `astro build` (static production site build).
+ * Has zero effect on `astro dev` (the live Studio on port 3000) or `tsx` test suites.
+ */
+const studioProductionBuildStubPlugin = () => ({
+  name: 'science-of-gifts-studio-build-stub',
+  apply: 'build',
+  resolveId(id) {
+    if (id === 'sanity' || id === 'sanity/structure') {
+      return STUDIO_BUILD_STUB_ID;
+    }
+    return null;
+  },
+  load(id) {
+    if (id === STUDIO_BUILD_STUB_ID) {
+      return `
+        export const Studio = () => null;
+        export const defineConfig = (config) => config;
+        export const defineType = (schema) => schema;
+        export const defineField = (field) => field;
+        export const defineArrayMember = (member) => member;
+        export const createAuthStore = () => ({});
+        export const structureTool = () => ({ name: 'structure' });
+        export const set = (val) => ({ type: 'set', value: val });
+        export const unset = () => ({ type: 'unset' });
+        export const useFormValue = () => undefined;
+        export default {};
+      `;
+    }
+    return null;
   },
 });
 
@@ -35,7 +75,11 @@ export default defineConfig({
   integrations: [react(), studioProductionIsolationIntegration()],
   vite: {
     envPrefix: ['PUBLIC_', 'SANITY_STUDIO_'],
-    plugins: [tailwindcss(), sanityStudioApiPlugin()],
+    plugins: [
+      tailwindcss(),
+      sanityStudioApiPlugin(),
+      studioProductionBuildStubPlugin(),
+    ],
     resolve: {
       alias: {
         '@': path.resolve('.'),

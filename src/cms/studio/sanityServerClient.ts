@@ -21,7 +21,10 @@ import {
   resolveSanityEnvironmentConfig,
   validateDocumentWithSchema,
 } from './sanityCore';
-import { SANITY_DOCUMENT_SCHEMAS } from './schemas';
+import {
+  OFFICIAL_SANITY_DOCUMENT_SCHEMAS,
+  SANITY_DOCUMENT_SCHEMAS,
+} from './schemas';
 import {
   AGE_RANGE_OPTIONS,
   COMMERCE_PROVIDER_OPTIONS,
@@ -36,7 +39,15 @@ import {
 import {
   evaluateEditorialDocumentLifecycle,
   evaluateProductPublicationLifecycle,
+  isPlaceholderOrSamplePurchaseUrl,
+  isSampleVendorName,
 } from './publicationWorkflow';
+import {
+  convertLocalProductToSanityDraft,
+  normalizeSanityProductDocumentBackwardCompatible,
+} from './productDocumentMapper';
+import { invalidateSanityPublishedCache } from '../sanityPublishedLoader';
+import type { Product } from '../../types/content';
 
 export interface SanityServerCredentials {
   projectId: string;
@@ -58,6 +69,7 @@ export interface ServerDraftValidationReport {
   blockingDraftErrors: ServerValidationIssue[];
   publishReadinessErrors: ServerValidationIssue[];
   warnings: ServerValidationIssue[];
+  clearFields?: string[];
   normalizedDraftDocument?: Record<string, any> & {
     _id: string;
     _type: string;
@@ -142,6 +154,53 @@ const VALID_COMMERCE_PROVIDER_SET = new Set<string>(
   COMMERCE_PROVIDER_OPTIONS.map((o) => o.value)
 );
 
+const IMMUTABLE_OR_REQUIRED_CLEAR_REJECT_SET = new Set<string>([
+  '_id',
+  '_type',
+  '_rev',
+  '_createdAt',
+  '_updatedAt',
+  'productId',
+  'id',
+  'title',
+  'slug',
+  'status',
+]);
+
+export const ALLOWED_CLEARABLE_PRODUCT_DRAFT_FIELDS = new Set<string>([
+  'price',
+  'budgetTier',
+  'guidePriceBucket',
+  'inStock',
+  'calloutTag',
+  'vendor',
+  'availabilityNote',
+  'externalProductId',
+  'affiliateUrl',
+  'fourthwallUrl',
+  'purchaseUrl',
+  'priceVerificationSource',
+  'priceVerifiedAt',
+  'priceVerificationEvidenceNote',
+  'inventoryVerificationSource',
+  'inventoryVerifiedAt',
+  'editorialRating',
+  'testingNote',
+  'giftVerdict.importantCaveat',
+  'seo.canonicalPath',
+  'seo.ogTitle',
+  'seo.ogDescription',
+  'seo.ogImage',
+]);
+
+const NESTED_CLEARABLE_PATHS = new Set<string>([
+  'giftVerdict.importantCaveat',
+  'seo.canonicalPath',
+  'seo.ogTitle',
+  'seo.ogDescription',
+  'seo.ogImage',
+]);
+
 let cachedProcEnv: Record<string, string> | null = null;
 
 function readFromProcEnviron(key: string): string {
@@ -155,9 +214,14 @@ function readFromProcEnviron(key: string): string {
         if (!/^\d+$/.test(entry)) continue;
         try {
           const raw = fs.readFileSync(`/proc/${entry}/environ`, 'utf8');
-          if (!raw.includes('SANITY_')) continue;
+          if (!raw.includes('SANITY_') && !raw.includes('GEMINI_')) continue;
           for (const pair of raw.split('\0')) {
-            if (pair.startsWith('SANITY_')) {
+            if (
+              pair.startsWith('SANITY_') ||
+              pair.startsWith('GEMINI_') ||
+              pair.startsWith('GOOGLE_') ||
+              pair.startsWith('AI_')
+            ) {
               const eqIdx = pair.indexOf('=');
               if (eqIdx > 0) {
                 const k = pair.slice(0, eqIdx);
@@ -175,7 +239,7 @@ function readFromProcEnviron(key: string): string {
   return cachedProcEnv[key] ?? '';
 }
 
-function readServerEnv(
+export function readServerEnv(
   key: string,
   envOverride?: Record<string, string | undefined>
 ): string {
@@ -253,6 +317,9 @@ export function validateSanityDraftBeforeServerMutation(
   }
 
   const doc = { ...(rawDoc as Record<string, any>) };
+  const rawClearFields = Array.isArray(doc._clearFields)
+    ? doc._clearFields
+    : [];
   const rawId = typeof doc._id === 'string' ? doc._id.trim() : '';
   const rawType = typeof doc._type === 'string' ? doc._type.trim() : '';
 
@@ -270,11 +337,11 @@ export function validateSanityDraftBeforeServerMutation(
     });
   }
 
-  const schema = SANITY_DOCUMENT_SCHEMAS.find((s) => s.name === rawType);
+  const schema = OFFICIAL_SANITY_DOCUMENT_SCHEMAS.find((s) => s.name === rawType);
   if (!schema) {
     blockingDraftErrors.push({
       path: '_type',
-      message: `Unknown or unsupported Sanity document \`_type\`: "${rawType}". Must be one of: ${SANITY_DOCUMENT_SCHEMAS.map((s) => s.name).join(', ')}.`,
+      message: `Unknown or unsupported Sanity document \`_type\`: "${rawType}". Must be one of: ${OFFICIAL_SANITY_DOCUMENT_SCHEMAS.map((s) => s.name).join(', ')}.`,
       level: 'error',
     });
   }
@@ -284,8 +351,65 @@ export function validateSanityDraftBeforeServerMutation(
     : `drafts.${rawId}`;
 
   delete doc._sourceOrigin;
+  delete doc._clearFields;
 
-  const normalizedDoc: Record<string, any> & {
+  const validatedClearSet = new Set<string>();
+  if (rawType === 'product') {
+    for (const rawPath of rawClearFields) {
+      if (typeof rawPath !== 'string' || !rawPath.trim()) continue;
+      const cleanPath = rawPath.trim();
+      if (IMMUTABLE_OR_REQUIRED_CLEAR_REJECT_SET.has(cleanPath)) {
+        blockingDraftErrors.push({
+          path: cleanPath,
+          message: `Cannot clear immutable or required field \`${cleanPath}\`.`,
+          level: 'error',
+        });
+        continue;
+      }
+      if (!ALLOWED_CLEARABLE_PRODUCT_DRAFT_FIELDS.has(cleanPath)) {
+        blockingDraftErrors.push({
+          path: cleanPath,
+          message: `Field \`${cleanPath}\` is not in the allowlist of clearable product draft fields.`,
+          level: 'error',
+        });
+        continue;
+      }
+      validatedClearSet.add(cleanPath);
+    }
+
+    // Explicit `null` on allowlisted top-level optional fields triggers clean removal via unset
+    for (const allowedField of ALLOWED_CLEARABLE_PRODUCT_DRAFT_FIELDS) {
+      if (NESTED_CLEARABLE_PATHS.has(allowedField)) continue;
+      if (doc[allowedField] === null) {
+        validatedClearSet.add(allowedField);
+        delete doc[allowedField];
+      }
+    }
+
+    // Re-populated non-null/non-empty top-level values take precedence over stale clear flags
+    for (const fieldPath of Array.from(validatedClearSet)) {
+      if (NESTED_CLEARABLE_PATHS.has(fieldPath)) {
+        const [parentKey, childKey] = fieldPath.split('.');
+        const parentObj = doc[parentKey];
+        if (parentObj && typeof parentObj === 'object') {
+          if (parentObj[childKey] === null || parentObj[childKey] === undefined || parentObj[childKey] === '') {
+            delete parentObj[childKey];
+          } else {
+            validatedClearSet.delete(fieldPath);
+          }
+        }
+        continue;
+      }
+      const val = doc[fieldPath];
+      if (val === undefined || val === null || val === '') {
+        delete doc[fieldPath];
+      } else {
+        validatedClearSet.delete(fieldPath);
+      }
+    }
+  }
+
+  const baseNormalizedDoc: Record<string, any> & {
     _id: string;
     _type: string;
     status: 'draft';
@@ -295,6 +419,11 @@ export function validateSanityDraftBeforeServerMutation(
     _type: rawType,
     status: 'draft',
   };
+
+  const normalizedDoc =
+    rawType === 'product'
+      ? normalizeSanityProductDocumentBackwardCompatible(baseNormalizedDoc)
+      : baseNormalizedDoc;
 
   const primaryTitle =
     normalizedDoc.title ??
@@ -375,6 +504,43 @@ export function validateSanityDraftBeforeServerMutation(
           path: 'price',
           message:
             'Retail `price` must be a positive number greater than 0 (never negative or NaN).',
+          level: 'error',
+        });
+      }
+    }
+
+    if (normalizedDoc.priceVerified === true) {
+      if (
+        typeof normalizedDoc.price !== 'number' ||
+        Number.isNaN(normalizedDoc.price) ||
+        !Number.isFinite(normalizedDoc.price) ||
+        normalizedDoc.price <= 0
+      ) {
+        blockingDraftErrors.push({
+          path: 'priceVerified',
+          message:
+            'Cannot mark `priceVerified` as true when retail `price` is null, missing, or non-positive.',
+          level: 'error',
+        });
+      }
+    }
+
+    if (normalizedDoc.inventoryVerified === true) {
+      if (typeof normalizedDoc.inStock !== 'boolean') {
+        blockingDraftErrors.push({
+          path: 'inventoryVerified',
+          message:
+            'Cannot mark `inventoryVerified` as true when `inStock` status is unknown/null.',
+          level: 'error',
+        });
+      } else if (
+        !normalizedDoc.inventoryVerificationSource ||
+        normalizedDoc.inventoryVerificationSource === 'unverified'
+      ) {
+        blockingDraftErrors.push({
+          path: 'inventoryVerificationSource',
+          message:
+            'Cannot mark `inventoryVerified` as true while `inventoryVerificationSource` is "unverified".',
           level: 'error',
         });
       }
@@ -564,21 +730,26 @@ export function validateSanityDraftBeforeServerMutation(
           }
 
           if (resolvedUrl) {
-            try {
-              const parsed = new URL(resolvedUrl);
-              if (parsed.protocol !== 'https:') {
+            const isSafeRelativeAsset =
+              resolvedUrl.startsWith('/assets/') &&
+              !resolvedUrl.startsWith('//');
+            if (!isSafeRelativeAsset) {
+              try {
+                const parsed = new URL(resolvedUrl);
+                if (parsed.protocol !== 'https:') {
+                  blockingDraftErrors.push({
+                    path: `images[${idx}].url`,
+                    message: `Image URL at images[${idx}] must use https://.`,
+                    level: 'error',
+                  });
+                }
+              } catch {
                 blockingDraftErrors.push({
                   path: `images[${idx}].url`,
-                  message: `Image URL at images[${idx}] must use https://.`,
+                  message: `Image URL at images[${idx}] ("${resolvedUrl.slice(0, 80)}") is not a valid HTTPS URL.`,
                   level: 'error',
                 });
               }
-            } catch {
-              blockingDraftErrors.push({
-                path: `images[${idx}].url`,
-                message: `Image URL at images[${idx}] ("${resolvedUrl.slice(0, 80)}") is not a valid HTTPS URL.`,
-                level: 'error',
-              });
             }
           }
 
@@ -677,6 +848,8 @@ export function validateSanityDraftBeforeServerMutation(
     }
   }
 
+  const clearFields = Array.from(validatedClearSet);
+
   return {
     validForDraftSave: blockingDraftErrors.length === 0,
     readyForPublish:
@@ -684,6 +857,7 @@ export function validateSanityDraftBeforeServerMutation(
     blockingDraftErrors,
     publishReadinessErrors,
     warnings,
+    clearFields: clearFields.length > 0 ? clearFields : undefined,
     normalizedDraftDocument:
       blockingDraftErrors.length === 0 ? normalizedDoc : undefined,
   };
@@ -801,7 +975,13 @@ export async function listDraftsFromSanityContentLake(
     });
     if (!res.ok) return [];
     const data = await res.json();
-    return Array.isArray(data?.result) ? data.result : [];
+    return Array.isArray(data?.result)
+      ? data.result.map((d: any) =>
+          d && d._type === 'product'
+            ? normalizeSanityProductDocumentBackwardCompatible(d)
+            : d
+        )
+      : [];
   } catch {
     return [];
   }
@@ -829,7 +1009,10 @@ export async function fetchDocumentFromSanityContentLake(
   const res = await fetch(url, { headers });
   if (!res.ok) return null;
   const data = await res.json();
-  return data?.result ?? null;
+  const doc = data?.result ?? null;
+  return doc && doc._type === 'product'
+    ? normalizeSanityProductDocumentBackwardCompatible(doc)
+    : doc;
 }
 
 /**
@@ -981,20 +1164,39 @@ export async function saveDraftToSanityContentLake(
       };
     }
 
-    // 2e. Build non-destructive patch (`set`) preserving unrelated fields
+    // 2e. Build non-destructive patch (`set` + explicit allowlisted `unset`) preserving unrelated fields
     const patchFields: Record<string, any> = {};
+    const clearFields = serverValidation.clearFields || [];
+    const topLevelClearSet = new Set(clearFields.filter((f) => !f.includes('.')));
+
     for (const [k, v] of Object.entries(docToSave)) {
       if (
         k === '_id' ||
         k === '_type' ||
         k === '_rev' ||
         k === '_createdAt' ||
-        k === '_updatedAt'
+        k === '_updatedAt' ||
+        k === '_clearFields' ||
+        topLevelClearSet.has(k)
       ) {
         continue;
       }
       if (v !== undefined) {
         patchFields[k] = markDraftReferencesWeak(v);
+      }
+    }
+
+    const unsetPaths: string[] = [];
+    for (const fieldPath of clearFields) {
+      if (fieldPath.includes('.')) {
+        const [parentKey, childKey] = fieldPath.split('.');
+        if (patchFields[parentKey] && typeof patchFields[parentKey] === 'object') {
+          delete patchFields[parentKey][childKey];
+        } else {
+          unsetPaths.push(fieldPath);
+        }
+      } else {
+        unsetPaths.push(fieldPath);
       }
     }
 
@@ -1004,6 +1206,7 @@ export async function saveDraftToSanityContentLake(
         id: normalizedDraftId,
         ifRevisionID: existingDoc._rev,
         set: patchFields,
+        ...(unsetPaths.length > 0 ? { unset: unsetPaths } : {}),
       },
     };
   } else {
@@ -1935,4 +2138,1062 @@ export async function uploadMultipleImageAssetsToSanityContentLake(
           }).`,
   };
 }
+
+// =============================================================================
+// CHECKPOINT 2: PUBLISHED CONTENT QUERIES, OPEN-OR-CREATE DRAFT & PUBLISH WORKFLOW
+// =============================================================================
+
+export interface ProductPublishValidationResult {
+  ready: boolean;
+  blockers: Array<{ path: string; message: string }>;
+  warnings: Array<{ path: string; message: string }>;
+  lifecycle: ReturnType<typeof evaluateProductPublicationLifecycle>;
+}
+
+export interface EnsureEditableDraftResult {
+  ok: boolean;
+  status: number;
+  action?:
+    | 'opened_existing_draft'
+    | 'forked_published_to_draft'
+    | 'converted_local_to_draft';
+  draftDocument?: Record<string, any> | null;
+  hasPublishedPartner?: boolean;
+  blockerCode?: string;
+  serverValidation?: ServerDraftValidationReport;
+  message: string;
+}
+
+export interface PublishProductResult {
+  ok: boolean;
+  status: number;
+  transactionId?: string;
+  publishedDocument?: Record<string, any> | null;
+  removedDraftId?: string;
+  lifecycle?: ReturnType<typeof evaluateProductPublicationLifecycle>;
+  blockers?: Array<{ path: string; message: string }>;
+  warnings?: Array<{ path: string; message: string }>;
+  livePath?: string;
+  rebuildTriggered?: boolean;
+  blockerCode?: string;
+  persistedDocument?: Record<string, any> | null;
+  message: string;
+}
+
+export interface UnpublishProductResult {
+  ok: boolean;
+  status: number;
+  transactionId?: string;
+  draftDocument?: Record<string, any> | null;
+  unpublishedId?: string;
+  removedPublishedId?: string;
+  alreadyUnpublished?: boolean;
+  rebuildTriggered?: boolean;
+  blockerCode?: string;
+  persistedDocument?: Record<string, any> | null;
+  message: string;
+}
+
+/**
+ * Lists strictly published documents from Sanity Content Lake (`!(_id in path("drafts.**")) && status == "published"`).
+ * Throws an explicit Error if Sanity credentials are configured and the HTTP/network request fails.
+ */
+export async function listPublishedDocumentsFromSanityContentLake(
+  types?: string[],
+  envOverride?: Record<string, string | undefined>
+): Promise<Array<Record<string, any> & { _id: string; _type: string }>> {
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return [];
+  }
+
+  const typeClause =
+    Array.isArray(types) && types.length > 0
+      ? ` && _type in ${JSON.stringify(types)}`
+      : '';
+  const groq = encodeURIComponent(
+    `*[!(_id in path("drafts.**")) && !(_id in path("_.**")) && status == "published"${typeClause}] | order(_updatedAt desc)`
+  );
+  const url = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/query/${creds.dataset}?query=${groq}&perspective=published`;
+
+  const headers: Record<string, string> = {};
+  if (creds.readToken) {
+    headers.Authorization = `Bearer ${creds.readToken}`;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, { headers });
+  } catch (err: any) {
+    throw new Error(
+      `Failed to reach Sanity Content Lake (${creds.projectId}/${creds.dataset}) while listing published documents: ${err?.message ?? String(err)}`
+    );
+  }
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(
+      `Sanity Content Lake published documents query returned HTTP ${res.status}: ${errText.slice(0, 240)}`
+    );
+  }
+
+  const data = await res.json();
+  return Array.isArray(data?.result)
+    ? data.result.map((d: any) =>
+        d && d._type === 'product'
+          ? normalizeSanityProductDocumentBackwardCompatible(d)
+          : d
+      )
+    : [];
+}
+
+export async function listPublishedProductsFromSanityContentLake(
+  envOverride?: Record<string, string | undefined>
+): Promise<Array<Record<string, any> & { _id: string; _type: 'product' }>> {
+  return (await listPublishedDocumentsFromSanityContentLake(
+    ['product'],
+    envOverride
+  )) as Array<Record<string, any> & { _id: string; _type: 'product' }>;
+}
+
+export async function fetchPublishedProductFromSanityContentLake(
+  canonicalId: string,
+  envOverride?: Record<string, string | undefined>
+): Promise<Record<string, any> | null> {
+  const cleanId = String(canonicalId || '').trim().replace(/^drafts\./, '');
+  if (!cleanId) return null;
+
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) return null;
+
+  const query = encodeURIComponent(
+    '*[_id == $id && _type == "product" && !(_id in path("drafts.**"))][0]'
+  );
+  const idParam = encodeURIComponent(JSON.stringify(cleanId));
+  const url = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/query/${creds.dataset}?query=${query}&$id=${idParam}&perspective=published`;
+
+  const headers: Record<string, string> = {};
+  if (creds.readToken) {
+    headers.Authorization = `Bearer ${creds.readToken}`;
+  }
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(
+      `Sanity published product readback returned HTTP ${res.status}: ${errText.slice(0, 200)}`
+    );
+  }
+  const data = await res.json();
+  const doc = data?.result ?? null;
+  return doc && doc._type === 'product'
+    ? normalizeSanityProductDocumentBackwardCompatible(doc)
+    : doc;
+}
+
+/**
+ * Validates whether a product draft is ready to be published to the live Astro site.
+ *
+ * Critical commerce rule:
+ * - Missing or unverified `price` or `inStock` does NOT block publishing an editorial product profile.
+ *   Instead `evaluateProductPublicationLifecycle` sets `hasVerifiedCommerce = false`, `noindex,follow`,
+ *   suppresses Schema.org `Offer`, and `inventoryVerified = false` suppresses `InStock`/`OutOfStock`.
+ * - Claiming `priceVerified: true` without a positive numeric price or valid verification source STILL blocks.
+ * - Sample flags, placeholder URLs, missing imagery, or missing core editorial copy ALWAYS block.
+ */
+export function validateProductPublishReadiness(
+  doc: Record<string, any>
+): ProductPublishValidationResult {
+  const blockers: Array<{ path: string; message: string }> = [];
+  const warnings: Array<{ path: string; message: string }> = [];
+
+  const canonicalId = String(doc.productId || doc._id || '')
+    .trim()
+    .replace(/^drafts\./, '');
+
+  const candidate: Record<string, any> = {
+    ...doc,
+    _id: canonicalId || doc._id,
+    _type: 'product',
+    productId: canonicalId || doc.productId,
+    status: 'published',
+  };
+
+  const productSchema = SANITY_DOCUMENT_SCHEMAS.find((s) => s.name === 'product');
+  if (productSchema) {
+    const schemaCheck = validateDocumentWithSchema(productSchema, candidate);
+    for (const err of schemaCheck.errors) {
+      blockers.push({ path: err.path, message: err.message });
+    }
+    for (const warn of schemaCheck.warnings) {
+      warnings.push({ path: warn.path, message: warn.message });
+    }
+  }
+
+  const lifecycle = evaluateProductPublicationLifecycle(candidate);
+  for (const errMsg of lifecycle.blockingErrors) {
+    if (!blockers.some((b) => b.message === errMsg)) {
+      blockers.push({ path: '_lifecycle', message: errMsg });
+    }
+  }
+  for (const warnMsg of lifecycle.warnings) {
+    if (!warnings.some((w) => w.message === warnMsg)) {
+      warnings.push({ path: '_lifecycle', message: warnMsg });
+    }
+  }
+
+  const vendor = String(candidate.vendor ?? '').trim();
+  if (!vendor || vendor.toLowerCase() === 'unknown' || isSampleVendorName(vendor)) {
+    blockers.push({
+      path: 'vendor',
+      message: 'A real brand or merchant vendor name is required before publishing.',
+    });
+  }
+
+  if (candidate.isSampleProduct || isSampleVendorName(vendor)) {
+    blockers.push({
+      path: 'isSampleProduct',
+      message: 'Sample catalog products cannot be published to the live website.',
+    });
+  }
+
+  if (candidate.isPlaceholderLink || isPlaceholderOrSamplePurchaseUrl(candidate.purchaseUrl)) {
+    blockers.push({
+      path: 'purchaseUrl',
+      message: 'A real HTTPS merchant URL is required (placeholder URLs cannot be published).',
+    });
+  }
+
+  if (!Array.isArray(candidate.images) || candidate.images.length === 0) {
+    blockers.push({
+      path: 'images',
+      message: 'At least one verified product photograph with alt text is required.',
+    });
+  } else {
+    candidate.images.forEach((img: any, idx: number) => {
+      const imgUrl = String(img?.url || img?.externalUrl || '').trim();
+      const assetRef =
+        img?.sanityAssetId || img?.asset?.asset?._ref || img?.asset?._ref;
+      const isSafeRelative = imgUrl.startsWith('/assets/') && !imgUrl.startsWith('//');
+      const isHttps = imgUrl.startsWith('https://');
+      if (!isSafeRelative && !isHttps && !assetRef) {
+        blockers.push({
+          path: `images[${idx}].url`,
+          message: `Image ${idx + 1} must be an uploaded Sanity asset, HTTPS URL, or valid /assets/ path.`,
+        });
+      }
+      if (!String(img?.alt || '').trim()) {
+        blockers.push({
+          path: `images[${idx}].alt`,
+          message: `Image ${idx + 1} requires descriptive alt text.`,
+        });
+      }
+    });
+  }
+
+  if (candidate.inventoryVerified === true && typeof candidate.inStock !== 'boolean') {
+    blockers.push({
+      path: 'inventoryVerified',
+      message: 'Inventory cannot be marked verified when inStock status is unknown.',
+    });
+  }
+
+  if (typeof candidate.price !== 'number' || !Number.isFinite(candidate.price) || candidate.price <= 0) {
+    warnings.push({
+      path: 'price',
+      message:
+        'Retail price is missing or unverified. The product page will display "Price unverified", omit Schema.org Offer data, and remain noindex,follow until verified.',
+    });
+  }
+
+  return {
+    ready: blockers.length === 0,
+    blockers,
+    warnings,
+    lifecycle,
+  };
+}
+
+/**
+ * Idempotently opens an existing Sanity draft, forks an existing published Sanity product
+ * into `drafts.<canonicalId>`, or converts a local reference catalog product into a real
+ * Sanity draft document — never creating duplicates.
+ */
+export async function ensureEditableDraftInSanityContentLake(
+  input: {
+    canonicalId: string;
+    localProductFallback?: Record<string, any>;
+    envOverride?: Record<string, string | undefined>;
+  }
+): Promise<EnsureEditableDraftResult> {
+  const canonicalId = String(input.canonicalId || '')
+    .trim()
+    .replace(/^drafts\./, '');
+  if (!canonicalId) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'MISSING_DOCUMENT_ID',
+      message: 'A canonical product ID is required to open or create a Sanity draft.',
+    };
+  }
+
+  const creds = resolveSanityServerCredentials(input.envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'MISSING_PROJECT_OR_DATASET',
+      message: 'SANITY_STUDIO_PROJECT_ID or SANITY_STUDIO_DATASET is not configured.',
+    };
+  }
+  if (!creds.writeToken) {
+    return {
+      ok: false,
+      status: 403,
+      blockerCode: 'MISSING_WRITE_TOKEN',
+      message: 'Server-side SANITY_API_WRITE_TOKEN is required to create editable drafts.',
+    };
+  }
+
+  const draftId = `drafts.${canonicalId}`;
+  const [existingDraft, existingPublished] = await Promise.all([
+    fetchDocumentFromSanityContentLake(draftId, input.envOverride),
+    fetchDocumentFromSanityContentLake(canonicalId, input.envOverride),
+  ]);
+
+  if (existingDraft) {
+    return {
+      ok: true,
+      status: 200,
+      action: 'opened_existing_draft',
+      draftDocument: existingDraft,
+      hasPublishedPartner: Boolean(existingPublished),
+      message: `Opened existing Sanity draft "${draftId}" (rev: ${existingDraft._rev}).`,
+    };
+  }
+
+  if (existingPublished) {
+    const forkedPayload: Record<string, any> = {};
+    for (const [k, v] of Object.entries(existingPublished)) {
+      if (k === '_rev' || k === '_createdAt' || k === '_updatedAt') continue;
+      forkedPayload[k] = v;
+    }
+    forkedPayload._id = draftId;
+    forkedPayload._type = existingPublished._type || 'product';
+    forkedPayload.status = 'draft';
+    if (forkedPayload._type === 'product' && !forkedPayload.productId) {
+      forkedPayload.productId = canonicalId;
+    }
+
+    const saveRes = await saveDraftToSanityContentLake(
+      forkedPayload as Record<string, any> & { _id: string; _type: string },
+      input.envOverride
+    );
+    return {
+      ok: saveRes.ok,
+      status: saveRes.status,
+      action: 'forked_published_to_draft',
+      draftDocument: saveRes.persistedDocument,
+      hasPublishedPartner: true,
+      blockerCode: saveRes.blockerCode,
+      serverValidation: saveRes.serverValidation,
+      message: saveRes.ok
+        ? `Created editable draft "${draftId}" from published Sanity document "${canonicalId}".`
+        : saveRes.message,
+    };
+  }
+
+  if (!input.localProductFallback || typeof input.localProductFallback !== 'object') {
+    return {
+      ok: false,
+      status: 404,
+      blockerCode: 'PRODUCT_NOT_FOUND',
+      message: `No Sanity document or local catalog product found for "${canonicalId}".`,
+    };
+  }
+
+  const fallback = input.localProductFallback;
+  const looksLikeAstroProduct =
+    fallback._type !== 'product' || typeof fallback.slug === 'string';
+
+  const draftCandidate = looksLikeAstroProduct
+    ? convertLocalProductToSanityDraft({
+        ...(fallback as Product),
+        id: canonicalId,
+      })
+    : {
+        ...fallback,
+        _id: draftId,
+        _type: 'product' as const,
+        productId: canonicalId,
+        status: 'draft' as const,
+      };
+
+  // Strip _rev on brand new draft creation
+  delete (draftCandidate as any)._rev;
+
+  const saveRes = await saveDraftToSanityContentLake(
+    draftCandidate as Record<string, any> & { _id: string; _type: string },
+    input.envOverride
+  );
+  return {
+    ok: saveRes.ok,
+    status: saveRes.status,
+    action: 'converted_local_to_draft',
+    draftDocument: saveRes.persistedDocument,
+    hasPublishedPartner: false,
+    blockerCode: saveRes.blockerCode,
+    serverValidation: saveRes.serverValidation,
+    message: saveRes.ok
+      ? `Converted local catalog item "${canonicalId}" into editable Sanity draft "${draftId}".`
+      : saveRes.message,
+  };
+}
+
+/**
+ * Collects all non-image reference `_ref` IDs in a document and returns which IDs
+ * actually exist in Sanity Content Lake so publish transactions keep valid strong
+ * references while leaving references to local-only records weak (`_weak: true`).
+ */
+async function resolveExistingSanityReferenceIds(
+  doc: Record<string, any>,
+  creds: SanityServerCredentials
+): Promise<Set<string>> {
+  const refIds = new Set<string>();
+  const collect = (val: unknown) => {
+    if (Array.isArray(val)) {
+      val.forEach(collect);
+    } else if (val && typeof val === 'object') {
+      const obj = val as Record<string, unknown>;
+      if (
+        obj._type === 'reference' &&
+        typeof obj._ref === 'string' &&
+        !obj._ref.startsWith('image-') &&
+        !obj._ref.startsWith('drafts.')
+      ) {
+        refIds.add(obj._ref);
+      }
+      Object.values(obj).forEach(collect);
+    }
+  };
+  collect(doc);
+
+  if (refIds.size === 0) return new Set();
+
+  try {
+    const query = encodeURIComponent('*[_id in $ids]._id');
+    const idsParam = encodeURIComponent(JSON.stringify(Array.from(refIds)));
+    const url = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/query/${creds.dataset}?query=${query}&$ids=${idsParam}&perspective=raw`;
+    const headers: Record<string, string> = {};
+    if (creds.readToken) {
+      headers.Authorization = `Bearer ${creds.readToken}`;
+    }
+    const res = await fetch(url, { headers });
+    if (!res.ok) return new Set();
+    const data = await res.json();
+    const found: string[] = Array.isArray(data?.result) ? data.result : [];
+    return new Set(found.filter((id) => !id.startsWith('drafts.')));
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * Atomically publishes a product draft (`drafts.<id>`) to its canonical published Sanity
+ * document (`<id>`) with `status: 'published'`, deletes the consumed `drafts.<id>` record,
+ * reads back the published document via `perspective=published`, and invalidates the cache.
+ */
+export async function publishProductDraftInSanityContentLake(
+  input: {
+    document?: Record<string, any>;
+    canonicalId?: string;
+    draftId?: string;
+    expectedRev?: string;
+  },
+  envOverride?: Record<string, string | undefined>
+): Promise<PublishProductResult> {
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'MISSING_PROJECT_OR_DATASET',
+      message: 'SANITY_STUDIO_PROJECT_ID or SANITY_STUDIO_DATASET is not configured.',
+    };
+  }
+  if (!creds.writeToken) {
+    return {
+      ok: false,
+      status: 403,
+      blockerCode: 'MISSING_WRITE_TOKEN',
+      message: 'Server-side SANITY_API_WRITE_TOKEN is required to publish products.',
+    };
+  }
+
+  const rawIdCandidate =
+    input.canonicalId ||
+    input.document?.productId ||
+    input.document?._id ||
+    input.draftId ||
+    '';
+  const canonicalId = String(rawIdCandidate).trim().replace(/^drafts\./, '');
+  if (!canonicalId || !/^prod_[a-z0-9_]+$/.test(canonicalId)) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'INVALID_CANONICAL_ID',
+      message:
+        'A valid canonical product ID starting with "prod_" is required to publish.',
+    };
+  }
+
+  const draftId = `drafts.${canonicalId}`;
+  const [existingDraft, existingPublished] = await Promise.all([
+    fetchDocumentFromSanityContentLake(draftId, envOverride),
+    fetchDocumentFromSanityContentLake(canonicalId, envOverride),
+  ]);
+
+  if (existingDraft && input.document) {
+    const providedRev = String(
+      input.expectedRev || input.document._rev || ''
+    ).trim();
+    if (!providedRev || providedRev !== existingDraft._rev) {
+      return {
+        ok: false,
+        status: 409,
+        blockerCode: 'REVISION_CONFLICT',
+        persistedDocument: existingDraft,
+        message: `Revision conflict detected on "${draftId}" before publishing (${
+          providedRev || 'missing _rev'
+        } vs Sanity ${existingDraft._rev}). Reload before publishing.`,
+      };
+    }
+  }
+
+  const sourceCandidate = input.document ?? existingDraft ?? existingPublished;
+  if (!sourceCandidate) {
+    return {
+      ok: false,
+      status: 404,
+      blockerCode: 'DRAFT_NOT_FOUND',
+      message: `Neither "${draftId}" nor "${canonicalId}" exists in Sanity Content Lake.`,
+    };
+  }
+
+  const serverCheck = validateSanityDraftBeforeServerMutation({
+    ...sourceCandidate,
+    _id: draftId,
+    _type: 'product',
+    productId: canonicalId,
+  });
+  if (!serverCheck.validForDraftSave || !serverCheck.normalizedDraftDocument) {
+    return {
+      ok: false,
+      status: 422,
+      blockerCode: 'SERVER_VALIDATION_FAILED',
+      blockers: serverCheck.blockingDraftErrors.map((e) => ({
+        path: e.path,
+        message: e.message,
+      })),
+      warnings: serverCheck.warnings.map((w) => ({
+        path: w.path,
+        message: w.message,
+      })),
+      message: `Cannot publish "${canonicalId}": ${
+        serverCheck.blockingDraftErrors[0]?.message || 'server validation failed.'
+      }`,
+    };
+  }
+
+  const normalizedDraft = serverCheck.normalizedDraftDocument;
+  const readiness = validateProductPublishReadiness(normalizedDraft);
+  if (!readiness.ready) {
+    return {
+      ok: false,
+      status: 422,
+      blockerCode: 'PUBLISH_VALIDATION_FAILED',
+      blockers: readiness.blockers,
+      warnings: readiness.warnings,
+      lifecycle: readiness.lifecycle,
+      message: `Publish validation blocked "${canonicalId}": ${
+        readiness.blockers[0]?.message || 'one or more required checks failed.'
+      }`,
+    };
+  }
+
+  const existingRefs = await resolveExistingSanityReferenceIds(
+    normalizedDraft,
+    creds
+  );
+
+  const finalizePublishReferences = (val: any): any => {
+    if (Array.isArray(val)) return val.map(finalizePublishReferences);
+    if (val && typeof val === 'object') {
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(val)) {
+        out[k] = finalizePublishReferences(v);
+      }
+      if (out._type === 'reference' && typeof out._ref === 'string') {
+        if (out._ref.startsWith('image-') || existingRefs.has(out._ref)) {
+          delete out._weak;
+        } else {
+          out._weak = true;
+        }
+      }
+      return out;
+    }
+    return val;
+  };
+
+  const publishedPayload: Record<string, any> = {};
+  const clearSet = new Set(serverCheck.clearFields || []);
+  for (const [k, v] of Object.entries(normalizedDraft)) {
+    if (
+      k === '_id' ||
+      k === '_rev' ||
+      k === '_createdAt' ||
+      k === '_updatedAt' ||
+      k === '_clearFields' ||
+      clearSet.has(k)
+    ) {
+      continue;
+    }
+    if (v !== undefined) {
+      publishedPayload[k] = finalizePublishReferences(v);
+    }
+  }
+  for (const pathStr of clearSet) {
+    if (pathStr.includes('.')) {
+      const [parentKey, childKey] = pathStr.split('.');
+      if (
+        publishedPayload[parentKey] &&
+        typeof publishedPayload[parentKey] === 'object'
+      ) {
+        delete publishedPayload[parentKey][childKey];
+      }
+    }
+  }
+
+  publishedPayload._id = canonicalId;
+  publishedPayload._type = 'product';
+  publishedPayload.productId = canonicalId;
+  publishedPayload.status = 'published';
+  publishedPayload.editorialApproved =
+    typeof normalizedDraft.editorialApproved === 'boolean'
+      ? normalizedDraft.editorialApproved
+      : true;
+
+  const mutations: Array<Record<string, any>> = [
+    { createOrReplace: publishedPayload },
+  ];
+  if (existingDraft) {
+    mutations.push({ delete: { id: draftId } });
+  }
+
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}?returnIds=true&returnDocuments=true`;
+  try {
+    const res = await fetch(mutateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${creds.writeToken}`,
+      },
+      body: JSON.stringify({ mutations }),
+    });
+
+    const bodyText = await res.text();
+    if (!res.ok) {
+      return {
+        ok: false,
+        status: res.status,
+        blockerCode: 'NETWORK_OR_API_ERROR',
+        message: `Sanity publish transaction failed with HTTP ${res.status}: ${bodyText.slice(0, 260)}`,
+      };
+    }
+
+    let mutateJson: any = {};
+    try {
+      mutateJson = JSON.parse(bodyText);
+    } catch {}
+
+    const readBack = await fetchPublishedProductFromSanityContentLake(
+      canonicalId,
+      envOverride
+    );
+    if (!readBack || readBack.status !== 'published') {
+      return {
+        ok: false,
+        status: 500,
+        transactionId: mutateJson.transactionId,
+        blockerCode: 'ROUND_TRIP_READ_MISMATCH',
+        message:
+          'Publish transaction succeeded, but the published product could not be read back with perspective=published.',
+      };
+    }
+
+    invalidateSanityPublishedCache();
+
+    let rebuildTriggered = false;
+    const webhookUrl = readServerEnv('ASTRO_REBUILD_WEBHOOK_URL', envOverride);
+    if (webhookUrl && webhookUrl.startsWith('https://')) {
+      try {
+        const hookRes = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'sanity_product_published',
+            productId: canonicalId,
+            slug: readBack.slug?.current || readBack.slug,
+            transactionId: mutateJson.transactionId,
+          }),
+        });
+        rebuildTriggered = hookRes.ok;
+      } catch {
+        rebuildTriggered = false;
+      }
+    }
+
+    const resolvedSlug =
+      typeof readBack.slug === 'string'
+        ? readBack.slug
+        : readBack.slug?.current || canonicalId.replace(/^prod_/, '').replace(/_/g, '-');
+
+    const finalLifecycle = evaluateProductPublicationLifecycle(readBack);
+
+    return {
+      ok: true,
+      status: 200,
+      transactionId: mutateJson.transactionId,
+      publishedDocument: readBack,
+      removedDraftId: existingDraft ? draftId : undefined,
+      lifecycle: finalLifecycle,
+      warnings: readiness.warnings,
+      livePath: `/products/${resolvedSlug}/`,
+      rebuildTriggered,
+      message: `Published "${readBack.title}" (${canonicalId}) to Sanity Content Lake. Live at /products/${resolvedSlug}/.`,
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      status: 500,
+      blockerCode: 'NETWORK_OR_API_ERROR',
+      message: `Network error publishing product to Sanity Content Lake: ${
+        err?.message ?? String(err)
+      }`,
+    };
+  }
+}
+
+/**
+ * Atomically unpublishes a live product (`<id>`) back to draft status (`drafts.<id>`),
+ * preserving all editorial content, media, and taxonomy while deleting the public document
+ * and invalidating the Sanity published cache.
+ */
+export async function unpublishProductInSanityContentLake(
+  input: {
+    document?: Record<string, any>;
+    canonicalId?: string;
+    expectedRev?: string;
+  },
+  envOverride?: Record<string, string | undefined>
+): Promise<UnpublishProductResult> {
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'MISSING_PROJECT_OR_DATASET',
+      message: 'SANITY_STUDIO_PROJECT_ID or SANITY_STUDIO_DATASET is not configured.',
+    };
+  }
+  if (!creds.writeToken) {
+    return {
+      ok: false,
+      status: 403,
+      blockerCode: 'MISSING_WRITE_TOKEN',
+      message: 'Server-side SANITY_API_WRITE_TOKEN is required to unpublish products.',
+    };
+  }
+
+  const rawIdCandidate =
+    input.canonicalId ||
+    input.document?.productId ||
+    input.document?._id ||
+    '';
+  const canonicalId = String(rawIdCandidate).trim().replace(/^drafts\./, '');
+  if (!canonicalId || !/^prod_[a-z0-9_]+$/.test(canonicalId)) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'INVALID_CANONICAL_ID',
+      message:
+        'A valid canonical product ID starting with "prod_" is required to unpublish.',
+    };
+  }
+
+  const draftId = `drafts.${canonicalId}`;
+  const [existingDraft, existingPublished] = await Promise.all([
+    fetchDocumentFromSanityContentLake(draftId, envOverride),
+    fetchDocumentFromSanityContentLake(canonicalId, envOverride),
+  ]);
+
+  if (!existingPublished && !existingDraft) {
+    return {
+      ok: false,
+      status: 404,
+      blockerCode: 'PRODUCT_NOT_FOUND',
+      message: `Neither "${canonicalId}" nor "${draftId}" exists in Sanity Content Lake.`,
+    };
+  }
+
+  if (!existingPublished && existingDraft) {
+    invalidateSanityPublishedCache();
+    return {
+      ok: true,
+      status: 200,
+      draftDocument: existingDraft,
+      unpublishedId: canonicalId,
+      alreadyUnpublished: true,
+      message: `"${existingDraft.title || canonicalId}" is already unpublished (draft only).`,
+    };
+  }
+
+  const activeTarget = existingDraft ?? existingPublished!;
+  const providedRev = String(
+    input.expectedRev || input.document?._rev || ''
+  ).trim();
+  if (providedRev && activeTarget._rev && providedRev !== activeTarget._rev) {
+    return {
+      ok: false,
+      status: 409,
+      blockerCode: 'REVISION_CONFLICT',
+      persistedDocument: activeTarget,
+      message: `Revision conflict detected on "${activeTarget._id}" before unpublishing (${providedRev} vs Sanity ${activeTarget._rev}). Reload before unpublishing.`,
+    };
+  }
+
+  // Prefer explicit caller document (preserves unsaved editorial work), then draft, then published
+  const sourceDoc = input.document ?? existingDraft ?? existingPublished!;
+
+  const serverCheck = validateSanityDraftBeforeServerMutation({
+    ...sourceDoc,
+    _id: draftId,
+    _type: 'product',
+    productId: canonicalId,
+    status: 'draft',
+    editorialApproved: false,
+  });
+
+  if (!serverCheck.validForDraftSave || !serverCheck.normalizedDraftDocument) {
+    return {
+      ok: false,
+      status: 422,
+      blockerCode: 'SERVER_VALIDATION_FAILED',
+      message: `Cannot unpublish "${canonicalId}": ${
+        serverCheck.blockingDraftErrors[0]?.message || 'draft validation failed.'
+      }`,
+    };
+  }
+
+  const normalizedDraft = serverCheck.normalizedDraftDocument;
+  const draftPayload: Record<string, any> = {};
+  const clearSet = new Set(serverCheck.clearFields || []);
+
+  const stripDraftMetadataAndNormalizeRefs = (val: any): any => {
+    if (Array.isArray(val)) return val.map(stripDraftMetadataAndNormalizeRefs);
+    if (val && typeof val === 'object') {
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(val)) {
+        out[k] = stripDraftMetadataAndNormalizeRefs(v);
+      }
+      if (out._type === 'reference' && typeof out._ref === 'string') {
+        if (!out._ref.startsWith('image-')) {
+          out._weak = true;
+        }
+      }
+      return out;
+    }
+    return val;
+  };
+
+  for (const [k, v] of Object.entries(normalizedDraft)) {
+    if (
+      k === '_id' ||
+      k === '_rev' ||
+      k === '_createdAt' ||
+      k === '_updatedAt' ||
+      k === '_clearFields' ||
+      k === '_sourceOrigin' ||
+      k === '_hasPublishedPartner' ||
+      k === '_publishedSlug' ||
+      clearSet.has(k)
+    ) {
+      continue;
+    }
+    if (v !== undefined) {
+      draftPayload[k] = stripDraftMetadataAndNormalizeRefs(v);
+    }
+  }
+
+  draftPayload._id = draftId;
+  draftPayload._type = 'product';
+  draftPayload.productId = canonicalId;
+  draftPayload.status = 'draft';
+  draftPayload.editorialApproved = false;
+
+  const mutations: Array<Record<string, any>> = [
+    { createOrReplace: draftPayload },
+    { delete: { id: canonicalId } },
+  ];
+
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}?returnIds=true&returnDocuments=true`;
+  try {
+    const res = await fetch(mutateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${creds.writeToken}`,
+      },
+      body: JSON.stringify({ mutations }),
+    });
+
+    const bodyText = await res.text();
+    if (!res.ok) {
+      return {
+        ok: false,
+        status: res.status,
+        blockerCode: 'NETWORK_OR_API_ERROR',
+        message: `Sanity unpublish transaction failed with HTTP ${res.status}: ${bodyText.slice(0, 260)}`,
+      };
+    }
+
+    let mutateJson: any = {};
+    try {
+      mutateJson = JSON.parse(bodyText);
+    } catch {}
+
+    const [draftReadBack, publishedReadBack] = await Promise.all([
+      fetchDocumentFromSanityContentLake(draftId, envOverride),
+      fetchPublishedProductFromSanityContentLake(canonicalId, envOverride),
+    ]);
+
+    if (!draftReadBack || publishedReadBack !== null) {
+      return {
+        ok: false,
+        status: 500,
+        transactionId: mutateJson.transactionId,
+        blockerCode: 'ROUND_TRIP_READ_MISMATCH',
+        message:
+          'Unpublish transaction completed, but verification could not confirm draft preservation and published removal.',
+      };
+    }
+
+    invalidateSanityPublishedCache();
+
+    let rebuildTriggered = false;
+    const webhookUrl = readServerEnv('ASTRO_REBUILD_WEBHOOK_URL', envOverride);
+    if (webhookUrl && webhookUrl.startsWith('https://')) {
+      try {
+        const hookRes = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'sanity_product_unpublished',
+            productId: canonicalId,
+            slug: draftReadBack.slug?.current || draftReadBack.slug,
+            transactionId: mutateJson.transactionId,
+          }),
+        });
+        rebuildTriggered = hookRes.ok;
+      } catch {
+        rebuildTriggered = false;
+      }
+    }
+
+    return {
+      ok: true,
+      status: 200,
+      transactionId: mutateJson.transactionId,
+      draftDocument: draftReadBack,
+      unpublishedId: canonicalId,
+      removedPublishedId: canonicalId,
+      rebuildTriggered,
+      message: `Unpublished "${draftReadBack.title || canonicalId}" from the public website and preserved all editorial content in Sanity draft "${draftId}".`,
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      status: 500,
+      blockerCode: 'NETWORK_OR_API_ERROR',
+      message: `Network error unpublishing product in Sanity Content Lake: ${
+        err?.message ?? String(err)
+      }`,
+    };
+  }
+}
+
+/**
+ * Strictly gated cleanup helper ONLY for disposable automated integration test fixtures.
+ * Refuses to touch real editorial products or the Emotional Support hoodie draft.
+ */
+export async function deleteDisposableTestProductFromSanity(
+  canonicalOrDraftId: string,
+  envOverride?: Record<string, string | undefined>
+): Promise<{ ok: boolean; deletedIds: string[]; message: string }> {
+  const cleanId = String(canonicalOrDraftId || '')
+    .trim()
+    .replace(/^drafts\./, '');
+  if (
+    !/^prod_(e2e_verify|checkpoint1_verify|test_disposable)_[a-z0-9_]+$/.test(
+      cleanId
+    )
+  ) {
+    return {
+      ok: false,
+      deletedIds: [],
+      message: `Safety guard blocked deletion of non-disposable product ID "${canonicalOrDraftId}".`,
+    };
+  }
+
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset || !creds.writeToken) {
+    return {
+      ok: false,
+      deletedIds: [],
+      message: 'Missing Sanity credentials or write token.',
+    };
+  }
+
+  const idsToDelete = [`drafts.${cleanId}`, cleanId];
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}`;
+  const res = await fetch(mutateUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${creds.writeToken}`,
+    },
+    body: JSON.stringify({
+      mutations: idsToDelete.map((id) => ({ delete: { id } })),
+    }),
+  });
+
+  invalidateSanityPublishedCache();
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    return {
+      ok: false,
+      deletedIds: [],
+      message: `Cleanup failed (HTTP ${res.status}): ${errText.slice(0, 200)}`,
+    };
+  }
+
+  return {
+    ok: true,
+    deletedIds: idsToDelete,
+    message: `Deleted disposable test fixture documents (${idsToDelete.join(', ')}).`,
+  };
+}
+
 

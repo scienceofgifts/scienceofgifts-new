@@ -8,7 +8,8 @@ import {
 import { ArticleInteractiveIsland } from '../../components/islands/AstroIslands';
 import type { Article } from '../../types/content';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  await contentRepository.ensureSyncedFromSanity();
   const articles = contentRepository.getAllArticles();
   return articles.map((article) => ({
     params: { slug: article.slug },
@@ -20,6 +21,7 @@ interface Props {
   article: Article;
 }
 
+await contentRepository.ensureSyncedFromSanity();
 const { article } = Astro.props;
 const catalog = contentRepository.getCatalogSnapshot();
 const resolvedSeo = resolvePageSeoMetadata({

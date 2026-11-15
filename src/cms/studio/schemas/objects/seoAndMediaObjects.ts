@@ -442,14 +442,14 @@ export const seoMetadataObject = defineType({
       type: 'string',
       fieldset: 'indexingAndSchema',
       description:
-        'Normalized internal path starting and ending with "/" (e.g. "/gift-guides/thoughtful-host-and-gathering-gifts-under-100/"). Cross-domain URLs (such as external merchants) are rejected.',
+        'Internal relative path starting with "/" (e.g. "/products/most-hydrated-filmmaker-water-bottle/" or "/products/most-hydrated-filmmaker-water-bottle"). Trailing slashes are normalized automatically on render and save. Cross-domain URLs are rejected.',
       validation: (Rule) =>
         Rule.optional()
-          .regex(/^\/([a-z0-9-/]*\/)?$/, {
-            name: 'normalized internal path starting and ending with /',
+          .regex(/^\/([a-z0-9-]+(\/[a-z0-9-]+)*\/?)?$/, {
+            name: 'internal relative path starting with /',
           })
           .error(
-            'Canonical path must be an internal path starting and ending with "/" (without query parameters or external domains).'
+            'Canonical path must be a lowercase internal path starting with "/" (without query parameters or external domains).'
           ),
     }),
     defineField({

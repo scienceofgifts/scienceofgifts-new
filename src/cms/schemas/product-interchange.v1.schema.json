@@ -505,7 +505,7 @@
       "properties": {
         "seoTitle": { "type": "string", "minLength": 15, "maxLength": 65 },
         "metaDescription": { "type": "string", "minLength": 50, "maxLength": 160 },
-        "canonicalPath": { "type": "string", "pattern": "^/products/[a-z0-9-]+$" },
+        "canonicalPath": { "type": "string", "pattern": "^/products/[a-z0-9-]+/?$" },
         "ogTitle": { "type": ["string", "null"], "maxLength": 70 },
         "ogDescription": { "type": ["string", "null"], "maxLength": 200 },
         "ogImage": { "type": ["string", "null"], "pattern": "^https://" },

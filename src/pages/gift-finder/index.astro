@@ -8,6 +8,7 @@ import {
 } from '../../utils/seoAndValidation';
 import { GiftFinderInteractiveIsland } from '../../components/islands/AstroIslands';
 
+await contentRepository.ensureSyncedFromSanity();
 const products = contentRepository.getAllProducts();
 const indexableProducts = products.filter(
   (product) => evaluateProductCommerceReadiness(product).canIndexProductPage

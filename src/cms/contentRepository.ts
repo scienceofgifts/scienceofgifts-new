@@ -959,10 +959,66 @@ export function createContentRepository(store: LocalCMSContentStore = defaultSto
   const editorialHubs: Record<string, EditorialHubConfig> = structuredClone(
     INITIAL_EDITORIAL_HUBS
   );
+  let lastSyncedCacheVersion = -1;
+  let inFlightSyncPromise: Promise<{ syncedCount: number; fromCache: boolean }> | null =
+    null;
 
   return {
     getStore(): LocalCMSContentStore {
       return store;
+    },
+
+    applyPublishedSanityProducts(sanityProducts: Product[]): void {
+      store.applyPublishedSanityProducts(sanityProducts);
+    },
+
+    async ensureSyncedFromSanity(options?: {
+      forceRefresh?: boolean;
+      envOverride?: Record<string, string | undefined>;
+    }): Promise<{ syncedCount: number; fromCache: boolean }> {
+      if (!(import.meta.env?.SSR ?? true)) {
+        return { syncedCount: 0, fromCache: true };
+      }
+      if (typeof window !== 'undefined' || typeof process === 'undefined' || !process.versions?.node) {
+        return { syncedCount: 0, fromCache: true };
+      }
+      if (inFlightSyncPromise && !options?.forceRefresh && !options?.envOverride) {
+        return inFlightSyncPromise;
+      }
+
+      const {
+        getSanityPublishedCacheVersion,
+        loadPublishedSanityProducts,
+      } = await import('./sanityPublishedLoader');
+
+      const currentVersion = getSanityPublishedCacheVersion();
+      const shouldForce =
+        Boolean(options?.forceRefresh) || currentVersion !== lastSyncedCacheVersion;
+
+      const task = (async () => {
+        const result = await loadPublishedSanityProducts({
+          forceRefresh: shouldForce,
+          envOverride: options?.envOverride,
+        });
+        store.applyPublishedSanityProducts(result.products);
+        lastSyncedCacheVersion = getSanityPublishedCacheVersion();
+        return {
+          syncedCount: result.products.length,
+          fromCache: result.fromCache,
+        };
+      })();
+
+      if (!options?.envOverride) {
+        inFlightSyncPromise = task;
+      }
+
+      try {
+        return await task;
+      } finally {
+        if (inFlightSyncPromise === task) {
+          inFlightSyncPromise = null;
+        }
+      }
     },
 
     getCatalogSnapshot(options?: {

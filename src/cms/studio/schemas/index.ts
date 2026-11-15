@@ -28,6 +28,25 @@ import { authorDocument } from './documents/author';
 import { researchCitationDocument } from './documents/researchCitation';
 import { publicationInfoPageDocument } from './documents/publicationInfoPage';
 import { siteSettingsDocument } from './documents/siteSettings';
+import {
+  aiWritingLengthGuidanceObject,
+  aiWritingProfileDocument,
+  aiWritingSectionInstructionsObject,
+  DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+  type AiWritingLengthGuidance,
+  type AiWritingProfileDocument,
+  type AiWritingSectionInstructions,
+} from './documents/aiWritingProfile';
+
+export {
+  aiWritingLengthGuidanceObject,
+  aiWritingProfileDocument,
+  aiWritingSectionInstructionsObject,
+  DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+  type AiWritingLengthGuidance,
+  type AiWritingProfileDocument,
+  type AiWritingSectionInstructions,
+};
 
 // Reusable Object Schemas
 import {
@@ -108,7 +127,15 @@ export const SANITY_DOCUMENT_SCHEMAS: SanityTypeSpec[] = [
 ];
 
 /**
- * All 33 reusable Sanity object types (the 20 primary editorial objects + 13 typed sub-objects
+ * Official Sanity Studio document schemas (includes `aiWritingProfile` alongside the 9 core documents).
+ */
+export const OFFICIAL_SANITY_DOCUMENT_SCHEMAS: SanityTypeSpec[] = [
+  ...SANITY_DOCUMENT_SCHEMAS,
+  aiWritingProfileDocument,
+];
+
+/**
+ * All 42 reusable Sanity object types (the 20 primary editorial objects + typed sub-objects
  * so that no schema ever relies on an untyped anonymous object).
  */
 export const SANITY_OBJECT_SCHEMAS: SanityTypeSpec[] = [
@@ -165,9 +192,20 @@ export const SANITY_OBJECT_SCHEMAS: SanityTypeSpec[] = [
   publicationInfoSectionObject,
 ];
 
+export const OFFICIAL_SANITY_OBJECT_SCHEMAS: SanityTypeSpec[] = [
+  ...SANITY_OBJECT_SCHEMAS,
+  aiWritingSectionInstructionsObject,
+  aiWritingLengthGuidanceObject,
+];
+
 export const ALL_SANITY_STUDIO_TYPES: SanityTypeSpec[] = [
   ...SANITY_DOCUMENT_SCHEMAS,
   ...SANITY_OBJECT_SCHEMAS,
+];
+
+export const OFFICIAL_SANITY_STUDIO_TYPES: SanityTypeSpec[] = [
+  ...OFFICIAL_SANITY_DOCUMENT_SCHEMAS,
+  ...OFFICIAL_SANITY_OBJECT_SCHEMAS,
 ];
 
 const BUILTIN_SANITY_TYPES = new Set<SanityPrimitiveType>([

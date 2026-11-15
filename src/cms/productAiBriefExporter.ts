@@ -35,6 +35,10 @@ import {
   PRODUCT_CATEGORY_OPTIONS,
   RECIPIENT_OPTIONS,
 } from './studio/taxonomyRegistry';
+import {
+  DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+  type AiWritingProfileDocument,
+} from './studio/schemas/documents/aiWritingProfile';
 
 export interface ProductAiBriefSourceInput {
   /**
@@ -68,11 +72,45 @@ export interface ProductAiBriefSourceInput {
   additionalSourceNotes?: string;
   /** Optional revision instructions when `mode === "revision"`. */
   revisionGoals?: string;
-  /**
-   * Optional existing product record (from Sanity drafts or local catalog).
-   * If omitted, the exporter automatically checks whether `productUrl` matches an existing product.
-   */
+  /** Optional existing product record (from Sanity drafts or local catalog). */
   existingProduct?: Product | Record<string, any> | null;
+  /** Optional merchant description extracted from the product page. */
+  knownDescription?: string;
+  /** Optional currency code retrieved from the product page (e.g. USD). */
+  knownCurrency?: string;
+  /** Optional human-readable availability label (e.g. "In Stock", "Out of Stock", "Pre-Order"). */
+  knownAvailabilityLabel?: string;
+  /** Optional materials extracted from merchant specs/JSON-LD. */
+  knownMaterials?: string[];
+  /** Optional physical dimensions or weight string extracted from merchant page. */
+  knownDimensions?: string;
+  /** Optional structured technical specifications retrieved from the merchant URL. */
+  knownSpecifications?: Array<{ label: string; value: string; source?: string }>;
+  /** Optional variant list retrieved from the merchant URL. */
+  knownVariants?: Array<{
+    title: string;
+    price?: number | null;
+    inStock?: boolean | null;
+    sku?: string | null;
+  }>;
+  /** Optional size options retrieved from the merchant URL. */
+  knownSizes?: string[];
+  /** Optional color/finish options retrieved from the merchant URL. */
+  knownColors?: string[];
+  /** True when price/stock were auto-extracted from merchant HTML/JSON rather than confirmed by editor. */
+  retrievedFromUrl?: boolean;
+  /** Explicit editor confirmation that the displayed price was verified. */
+  knownPriceConfirmed?: boolean;
+  /** Explicit editor confirmation that stock status was verified. */
+  knownStockConfirmed?: boolean;
+  /** List of fields reported missing by the URL extractor. */
+  missingRetrievedFields?: string[];
+  /** List of extracted fields requiring independent editorial verification. */
+  unverifiedRetrievedFields?: string[];
+  /** Provenance sources reported by the extractor (e.g. json-ld, shopify-json, open-graph). */
+  extractionSources?: string[];
+  /** Optional Sanity AI Writing Profile selected by the editor. */
+  writingProfile?: AiWritingProfileDocument | null;
 }
 
 export interface GeneratedProductAiBrief {
@@ -84,6 +122,10 @@ export interface GeneratedProductAiBrief {
   slugSuggestion: string;
   markdownBrief: string;
   templatePayload: ProductInterchangeCreatePayloadV1 | ProductInterchangeRevisionPayloadV1;
+  writingProfileUsed: {
+    profileId: string;
+    name: string;
+  };
 }
 
 export function isPlaceholderUrlOrLink(url?: string | null, isPlaceholderFlag?: boolean): boolean {
@@ -276,12 +318,14 @@ export function buildBriefTemplatePayload(
   const priceVerified = Boolean(
     typeof resolvedPrice === 'number' &&
       resolvedPrice > 0 &&
-      (input.knownPrice !== undefined ||
+      ((input.knownPrice !== undefined &&
+        (!input.retrievedFromUrl || input.knownPriceConfirmed === true)) ||
         existingInterchange?.factualContext.priceVerification.verified)
   );
   const inventoryVerified = Boolean(
     typeof resolvedInStock === 'boolean' &&
-      (input.knownInStock !== undefined ||
+      ((input.knownInStock !== undefined &&
+        (!input.retrievedFromUrl || input.knownStockConfirmed === true)) ||
         existingInterchange?.factualContext.inventoryVerification.verified)
   );
 
@@ -315,12 +359,21 @@ export function buildBriefTemplatePayload(
           width: Number(img.width) || 2400,
           height: Number(img.height) || 2400,
         }))
+      : input.knownImageUrls && input.knownImageUrls.length > 0
+      ? input.knownImageUrls.slice(0, 6).map((url, idx) => ({
+          id: `img_${slugSuggestion.replace(/-/g, '_')}_${String(idx + 1).padStart(2, '0')}`,
+          url,
+          alt: `${input.knownTitle?.trim() || slugSuggestion} product photograph ${idx + 1}`,
+          fitMode: 'cover' as const,
+          fallbackColor: '#F6F4EF',
+          focalPoint: { x: 0.5, y: 0.5 },
+          width: 2400,
+          height: 2400,
+        }))
       : [
           {
             id: `img_${slugSuggestion.replace(/-/g, '_')}_01`,
-            url:
-              (input.knownImageUrls && input.knownImageUrls[0]) ||
-              'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1600&q=85',
+            url: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=1600&q=85',
             alt: `${input.knownTitle?.trim() || slugSuggestion} product photograph`,
             fitMode: 'cover' as const,
             fallbackColor: '#F6F4EF',
@@ -329,6 +382,12 @@ export function buildBriefTemplatePayload(
             height: 2400,
           },
         ];
+
+  const retrievedSpecsList = Array.isArray(input.knownSpecifications)
+    ? input.knownSpecifications
+        .filter((s) => s?.label?.trim() && s?.value?.trim())
+        .map((s) => ({ label: s.label.trim(), value: s.value.trim() }))
+    : [];
 
   return {
     schemaVersion: PRODUCT_INTERCHANGE_SCHEMA_VERSION,
@@ -345,7 +404,10 @@ export function buildBriefTemplatePayload(
       price: resolvedPrice,
       currency: 'USD',
       inStock: resolvedInStock,
-      availabilityNote: existingInterchange?.factualContext.availabilityNote ?? null,
+      availabilityNote:
+        input.knownAvailabilityLabel?.trim() ||
+        existingInterchange?.factualContext.availabilityNote ||
+        null,
       commerceProvider:
         input.commerceProvider || existingInterchange?.factualContext.commerceProvider || 'affiliate',
       fulfillmentClassification:
@@ -362,6 +424,8 @@ export function buildBriefTemplatePayload(
         verifiedAt: priceVerified ? new Date().toISOString() : null,
         evidenceNote: priceVerified
           ? 'Verified directly from the merchant product page.'
+          : input.retrievedFromUrl && typeof resolvedPrice === 'number' && resolvedPrice > 0
+          ? `Auto-extracted from merchant markup (${input.knownCurrency?.trim().toUpperCase() || 'USD'}); awaiting editor confirmation.`
           : null,
       },
       inventoryVerification: {
@@ -370,17 +434,24 @@ export function buildBriefTemplatePayload(
         verifiedAt: inventoryVerified ? new Date().toISOString() : null,
       },
       specifications:
-        existingInterchange?.factualContext.specifications &&
-        existingInterchange.factualContext.specifications.length > 0
+        retrievedSpecsList.length > 0
+          ? retrievedSpecsList
+          : existingInterchange?.factualContext.specifications &&
+            existingInterchange.factualContext.specifications.length > 0
           ? existingInterchange.factualContext.specifications
           : [
               {
                 label: 'Materials',
-                value: 'Verified material composition from merchant page (do not guess)',
+                value:
+                  input.knownMaterials && input.knownMaterials.length > 0
+                    ? input.knownMaterials.join(', ')
+                    : 'Verified material composition from merchant page (do not guess)',
               },
               {
                 label: 'Dimensions / Capacity',
-                value: 'Verified dimensions or capacity (or state "Dimensions not listed by maker")',
+                value:
+                  input.knownDimensions?.trim() ||
+                  'Verified dimensions or capacity (or state "Dimensions not listed by maker")',
               },
               {
                 label: 'Care',
@@ -529,7 +600,10 @@ export function buildBriefTemplatePayload(
     seo: {
       seoTitle:
         existingInterchange?.seo.seoTitle ||
-        `${input.knownTitle?.trim() || 'Product Name'} Review & Gift Guide | Science of Gifts`,
+        `${(input.knownTitle?.trim() || 'Product Name').slice(0, 44)} | Science of Gifts`.slice(
+          0,
+          65
+        ),
       metaDescription:
         existingInterchange?.seo.metaDescription ||
         'Thoughtful editorial gift evaluation exploring craftsmanship, recipient fit, and daily ritual value.',
@@ -679,13 +753,26 @@ export function generateProductAiWritingBrief(
   if (input.purchaseDestinationUrl?.trim()) {
     sourceFactsLines.push(`- **Separate Purchase / Affiliate Link**: \`${input.purchaseDestinationUrl.trim()}\``);
   }
+  if (input.knownTitle?.trim()) {
+    sourceFactsLines.push(`- **Merchant Product Title**: ${input.knownTitle.trim()}`);
+  }
   if (input.knownVendor?.trim()) {
     sourceFactsLines.push(`- **Confirmed Maker / Brand**: ${input.knownVendor.trim()}`);
   }
-  if (input.knownPrice !== undefined && input.knownPrice !== null) {
-    sourceFactsLines.push(`- **Verified Retail Price (USD)**: $${input.knownPrice}`);
+  if (
+    input.knownPrice !== undefined &&
+    input.knownPrice !== null &&
+    (!input.retrievedFromUrl || input.knownPriceConfirmed === true)
+  ) {
+    sourceFactsLines.push(
+      `- **Verified Retail Price (${input.knownCurrency?.trim().toUpperCase() || 'USD'})**: $${input.knownPrice}`
+    );
   }
-  if (input.knownInStock !== undefined && input.knownInStock !== null) {
+  if (
+    input.knownInStock !== undefined &&
+    input.knownInStock !== null &&
+    (!input.retrievedFromUrl || input.knownStockConfirmed === true)
+  ) {
     sourceFactsLines.push(`- **Verified Stock Availability**: ${String(input.knownInStock)}`);
   }
   const activeGalleryImages =
@@ -709,9 +796,89 @@ export function generateProductAiWritingBrief(
       );
     });
   } else if (input.knownImageUrls && input.knownImageUrls.length > 0) {
-    sourceFactsLines.push(`- **Verified Image Assets Provided**: ${input.knownImageUrls.length} image URL(s)`);
+    sourceFactsLines.push(`- **Retrieved Image Assets Provided (${input.knownImageUrls.length})**:`);
     for (const url of input.knownImageUrls) {
       sourceFactsLines.push(`  - \`${url}\``);
+    }
+  }
+
+  const hasRetrievedDetails =
+    Boolean(input.retrievedFromUrl) ||
+    Boolean(input.knownDescription?.trim()) ||
+    Boolean(input.knownMaterials?.length) ||
+    Boolean(input.knownDimensions?.trim()) ||
+    Boolean(input.knownSpecifications?.length) ||
+    Boolean(input.knownVariants?.length) ||
+    Boolean(input.knownSizes?.length) ||
+    Boolean(input.knownColors?.length);
+
+  if (hasRetrievedDetails) {
+    sourceFactsLines.push('\n#### Retrieved Merchant Page Details (Structured Extraction)');
+    if (input.extractionSources && input.extractionSources.length > 0) {
+      sourceFactsLines.push(`- **Extraction Provenance**: ${input.extractionSources.join(', ')}`);
+    }
+    if (
+      input.knownPrice !== undefined &&
+      input.knownPrice !== null &&
+      input.retrievedFromUrl &&
+      input.knownPriceConfirmed !== true
+    ) {
+      sourceFactsLines.push(
+        `- **Retrieved Retail Price (UNVERIFIED)**: ${input.knownPrice} ${
+          input.knownCurrency?.trim().toUpperCase() || 'USD'
+        } (Editor confirmation required before marking verified)`
+      );
+    }
+    if (
+      input.knownInStock !== undefined &&
+      input.knownInStock !== null &&
+      input.retrievedFromUrl &&
+      input.knownStockConfirmed !== true
+    ) {
+      sourceFactsLines.push(
+        `- **Retrieved Stock Availability (UNVERIFIED)**: ${
+          input.knownAvailabilityLabel || (input.knownInStock ? 'In Stock' : 'Out of Stock')
+        } (Confirm live availability before marking verified)`
+      );
+    }
+    if (input.knownDescription?.trim()) {
+      sourceFactsLines.push(`- **Merchant Description**: ${input.knownDescription.trim().slice(0, 1400)}`);
+    }
+    if (input.knownMaterials && input.knownMaterials.length > 0) {
+      sourceFactsLines.push(`- **Materials**: ${input.knownMaterials.join(', ')}`);
+    }
+    if (input.knownDimensions?.trim()) {
+      sourceFactsLines.push(`- **Dimensions / Weight**: ${input.knownDimensions.trim()}`);
+    }
+    if (input.knownSizes && input.knownSizes.length > 0) {
+      sourceFactsLines.push(`- **Available Sizes**: ${input.knownSizes.join(', ')}`);
+    }
+    if (input.knownColors && input.knownColors.length > 0) {
+      sourceFactsLines.push(`- **Available Colors / Finishes**: ${input.knownColors.join(', ')}`);
+    }
+    if (input.knownVariants && input.knownVariants.length > 0) {
+      const variantLines = input.knownVariants
+        .slice(0, 12)
+        .map(
+          (v) =>
+            `${v.title}${typeof v.price === 'number' ? ` ($${v.price})` : ''}${
+              v.sku ? ` [SKU: ${v.sku}]` : ''
+            }`
+        )
+        .join('; ');
+      sourceFactsLines.push(`- **Merchant Variants (${input.knownVariants.length})**: ${variantLines}`);
+    }
+    if (input.knownSpecifications && input.knownSpecifications.length > 0) {
+      sourceFactsLines.push('- **Retrieved Specifications**:');
+      for (const spec of input.knownSpecifications.slice(0, 15)) {
+        sourceFactsLines.push(`  - **${spec.label}**: ${spec.value}`);
+      }
+    }
+    if (input.unverifiedRetrievedFields && input.unverifiedRetrievedFields.length > 0) {
+      sourceFactsLines.push('- **Unverified Retrieved Fields**:');
+      for (const item of input.unverifiedRetrievedFields) {
+        sourceFactsLines.push(`  - ${item}`);
+      }
     }
   }
 
@@ -739,12 +906,17 @@ export function generateProductAiWritingBrief(
   }
 
   sourceFactsLines.push('\n#### C. Unresolved / Unknown Facts Requiring Research or Null Flags');
-  if (input.knownPrice === undefined && (!existingInterchange || existingInterchange.factualContext.price === null)) {
+  if (input.missingRetrievedFields && input.missingRetrievedFields.length > 0) {
+    sourceFactsLines.push(
+      `- **Missing Fields From Automated Extraction**: ${input.missingRetrievedFields.join(', ')}. Do NOT invent missing facts; leave as \`null\` or omit unless directly confirmed from the merchant page.`
+    );
+  }
+  if ((input.knownPrice === undefined || input.knownPrice === null) && (!existingInterchange || existingInterchange.factualContext.price === null)) {
     sourceFactsLines.push(
       '- **Retail Price**: Unknown. If you have live web browsing enabled, extract the exact USD retail price. If browsing is unavailable or price is unlisted, set `"price": null` with `"verified": false`.'
     );
   }
-  if (input.knownInStock === undefined && (!existingInterchange || existingInterchange.factualContext.inStock === null)) {
+  if ((input.knownInStock === undefined || input.knownInStock === null) && (!existingInterchange || existingInterchange.factualContext.inStock === null)) {
     sourceFactsLines.push(
       '- **Inventory Status**: Unknown. If not verified via live browsing, set `"inStock": null` with `"verified": false`.'
     );
@@ -785,10 +957,26 @@ export function generateProductAiWritingBrief(
 `;
   }
 
+  const activeProfile: AiWritingProfileDocument =
+    input.writingProfile && input.writingProfile.editorialVoiceAndStyle
+      ? input.writingProfile
+      : DEFAULT_PRODUCT_AI_WRITING_PROFILE;
+
+  const profileObjectivesList = (activeProfile.writingObjectives || [])
+    .map((obj, idx) => `${idx + 1}. ${obj}`)
+    .join('\n');
+  const profileAvoidList = (activeProfile.avoidPhrasesAndApproaches || [])
+    .map((phrase) => `- \`${phrase}\``)
+    .join('\n');
+  const profileExamplesList = (activeProfile.preferredExamples || [])
+    .map((ex) => `> ${ex}`)
+    .join('\n\n');
+
   const markdownBrief = `# Science of Gifts — AI Editorial Writing Brief
 **Document Version:** Canonical Product Interchange Schema v${PRODUCT_INTERCHANGE_SCHEMA_VERSION}  
 **Format Identifier:** \`${PRODUCT_INTERCHANGE_FORMAT_ID}\`  
-**Execution Mode:** \`${mode}\` (${mode === 'revision' ? 'Updating targeted fields on an existing product' : 'Creating a complete new editorial product profile'})
+**Execution Mode:** \`${mode}\` (${mode === 'revision' ? 'Updating targeted fields on an existing product' : 'Creating a complete new editorial product profile'})  
+**Active AI Writing Profile:** ${activeProfile.name} (\`${activeProfile.profileId}\`)
 
 You are writing a publication-grade editorial product profile for **Science of Gifts**, a research-grounded gift recommendation publication.
 
@@ -812,6 +1000,33 @@ ${readOnlyExistingContext}
 
 Write nuanced, intelligent, human-sounding editorial prose designed for discerning gift givers.
 
+### Active Writing Profile: ${activeProfile.name} (\`${activeProfile.profileId}\`)
+${activeProfile.editorialVoiceAndStyle}
+
+#### Profile Writing Objectives
+${profileObjectivesList}
+
+#### Section-by-Section Profile Instructions
+- **Why to Give It (\`editorialProfile.whyToGiveIt\`)**: ${activeProfile.sectionInstructions?.whyToGiveIt || ''} (${activeProfile.recommendedLengths?.whyToGiveItRange || '160–420 chars'})
+- **Four-Part Gift Verdict (\`editorialProfile.giftVerdict\`)**: ${activeProfile.sectionInstructions?.giftVerdict || ''} (${activeProfile.recommendedLengths?.verdictAssessmentRange || '120–320 chars per sub-field'})
+- **Ideal Recipient Profile (\`editorialProfile.idealRecipientProfile\`)**: ${activeProfile.sectionInstructions?.idealRecipientProfile || ''} (${activeProfile.recommendedLengths?.recipientNarrativeRange || '140–360 chars'})
+- **Extended Gift Rationale (\`editorialProfile.extendedGiftRationale\`)**: ${activeProfile.sectionInstructions?.extendedGiftRationale || ''} (${activeProfile.recommendedLengths?.extendedRationaleParagraphs || '2–3 paragraphs'})
+- **Buying Considerations (\`editorialProfile.buyingConsiderations\`)**: ${activeProfile.sectionInstructions?.buyingConsiderations || ''} (${activeProfile.recommendedLengths?.buyingConsiderationsCount || '3–4 considerations'})
+- **Occasion Fit & Context Notes (\`editorialProfile.occasionContextNotes\`)**: ${activeProfile.sectionInstructions?.occasionContextNotes || ''}
+- **Supporting Metadata & SEO**: ${activeProfile.sectionInstructions?.supportingMetadataAndSeo || ''} (Subtitle: ${activeProfile.recommendedLengths?.subtitleRange || '60–130 chars'})
+
+${
+  profileExamplesList
+    ? `#### Preferred Editorial Examples\n${profileExamplesList}\n`
+    : ''
+}
+#### Phrases & Approaches to Avoid
+${profileAvoidList}
+${
+  activeProfile.additionalCustomInstructions
+    ? `\n#### Additional Custom Profile Instructions\n${activeProfile.additionalCustomInstructions}\n`
+    : ''
+}
 ### Core Editorial Pillars
 1. **The Central Concept & Material Honesty**:
    - What makes this object interesting, beautiful, or useful?
@@ -932,5 +1147,9 @@ ${fieldCoverageTableRows}
     slugSuggestion,
     markdownBrief,
     templatePayload,
+    writingProfileUsed: {
+      profileId: activeProfile.profileId,
+      name: activeProfile.name,
+    },
   };
 }

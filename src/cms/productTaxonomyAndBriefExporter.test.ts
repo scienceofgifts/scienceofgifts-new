@@ -552,14 +552,15 @@ export function runProductTaxonomyAndBriefExporterTests(): {
     assert.ok(draftValidation.unverifiedFactFlags.some((f) => f.field === 'price'));
     assert.ok(draftValidation.unverifiedFactFlags.some((f) => f.field === 'inStock'));
 
-    // 2. Verify PUBLICATION readiness validator STRICTLY blocks live publishing
+    // 2. Verify PUBLICATION readiness validator blocks placeholder URL and empty images while warning on unverified commerce
     const pubCheck = validateProductPublicationReadiness(incompleteDraftPayload);
     assert.equal(pubCheck.ready, false, 'Incomplete draft must NOT be ready for publication');
     assert.ok(pubCheck.blockers.some((b) => b.field === 'purchaseUrl'), 'Must block placeholder URL');
-    assert.ok(pubCheck.blockers.some((b) => b.field === 'price'), 'Must block null price');
     assert.ok(pubCheck.blockers.some((b) => b.field === 'images'), 'Must block empty image collection');
+    assert.ok(pubCheck.warnings.some((w) => w.field === 'price'), 'Missing price should warn without blocking editorial publish');
+    assert.ok(pubCheck.warnings.some((w) => w.field === 'inStock'), 'Missing inStock should warn without blocking editorial publish');
 
-    recordPass('Workflow D: Placeholder URLs detected, draft allows unresolved facts/empty images, and publication validator strictly blocks incomplete drafts');
+    recordPass('Workflow D: Placeholder URLs and empty images block publish while unverified price/stock warn cleanly');
   }
 
   // =========================================================================

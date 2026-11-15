@@ -293,7 +293,11 @@ export const ProductAiWorkflowModal: React.FC<ProductAiWorkflowModalProps> = ({
   const buildCandidateSanityDocumentFromEditable = (): SanityStudioDocument | null => {
     if (!editableCreatePayload) return null;
     const existingDraftId = importReport?.candidateSanityDraft?._id;
-    const existingRev = importReport?.candidateSanityDraft?._rev;
+    const matchedWorkspaceDoc = existingDraftId
+      ? workspaceDocuments.find((d) => d._id === existingDraftId)
+      : undefined;
+    const existingRev =
+      importReport?.candidateSanityDraft?._rev ?? matchedWorkspaceDoc?._rev;
     const draft = mapInterchangeToSanityProductDraft(editableCreatePayload, {
       existingDraftId,
       existingRev,
@@ -1164,8 +1168,13 @@ export const ProductAiWorkflowModal: React.FC<ProductAiWorkflowModalProps> = ({
                           value={editableCreatePayload.factualContext.price ?? ''}
                           onChange={(e) => {
                             const raw = e.target.value;
+                            const parsed = raw.trim() === '' ? null : Number(raw);
                             const num =
-                              raw.trim() === '' ? null : Math.max(0, Number(raw));
+                              parsed !== null &&
+                              Number.isFinite(parsed) &&
+                              parsed > 0
+                                ? parsed
+                                : null;
                             setEditableCreatePayload((prev) => {
                               if (!prev) return prev;
                               return {
@@ -1173,17 +1182,27 @@ export const ProductAiWorkflowModal: React.FC<ProductAiWorkflowModalProps> = ({
                                 factualContext: {
                                   ...prev.factualContext,
                                   price: num,
+                                  ...(num === null
+                                    ? {
+                                        priceVerification: {
+                                          verified: false,
+                                          source: 'unverified',
+                                          verifiedAt: null,
+                                          evidenceNote: null,
+                                        },
+                                      }
+                                    : {}),
                                 },
                                 taxonomy: {
                                   ...prev.taxonomy,
                                   budgetTier:
-                                    num && num > 0
+                                    num !== null
                                       ? deriveBudgetTierFromPrice(num)
-                                      : prev.taxonomy.budgetTier,
+                                      : null,
                                   guidePriceBucket:
-                                    num && num > 0
+                                    num !== null
                                       ? deriveGuidePriceBucketFromPrice(num)
-                                      : prev.taxonomy.guidePriceBucket,
+                                      : null,
                                 },
                               };
                             });
@@ -1224,33 +1243,80 @@ export const ProductAiWorkflowModal: React.FC<ProductAiWorkflowModalProps> = ({
                         </select>
                       </div>
                       <div className="col-span-2 flex flex-wrap items-center gap-4 pt-1">
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(editableCreatePayload.factualContext.inStock)}
+                        <label className="inline-flex items-center gap-1.5">
+                          <span className="font-semibold text-[#0F172A]">Stock:</span>
+                          <select
+                            value={
+                              currentEditableInStock === true
+                                ? 'true'
+                                : currentEditableInStock === false
+                                ? 'false'
+                                : 'unknown'
+                            }
                             onChange={(e) => {
-                              const checked = e.target.checked;
+                              const v = e.target.value;
+                              const nextInStock =
+                                v === 'true'
+                                  ? true
+                                  : v === 'false'
+                                  ? false
+                                  : null;
                               setEditableCreatePayload((prev) =>
                                 prev
                                   ? {
                                       ...prev,
                                       factualContext: {
                                         ...prev.factualContext,
-                                        inStock: checked,
+                                        inStock: nextInStock,
+                                        inventoryVerification: {
+                                          verified: false,
+                                          source:
+                                            nextInStock === null
+                                              ? 'unverified'
+                                              : prev.factualContext
+                                                  .inventoryVerification.source ||
+                                                'unverified',
+                                          verifiedAt: null,
+                                        },
                                       },
                                     }
                                   : prev
                               );
                               setSaveState('unsaved');
                             }}
-                          />
-                          <span>In Stock</span>
+                            className="px-2 py-1 rounded-md border border-[#CBD5E1] bg-white text-xs"
+                          >
+                            <option value="unknown">Unknown / Unverified</option>
+                            <option value="true">In Stock</option>
+                            <option value="false">Out of Stock</option>
+                          </select>
                         </label>
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <label
+                          className={`inline-flex items-center gap-2 ${
+                            typeof currentEditablePrice === 'number' &&
+                            currentEditablePrice > 0
+                              ? 'cursor-pointer'
+                              : 'cursor-not-allowed opacity-60'
+                          }`}
+                        >
                           <input
                             type="checkbox"
+                            disabled={
+                              !(
+                                typeof currentEditablePrice === 'number' &&
+                                currentEditablePrice > 0
+                              )
+                            }
                             checked={currentPriceVerified}
                             onChange={(e) => {
+                              if (
+                                !(
+                                  typeof currentEditablePrice === 'number' &&
+                                  currentEditablePrice > 0
+                                )
+                              ) {
+                                return;
+                              }
                               const checked = e.target.checked;
                               setEditableCreatePayload((prev) =>
                                 prev
@@ -1266,9 +1332,11 @@ export const ProductAiWorkflowModal: React.FC<ProductAiWorkflowModalProps> = ({
                                           verifiedAt: checked
                                             ? new Date().toISOString()
                                             : null,
-                                          evidenceNote:
-                                            prev.factualContext.priceVerification
-                                              .evidenceNote ?? null,
+                                          evidenceNote: checked
+                                            ? prev.factualContext
+                                                .priceVerification.evidenceNote ??
+                                              null
+                                            : null,
                                         },
                                       },
                                     }
@@ -1279,11 +1347,21 @@ export const ProductAiWorkflowModal: React.FC<ProductAiWorkflowModalProps> = ({
                           />
                           <span>Mark Price Verified</span>
                         </label>
-                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                        <label
+                          className={`inline-flex items-center gap-2 ${
+                            typeof currentEditableInStock === 'boolean'
+                              ? 'cursor-pointer'
+                              : 'cursor-not-allowed opacity-60'
+                          }`}
+                        >
                           <input
                             type="checkbox"
+                            disabled={typeof currentEditableInStock !== 'boolean'}
                             checked={currentInventoryVerified}
                             onChange={(e) => {
+                              if (typeof currentEditableInStock !== 'boolean') {
+                                return;
+                              }
                               const checked = e.target.checked;
                               setEditableCreatePayload((prev) =>
                                 prev

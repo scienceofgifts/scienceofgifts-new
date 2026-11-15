@@ -7,6 +7,7 @@ import {
 } from '../../utils/seoAndValidation';
 import { ArticlesDirectoryView } from '../../components/ArticlesDirectoryView';
 
+await contentRepository.ensureSyncedFromSanity();
 const directoryData = contentRepository.getArticlesDirectoryData();
 const allArticles = contentRepository.getAllArticles();
 const dirSeoEntry = contentRepository.getDirectorySeoEntry('/articles/');

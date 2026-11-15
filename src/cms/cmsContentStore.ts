@@ -36,6 +36,7 @@ export interface SiteSettingsDocument {
  *   to every referencing `GiftGuide` and `Article` without duplicating product data.
  */
 export class LocalCMSContentStore {
+  private readonly baselineProducts: Record<string, Product>;
   private products: Record<string, Product>;
   private citations: Record<string, ResearchCitation>;
   private authors: Record<string, Author>;
@@ -44,7 +45,10 @@ export class LocalCMSContentStore {
   private siteSettings: SiteSettingsDocument;
 
   constructor(seedFromDefaultCatalog = true) {
-    this.products = seedFromDefaultCatalog ? structuredClone(PRODUCTS) : {};
+    this.baselineProducts = seedFromDefaultCatalog
+      ? structuredClone(PRODUCTS)
+      : {};
+    this.products = structuredClone(this.baselineProducts);
     this.citations = seedFromDefaultCatalog ? structuredClone(CITATIONS) : {};
     this.authors = seedFromDefaultCatalog ? structuredClone(AUTHORS) : {};
     this.guides = new Map(
@@ -64,6 +68,34 @@ export class LocalCMSContentStore {
       defaultAffiliateDisclosure:
         'Science of Gifts is reader-supported. When you buy through links on our site, we may earn an affiliate commission at no extra cost to you.',
     };
+  }
+
+  /**
+   * Merges published Sanity Content Lake products over the local reference baseline.
+   * Published Sanity products authoritatively override any matching local catalog
+   * product by canonical `id` or `slug` with zero duplicates, while drafts are never included.
+   */
+  public applyPublishedSanityProducts(sanityProducts: Product[]): void {
+    const merged: Record<string, Product> = structuredClone(this.baselineProducts);
+    for (const sanityProduct of sanityProducts) {
+      if (
+        !sanityProduct ||
+        !sanityProduct.id ||
+        sanityProduct.status === 'draft'
+      ) {
+        continue;
+      }
+      for (const [existingKey, existingProd] of Object.entries(merged)) {
+        if (
+          existingProd.id === sanityProduct.id ||
+          (sanityProduct.slug && existingProd.slug === sanityProduct.slug)
+        ) {
+          delete merged[existingKey];
+        }
+      }
+      merged[sanityProduct.id] = structuredClone(sanityProduct);
+    }
+    this.products = merged;
   }
 
   public upsertProduct(product: Product): Product {

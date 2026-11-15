@@ -176,12 +176,34 @@ export function slugifyTaxonomyTag(input: string): string {
 export function normalizeProductCategory(raw: unknown): string | null {
   if (typeof raw !== 'string') return null;
   const trimmed = raw.trim();
+  if (!trimmed) return null;
+
   const directMatch = PRODUCT_CATEGORY_OPTIONS.find(
     (c) => c.value.toLowerCase() === trimmed.toLowerCase()
   );
   if (directMatch) return directMatch.value;
 
   const lower = trimmed.toLowerCase();
+
+  // Exact legacy catalog category aliases first (order matters before substring matching)
+  const legacyCategoryAliasMap: Record<string, string> = {
+    'home & atmosphere': 'Decor & Accents',
+    'stationery & kitchen': 'Keepsakes & Stationery',
+    'kitchen & tabletop': 'Kitchen & Pantry',
+    'artisan food & pantry': 'Kitchen & Pantry',
+    'cozy home & lounge': 'Home & Textiles',
+    'cozy home & textiles': 'Home & Textiles',
+    'coffee & tea rituals': 'Tea & Coffee Rituals',
+    'personalized keepsakes': 'Keepsakes & Stationery',
+    'games & gatherings': 'Games & Gathering',
+    'plants & gardening': 'Decor & Accents',
+    'creative kits & kids': 'Keepsakes & Stationery',
+    'books & stationery': 'Books & Reading',
+  };
+  if (legacyCategoryAliasMap[lower]) {
+    return legacyCategoryAliasMap[lower];
+  }
+
   if (lower.includes('hoodie') || lower.includes('sweatshirt') || lower.includes('apparel') || lower.includes('t-shirt') || lower.includes('clothing')) {
     return 'Apparel & Wearables';
   }
@@ -191,19 +213,19 @@ export function normalizeProductCategory(raw: unknown): string | null {
   if (lower.includes('journal') || lower.includes('notebook') || lower.includes('stationery') || lower.includes('pen')) {
     return 'Stationery & Desk';
   }
-  if (lower.includes('poster') || lower.includes('wall art') || lower.includes('print')) {
-    return 'Prints & Wall Art';
-  }
   if (lower.includes('book') || lower.includes('reading') || lower.includes('bookend')) {
     return 'Books & Reading';
   }
-  if (lower.includes('candle') || lower.includes('decor') || lower.includes('lighting')) {
+  if (lower.includes('poster') || lower.includes('wall art') || lower.includes('print')) {
+    return 'Prints & Wall Art';
+  }
+  if (lower.includes('candle') || lower.includes('decor') || lower.includes('lighting') || lower.includes('plant') || lower.includes('garden')) {
     return 'Decor & Accents';
   }
   if (lower.includes('tea') || lower.includes('coffee')) {
     return 'Tea & Coffee Rituals';
   }
-  if (lower.includes('kitchen') || lower.includes('pantry') || lower.includes('cookware')) {
+  if (lower.includes('kitchen') || lower.includes('pantry') || lower.includes('cookware') || lower.includes('food')) {
     return 'Kitchen & Pantry';
   }
   if (lower.includes('tabletop') || lower.includes('serving')) {
@@ -211,6 +233,12 @@ export function normalizeProductCategory(raw: unknown): string | null {
   }
   if (lower.includes('game') || lower.includes('puzzle')) {
     return 'Games & Gathering';
+  }
+  if (lower.includes('textile') || lower.includes('blanket') || lower.includes('lounge') || lower.includes('robe')) {
+    return 'Home & Textiles';
+  }
+  if (lower.includes('keepsake')) {
+    return 'Keepsakes & Stationery';
   }
 
   return null;
@@ -223,35 +251,66 @@ export function normalizeProductCategory(raw: unknown): string | null {
 export function normalizeTaxonomyInterestTag(raw: unknown): string | null {
   if (typeof raw !== 'string') return null;
   const trimmed = raw.trim();
+  if (!trimmed) return null;
+
   const directMatch = INTEREST_OPTIONS.find(
     (i) => i.value.toLowerCase() === trimmed.toLowerCase()
   );
   if (directMatch) return directMatch.value;
 
   const lower = trimmed.toLowerCase();
+
+  // Exact legacy catalog interest aliases
+  const legacyInterestAliasMap: Record<string, string> = {
+    'candlelight & hygge': 'Cozy Sanctuary',
+    'natural home': 'Home Decor',
+    'cooking & baking': 'Cooking & Hosting',
+    'handwritten notes': 'Journaling & Reading',
+    'family traditions': 'Cozy Sanctuary',
+    'sourdough & baking': 'Cooking & Hosting',
+    'kitchen upgrades': 'Cooking & Hosting',
+    'artisan food': 'Cooking & Hosting',
+    'self-care': 'Mindfulness & Mental Health',
+    'ceramics': 'Home Decor',
+    'mindful routines': 'Slow Mornings',
+    'sentimental keepsakes': 'Journaling & Reading',
+    'astronomy': 'Astronomy & Space',
+    'travel & outdoors': 'Nature & Outdoors',
+    'hosting': 'Cooking & Hosting',
+    'art & craft': 'Artisan Craft & Woodworking',
+    'family activities': 'Board Games',
+    'milestones': 'Cozy Sanctuary',
+    'tabletop & entertaining': 'Dinner Parties',
+    'everyday rituals': 'Slow Mornings',
+    'reading & relaxation': 'Journaling & Reading',
+  };
+  if (legacyInterestAliasMap[lower]) {
+    return legacyInterestAliasMap[lower];
+  }
+
   // Psychology & Behavioral Science
-  if (lower.includes('psycholog') || lower.includes('behavioral') || lower.includes('human behavior')) {
+  if (lower.includes('behavioral economics') || lower.includes('decision-making') || lower.includes('game theory')) {
+    return 'Behavioral Economics';
+  }
+  if (lower.includes('psycholog') || lower.includes('human behavior') || lower.includes('behavioral')) {
     return 'Psychology & Human Behavior';
   }
   if (lower.includes('neuroscience') || lower.includes('brain') || lower.includes('cognitive')) {
     return 'Cognitive Science & Neuroscience';
   }
-  if (lower.includes('behavioral economics') || lower.includes('decision-making') || lower.includes('game theory')) {
-    return 'Behavioral Economics';
-  }
-  if (lower.includes('mental health') || lower.includes('mindful') || lower.includes('meditation')) {
+  if (lower.includes('mental health') || lower.includes('mindful') || lower.includes('meditation') || lower.includes('self-care')) {
     return 'Mindfulness & Mental Health';
   }
 
   // History & Antiquity
-  if (lower.includes('rome') || lower.includes('roman') || lower.includes('greek') || lower.includes('antiquity') || lower.includes('ancient') || lower.includes('history')) {
-    return 'History & Antiquity';
-  }
   if (lower.includes('military') || lower.includes('warfare') || lower.includes('strategy')) {
     return 'Military History & Strategy';
   }
   if (lower.includes('archaeology') || lower.includes('heritage') || lower.includes('artifact')) {
     return 'Archaeology & Heritage';
+  }
+  if (lower.includes('rome') || lower.includes('roman') || lower.includes('greek') || lower.includes('antiquity') || lower.includes('ancient') || lower.includes('history')) {
+    return 'History & Antiquity';
   }
 
   // Philosophy & Literature
@@ -297,8 +356,11 @@ export function normalizeTaxonomyInterestTag(raw: unknown): string | null {
   }
 
   // Crafts & Games
-  if (lower.includes('woodwork') || lower.includes('woodcraft') || lower === 'artisan craft') {
+  if (lower.includes('woodwork') || lower.includes('woodcraft') || lower === 'artisan craft' || lower.includes('art & craft') || lower.includes('craft')) {
     return 'Artisan Craft & Woodworking';
+  }
+  if (lower.includes('nature') || lower.includes('outdoors')) {
+    return 'Nature & Outdoors';
   }
   if (lower.includes('puzzle') || lower.includes('brainteaser')) {
     return 'Puzzles & Logic Games';
@@ -308,28 +370,28 @@ export function normalizeTaxonomyInterestTag(raw: unknown): string | null {
   if (lower.includes('coffee') || lower.includes('tea')) {
     return 'Coffee & Tea';
   }
-  if (lower.includes('cooking') || lower.includes('baking') || lower.includes('culinary')) {
+  if (lower.includes('cooking') || lower.includes('baking') || lower.includes('culinary') || lower.includes('hosting') || lower.includes('kitchen')) {
     return 'Cooking & Hosting';
   }
   if (lower.includes('garden')) {
     return 'Gardening';
   }
-  if (lower.includes('board game')) {
+  if (lower.includes('board game') || lower.includes('family activit')) {
     return 'Board Games';
   }
-  if (lower.includes('decor')) {
+  if (lower.includes('decor') || lower.includes('ceramic') || lower.includes('natural home')) {
     return 'Home Decor';
   }
-  if (lower.includes('sanctuary') || lower.includes('hygge') || lower.includes('cozy')) {
+  if (lower.includes('sanctuary') || lower.includes('hygge') || lower.includes('cozy') || lower.includes('tradition')) {
     return 'Cozy Sanctuary';
   }
-  if (lower.includes('slow morning') || lower.includes('morning ritual')) {
+  if (lower.includes('slow morning') || lower.includes('morning ritual') || lower.includes('everyday ritual')) {
     return 'Slow Mornings';
   }
   if (lower.includes('dinner party') || lower.includes('entertaining')) {
     return 'Dinner Parties';
   }
-  if (lower.includes('journal') || lower.includes('reading')) {
+  if (lower.includes('journal') || lower.includes('reading') || lower.includes('handwritten') || lower.includes('keepsake')) {
     return 'Journaling & Reading';
   }
 

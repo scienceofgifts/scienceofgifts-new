@@ -7,7 +7,8 @@ import {
 } from '../../../utils/seoAndValidation';
 import { CategoryArchiveView } from '../../../components/CategoryArchiveView';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  await contentRepository.ensureSyncedFromSanity();
   const dir = contentRepository.getArticlesDirectoryData();
   return dir.topicDiscovery.map((topic) => ({
     params: { slug: topic.slug },
@@ -19,6 +20,7 @@ interface Props {
   slug: string;
 }
 
+await contentRepository.ensureSyncedFromSanity();
 const { slug } = Astro.props;
 const archive = contentRepository.getArticleTopicArchive(slug);
 if (!archive) {

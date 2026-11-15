@@ -2,7 +2,8 @@ import type { APIRoute } from 'astro';
 import { contentRepository } from '../cms/contentRepository';
 import { generateXmlSitemap } from '../utils/seoAndValidation';
 
-export const GET: APIRoute = () => {
+export const GET: APIRoute = async () => {
+  await contentRepository.ensureSyncedFromSanity();
   const xml = generateXmlSitemap({
     catalog: contentRepository.getCatalogSnapshot(),
     categoryEntries: contentRepository.getAllCategorySeoEntries(),

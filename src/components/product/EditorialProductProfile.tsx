@@ -103,6 +103,10 @@ export const EditorialProductProfile: React.FC<
         : undefined;
   const verdict = product.giftVerdict;
   const recipientProfile = product.idealRecipientProfile;
+  const hasDisplayablePrice =
+    typeof product.price === 'number' &&
+    Number.isFinite(product.price) &&
+    product.price > 0;
 
   // Build non-repetitive extended rationale paragraphs
   const narrativeParagraphs =
@@ -155,10 +159,12 @@ export const EditorialProductProfile: React.FC<
           { label: 'Category', value: product.productType },
           {
             label: 'Price & Tier',
-            value: `$${product.price} ${product.currency} (${
-              BUDGET_BUCKET_LABELS[product.guidePriceBucket] ||
-              product.budgetTier
-            })`,
+            value: hasDisplayablePrice
+              ? `$${product.price} ${product.currency} (${
+                  BUDGET_BUCKET_LABELS[product.guidePriceBucket] ||
+                  product.budgetTier
+                })`
+              : 'Price unverified',
           },
           ...(product.detailsAndCare
             ? [
@@ -248,7 +254,9 @@ export const EditorialProductProfile: React.FC<
               <span aria-hidden="true">·</span>
               <span>
                 {BUDGET_BUCKET_LABELS[product.guidePriceBucket] ||
-                  `$${product.price} USD`}
+                  (hasDisplayablePrice
+                    ? `$${product.price} USD`
+                    : 'Price unverified')}
               </span>
             </div>
           </div>
@@ -307,19 +315,29 @@ export const EditorialProductProfile: React.FC<
               <div className="mt-6 rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] p-5 sm:p-6">
                 <div className="border-b border-[#E3E1DB] pb-4 text-left">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-serif text-3xl font-semibold text-[#24282B] tabular-nums">
-                      ${product.price}
-                    </span>
-                    <span className="text-xs font-medium text-[#636A6F]">
-                      {product.currency}
-                    </span>
+                    {hasDisplayablePrice ? (
+                      <>
+                        <span className="font-serif text-3xl font-semibold text-[#24282B] tabular-nums">
+                          ${product.price}
+                        </span>
+                        <span className="text-xs font-medium text-[#636A6F]">
+                          {product.currency}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-serif text-xl font-semibold text-[#636A6F]">
+                        Price unverified
+                      </span>
+                    )}
                   </div>
                   <p className="mt-1 text-xs text-[#636A6F]">
                     {product.vendor} ·{' '}
                     <span className="font-medium text-[#24282B]">
-                      {product.inStock
+                      {product.inStock === true
                         ? 'In Stock (Catalog Preview)'
-                        : 'Out of Stock'}
+                        : product.inStock === false
+                        ? 'Out of Stock'
+                        : 'Availability unverified'}
                     </span>
                   </p>
                 </div>
@@ -833,6 +851,10 @@ export const EditorialProductProfile: React.FC<
               {similarComparisons.map(
                 ({ product: altProduct, comparisonAngle, summary }) => {
                   const altImg = altProduct.images[0];
+                  const altHasPrice =
+                    typeof altProduct.price === 'number' &&
+                    Number.isFinite(altProduct.price) &&
+                    altProduct.price > 0;
                   return (
                     <article
                       key={altProduct.id}
@@ -869,7 +891,9 @@ export const EditorialProductProfile: React.FC<
                           <p className="theme-metadata mt-0.5 text-xs text-[#636A6F]">
                             {altProduct.vendor} ·{' '}
                             <span className="font-semibold text-[#24282B] tabular-nums">
-                              ${altProduct.price} {altProduct.currency}
+                              {altHasPrice
+                                ? `$${altProduct.price} ${altProduct.currency}`
+                                : 'Price unverified'}
                             </span>
                           </p>
                           <p className="theme-body-sm mt-3 text-xs leading-[1.7] text-[#24282B] sm:text-sm">
@@ -883,7 +907,7 @@ export const EditorialProductProfile: React.FC<
                           href={`/products/${altProduct.slug}/`}
                           className="inline-flex items-center gap-1 hover:text-[#1B3D5F]"
                         >
-                          Read Gift Profile · ${altProduct.price}
+                          Read Gift Profile{altHasPrice ? ` · $${altProduct.price}` : ''}
                           <ArrowUpRight className="h-3.5 w-3.5" />
                         </a>
                       </div>

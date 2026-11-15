@@ -6,6 +6,7 @@ import {
   type PublicationInfoSection,
 } from '../../components/PublicationInfoPageView';
 
+await contentRepository.ensureSyncedFromSanity();
 const products = contentRepository.getAllProducts();
 const guides = contentRepository.getAllGiftGuides();
 const articles = contentRepository.getAllArticles();

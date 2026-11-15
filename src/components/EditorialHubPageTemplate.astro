@@ -11,6 +11,7 @@ export interface Props {
   hubSlug: string;
 }
 
+await contentRepository.ensureSyncedFromSanity();
 const { hubSlug } = Astro.props;
 const enrichedHub = contentRepository.getEnrichedEditorialHub(hubSlug, {
   includeDrafts: true,

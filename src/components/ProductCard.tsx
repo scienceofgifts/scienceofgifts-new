@@ -53,6 +53,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     alt: product.title,
   };
   const activeTag = awardNote || product.calloutTag;
+  const hasDisplayablePrice =
+    typeof product.price === 'number' &&
+    Number.isFinite(product.price) &&
+    product.price > 0;
 
   const recipientLabels = (product.recipients ?? [])
     .slice(0, 2)
@@ -123,7 +127,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </div>
 
               <div className="text-lg font-semibold text-[#222426] tabular-nums">
-                ${product.price} <span className="text-xs font-normal text-[#62666A]">{product.currency}</span>
+                {hasDisplayablePrice ? (
+                  <>
+                    ${product.price}{' '}
+                    <span className="text-xs font-normal text-[#62666A]">
+                      {product.currency}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs font-medium text-[#62666A]">
+                    Price unverified
+                  </span>
+                )}
               </div>
             </div>
 
@@ -194,7 +209,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                   className="px-4 py-2 rounded-full bg-[#1B3D5F] text-[#FAF7F2] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#28537D]"
                 >
                   <span>
-                    ${product.price} {product.currency} ·{' '}
+                    {hasDisplayablePrice
+                      ? `$${product.price} ${product.currency} · `
+                      : ''}
                     {product.isPlaceholderLink ? 'Sample Link & Details' : 'View Product'}
                   </span>
                   <ExternalLink className="w-3.5 h-3.5" />
@@ -258,7 +275,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
           {/* Price & Currency Overlay */}
           <div className="absolute bottom-3.5 left-3.5 text-white font-semibold text-sm tracking-tight drop-shadow-xs tabular-nums">
-            ${product.price} <span className="text-[11px] font-normal opacity-90">{product.currency}</span>
+            {hasDisplayablePrice ? (
+              <>
+                ${product.price}{' '}
+                <span className="text-[11px] font-normal opacity-90">
+                  {product.currency}
+                </span>
+              </>
+            ) : (
+              <span className="text-xs font-medium opacity-95">
+                Price unverified
+              </span>
+            )}
           </div>
         </div>
 
@@ -321,7 +349,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
         <div className="flex items-center justify-between gap-2 pt-0.5">
           <span className="font-semibold text-[#222426] tabular-nums">
-            ${product.price} {product.currency}
+            {hasDisplayablePrice
+              ? `$${product.price} ${product.currency}`
+              : 'Price unverified'}
           </span>
 
           <a

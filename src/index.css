@@ -195,17 +195,99 @@
   color: var(--theme-color-link);
 }
 
-/* 12. Navigation Text */
+/* 12. Navigation Text (Two-Row Editorial & Discovery Header) */
 .theme-nav-link {
+  position: relative;
   font-family: var(--theme-font-ui);
   font-size: var(--theme-size-nav);
   font-weight: var(--theme-weight-nav);
-  color: var(--theme-color-nav);
+  letter-spacing: 0.01em;
+  line-height: 1.25;
+  color: color-mix(in srgb, var(--theme-color-nav) 86%, transparent);
+  text-decoration: none;
+  transition: color 150ms ease;
 }
 
-.theme-nav-link:hover,
+.theme-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background-color: var(--theme-color-nav-active);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.theme-nav-link:hover {
+  color: var(--theme-color-nav-active);
+}
+
+.theme-nav-link:hover::after {
+  opacity: 0.35;
+}
+
 .theme-nav-link-active {
   color: var(--theme-color-nav-active);
+  font-weight: 600;
+}
+
+.theme-nav-link-active::after {
+  opacity: 1;
+}
+
+.theme-nav-utility {
+  font-family: var(--theme-font-ui);
+  font-size: 0.84375rem;
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  line-height: 1.25;
+  color: color-mix(in srgb, var(--theme-color-nav) 88%, transparent);
+  transition: color 150ms ease;
+}
+
+.theme-nav-utility:hover {
+  color: var(--theme-color-nav-active);
+}
+
+.site-header-expanded {
+  opacity: 1;
+  transform: translateY(0);
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 180ms;
+}
+
+.site-header-compact {
+  opacity: 0;
+  transform: translateY(-6px);
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 180ms cubic-bezier(0.16, 1, 0.3, 1),
+    visibility 180ms;
+}
+
+@media (min-width: 1024px) {
+  #site-header[data-scrolled='true'] .site-header-expanded {
+    opacity: 0;
+    transform: translateY(-6px);
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  #site-header[data-scrolled='true'] .site-header-compact {
+    opacity: 1;
+    transform: translateY(0);
+    visibility: visible;
+    pointer-events: auto;
+  }
 }
 
 /* 13. Buttons & Links */

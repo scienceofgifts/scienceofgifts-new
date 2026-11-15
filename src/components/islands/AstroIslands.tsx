@@ -90,40 +90,127 @@ const OCCASION_PILLS: { value: OccasionType | 'all'; label: string }[] = [
   { value: 'just-because', label: 'Just Because' },
 ];
 
-export const HeaderSearchButtonIsland: React.FC = () => {
+export const HeaderSearchButtonIsland: React.FC<{
+  variant?: 'bar' | 'icon';
+}> = ({ variant = 'bar' }) => {
+  const [headerQuery, setHeaderQuery] = useState('');
+
+  const handleOpenSearch = (initialQuery?: string) => {
+    dispatchOpenSiteSearch(initialQuery);
+    setHeaderQuery('');
+  };
+
+  if (variant === 'icon') {
+    return (
+      <button
+        type="button"
+        onClick={() => handleOpenSearch()}
+        aria-label="Search gifts, guides, and stories"
+        title="Search gifts, guides, and stories (⌘K)"
+        className="inline-flex h-9 w-9 items-center justify-center rounded-[6px] text-[#24282B] hover:bg-[#F6F4EF] hover:text-[#1B3D5F] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer shrink-0"
+      >
+        <Search
+          aria-hidden="true"
+          strokeWidth={1.75}
+          className="h-[17px] w-[17px]"
+        />
+      </button>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={() => dispatchOpenSiteSearch()}
-      aria-label="Search gifts, guides, and stories"
-      title="Search gifts, guides, and stories (⌘K)"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-[#24282B] transition-colors hover:border-[#E3E1DB] hover:bg-[#F6F4EF] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer shrink-0"
+    <form
+      role="search"
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleOpenSearch(headerQuery.trim());
+      }}
+      className="w-full max-w-[560px]"
     >
-      <Search
-        aria-hidden="true"
-        strokeWidth={1.75}
-        className="h-[17px] w-[17px]"
-      />
-    </button>
+      <div
+        onClick={() => handleOpenSearch(headerQuery.trim())}
+        className="group flex h-[42px] w-full items-center rounded-[8px] border border-[#C5C1B8]/90 bg-[#FFFFFF] px-3.5 transition-colors duration-150 hover:border-[#24282B]/55 focus-within:border-[#24282B] cursor-text"
+      >
+        <button
+          type="submit"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenSearch(headerQuery.trim());
+          }}
+          aria-label="Search gifts, guides, and stories"
+          title="Search gifts, guides, and stories (⌘K)"
+          className="mr-2.5 inline-flex h-6 w-6 shrink-0 items-center justify-center text-[#636A6F] transition-colors group-hover:text-[#24282B] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+        >
+          <Search
+            aria-hidden="true"
+            strokeWidth={1.75}
+            className="h-[16px] w-[16px]"
+          />
+        </button>
+        <input
+          type="search"
+          value={headerQuery}
+          onChange={(e) => {
+            const nextValue = e.target.value;
+            setHeaderQuery(nextValue);
+            handleOpenSearch(nextValue);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleOpenSearch(headerQuery.trim());
+            }
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenSearch(headerQuery.trim());
+          }}
+          placeholder="Search gifts, guides, recipients, or occasions..."
+          aria-label="Search gifts, guides, and stories"
+          className="w-full min-w-0 bg-transparent font-sans text-[0.875rem] text-[#24282B] placeholder:text-[#636A6F] focus:outline-none"
+        />
+      </div>
+    </form>
   );
 };
 
 export const HeaderSavedButtonIsland: React.FC<{
-  variant?: 'desktop' | 'mobile';
+  variant?: 'desktop' | 'compact-icon' | 'mobile';
 }> = ({ variant = 'desktop' }) => {
   const { savedProductIds } = useSavedGiftsState();
+
+  if (variant === 'compact-icon') {
+    return (
+      <button
+        type="button"
+        onClick={dispatchOpenSavedDrawer}
+        aria-label={`Saved Gifts (${savedProductIds.length})`}
+        title={`Saved Gifts (${savedProductIds.length})`}
+        className="inline-flex h-9 items-center justify-center gap-1 rounded-[6px] px-2 text-[#24282B] hover:bg-[#F6F4EF] hover:text-[#1B3D5F] transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+      >
+        <Bookmark
+          aria-hidden="true"
+          strokeWidth={1.75}
+          className="h-[17px] w-[17px] shrink-0 text-[#24282B]"
+        />
+        <span className="font-mono text-[0.75rem] tabular-nums text-[#636A6F]">
+          ({savedProductIds.length})
+        </span>
+      </button>
+    );
+  }
 
   if (variant === 'mobile') {
     return (
       <button
         type="button"
         onClick={dispatchOpenSavedDrawer}
-        className="theme-nav-link inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:text-[#1B3D5F] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+        className="theme-nav-utility inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
       >
         <Bookmark
           aria-hidden="true"
-          strokeWidth={1.75}
-          className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+          strokeWidth={1.7}
+          className="h-[15px] w-[15px] shrink-0 text-[#1B3D5F]"
         />
         <span>Saved Gifts ({savedProductIds.length})</span>
       </button>
@@ -134,15 +221,15 @@ export const HeaderSavedButtonIsland: React.FC<{
     <button
       type="button"
       onClick={dispatchOpenSavedDrawer}
-      className="theme-nav-link inline-flex items-center gap-1.5 text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+      className="theme-nav-utility inline-flex items-center gap-1.5 py-2 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F] cursor-pointer"
     >
       <Bookmark
         aria-hidden="true"
-        strokeWidth={1.75}
-        className="h-[17px] w-[17px] shrink-0 text-[#1B3D5F]"
+        strokeWidth={1.7}
+        className="h-[16px] w-[16px] shrink-0 text-[#24282B] -translate-y-[0.5px]"
       />
       <span>Saved Gifts</span>
-      <span className="tabular-nums text-[#28537D] font-semibold">
+      <span className="font-mono text-[0.75rem] tabular-nums text-[#636A6F]">
         ({savedProductIds.length})
       </span>
     </button>
@@ -191,19 +278,19 @@ export const MobileNavigationIsland: React.FC<{
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} className="lg:hidden">
+    <div ref={containerRef} className="lg:hidden shrink-0">
       <div className="flex items-center gap-2">
         <button
           type="button"
           onClick={() => dispatchOpenSiteSearch()}
           aria-label="Search gifts, guides, and stories"
           title="Search gifts, guides, and stories"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#28537D] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-[6px] border border-[#E3E1DB] bg-[#FFFFFF] text-[#24282B] hover:border-[#24282B]/40 hover:text-[#1B3D5F] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer shrink-0"
         >
           <Search
             aria-hidden="true"
-            strokeWidth={1.75}
-            className="h-4 w-4"
+            strokeWidth={1.7}
+            className="h-[16px] w-[16px]"
           />
         </button>
 
@@ -214,12 +301,12 @@ export const MobileNavigationIsland: React.FC<{
           aria-expanded={isOpen}
           aria-controls="mobile-primary-navigation-panel"
           aria-label={isOpen ? 'Close navigation menu' : 'Open navigation menu'}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3 py-2 text-xs font-semibold text-[#24282B] hover:border-[#28537D] hover:text-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+          className="inline-flex h-9 items-center gap-1.5 rounded-[6px] border border-[#E3E1DB] bg-[#FFFFFF] px-3 font-sans text-[0.75rem] font-medium text-[#24282B] hover:border-[#24282B]/40 hover:text-[#1B3D5F] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] cursor-pointer shrink-0"
         >
           {isOpen ? (
-            <X className="h-4 w-4" aria-hidden="true" />
+            <X className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
           ) : (
-            <Menu className="h-4 w-4" aria-hidden="true" />
+            <Menu className="h-4 w-4" strokeWidth={1.7} aria-hidden="true" />
           )}
           <span>Menu</span>
         </button>
@@ -230,131 +317,148 @@ export const MobileNavigationIsland: React.FC<{
         aria-label="Mobile Primary Navigation"
         className={`${
           isOpen ? 'block' : 'hidden'
-        } absolute left-0 right-0 top-full border-b border-[#E3E1DB] bg-[#FAF9F6] px-6 py-5 shadow-lg`}
+        } absolute left-0 right-0 top-full border-b border-[#E3E1DB] bg-[#FAF9F6] px-5 sm:px-8 py-5 shadow-[0_14px_34px_-12px_rgba(17,17,17,0.08)]`}
       >
-        <ul className="space-y-2.5">
-          <li>
+        <div className="max-w-2xl mx-auto">
+          <div className="pb-4 border-b border-[#E3E1DB]">
             <button
               type="button"
               onClick={() => {
                 setIsOpen(false);
                 dispatchOpenSiteSearch();
               }}
-              className="theme-nav-link flex w-full items-center gap-2.5 rounded-lg border border-[#E3E1DB] bg-[#FFFFFF] px-3 py-2.5 text-left text-sm text-[#636A6F] transition-colors hover:border-[#28537D] hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+              className="flex h-10 w-full items-center gap-2.5 rounded-[8px] border border-[#C5C1B8]/90 bg-[#FFFFFF] px-3.5 text-left font-sans text-[0.875rem] text-[#636A6F] transition-colors hover:border-[#24282B]/50 hover:text-[#24282B] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
             >
               <Search
                 aria-hidden="true"
-                strokeWidth={1.75}
-                className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+                strokeWidth={1.7}
+                className="h-4 w-4 shrink-0 text-[#636A6F]"
               />
               <span>Search gifts, guides, and stories...</span>
             </button>
-          </li>
+          </div>
 
-          <li>
-            <a
-              href="/gift-guides/"
-              aria-current={activeSection === 'guides' ? 'page' : undefined}
-              onClick={() => setIsOpen(false)}
-              className={`theme-nav-link block rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
-                activeSection === 'guides'
-                  ? 'theme-nav-link-active bg-[#E5F3EC] font-semibold text-[#1B3D5F]'
-                  : 'text-[#24282B] hover:bg-[#F6F4EF]'
-              }`}
-            >
-              Gift Guides
-            </a>
-          </li>
+          <ul className="divide-y divide-[#E3E1DB]/70 py-1">
+            <li>
+              <a
+                href="/gift-guides/"
+                aria-current={activeSection === 'guides' ? 'page' : undefined}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center justify-between py-3 font-sans text-[0.9375rem] transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                  activeSection === 'guides'
+                    ? 'font-semibold text-[#1B3D5F]'
+                    : 'font-medium text-[#24282B] hover:text-[#1B3D5F]'
+                }`}
+              >
+                <span>Gift Guides</span>
+                {activeSection === 'guides' && (
+                  <span className="font-sans text-[0.6875rem] uppercase tracking-[0.06em] text-[#636A6F]">
+                    Current
+                  </span>
+                )}
+              </a>
+            </li>
 
-          {editorialHubLinks.map((hubLink) => {
-            const isCurrent = activeSection === hubLink.activeSection;
-            return (
-              <li key={hubLink.id}>
-                <a
-                  href={hubLink.href}
-                  aria-current={isCurrent ? 'page' : undefined}
-                  onClick={() => setIsOpen(false)}
-                  className={`theme-nav-link block rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
-                    isCurrent
-                      ? 'theme-nav-link-active bg-[#E5F3EC] font-semibold text-[#1B3D5F]'
-                      : 'text-[#24282B] hover:bg-[#F6F4EF]'
-                  }`}
-                >
-                  {hubLink.label}
-                </a>
-              </li>
-            );
-          })}
+            {editorialHubLinks.map((hubLink) => {
+              const isCurrent = activeSection === hubLink.activeSection;
+              return (
+                <li key={hubLink.id}>
+                  <a
+                    href={hubLink.href}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    onClick={() => setIsOpen(false)}
+                    className={`flex items-center justify-between py-3 font-sans text-[0.9375rem] transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                      isCurrent
+                        ? 'font-semibold text-[#1B3D5F]'
+                        : 'font-medium text-[#24282B] hover:text-[#1B3D5F]'
+                    }`}
+                  >
+                    <span>{hubLink.label}</span>
+                    {isCurrent && (
+                      <span className="font-sans text-[0.6875rem] uppercase tracking-[0.06em] text-[#636A6F]">
+                        Current
+                      </span>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
 
-          <li>
-            <a
-              href="/articles/"
-              aria-current={activeSection === 'articles' ? 'page' : undefined}
-              onClick={() => setIsOpen(false)}
-              className={`theme-nav-link block rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
-                activeSection === 'articles'
-                  ? 'theme-nav-link-active bg-[#E5F3EC] font-semibold text-[#1B3D5F]'
-                  : 'text-[#24282B] hover:bg-[#F6F4EF]'
-              }`}
-            >
-              Stories
-            </a>
-          </li>
+            <li>
+              <a
+                href="/articles/"
+                aria-current={activeSection === 'articles' ? 'page' : undefined}
+                onClick={() => setIsOpen(false)}
+                className={`flex items-center justify-between py-3 font-sans text-[0.9375rem] transition-colors focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                  activeSection === 'articles'
+                    ? 'font-semibold text-[#1B3D5F]'
+                    : 'font-medium text-[#24282B] hover:text-[#1B3D5F]'
+                }`}
+              >
+                <span>Stories</span>
+                {activeSection === 'articles' && (
+                  <span className="font-sans text-[0.6875rem] uppercase tracking-[0.06em] text-[#636A6F]">
+                    Current
+                  </span>
+                )}
+              </a>
+            </li>
 
-          <li>
-            <a
-              href={SHOP_EXTERNAL_URL}
-              onClick={() => setIsOpen(false)}
-              className="theme-nav-link flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-[#24282B] transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
-            >
-              <ShoppingBag
-                aria-hidden="true"
-                strokeWidth={1.75}
-                className="h-4 w-4 shrink-0 text-[#1B3D5F]"
-              />
-              <span>Shop</span>
-            </a>
-          </li>
-
-          <li>
-            <button
-              type="button"
-              onClick={() => {
-                setIsOpen(false);
-                dispatchOpenSavedDrawer();
-              }}
-              className="theme-nav-link flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-sm text-[#24282B] transition-colors hover:bg-[#F6F4EF] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
-            >
-              <span className="inline-flex items-center gap-2">
-                <Bookmark
+            <li>
+              <a
+                href={SHOP_EXTERNAL_URL}
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-2 py-3 font-sans text-[0.9375rem] font-medium text-[#24282B] transition-colors hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+              >
+                <ShoppingBag
                   aria-hidden="true"
-                  strokeWidth={1.75}
-                  className="h-4 w-4 shrink-0 text-[#1B3D5F]"
+                  strokeWidth={1.65}
+                  className="h-4 w-4 shrink-0 text-[#24282B] opacity-80 -translate-y-[0.5px]"
                 />
-                <span>Saved Gifts</span>
-              </span>
-              <span className="rounded-full bg-[#E5F3EC] px-2.5 py-0.5 text-xs font-semibold text-[#1B3D5F] tabular-nums">
-                {savedProductIds.length}
-              </span>
-            </button>
-          </li>
+                <span>Shop</span>
+              </a>
+            </li>
 
-          <li className="pt-2 border-t border-[#E3E1DB]">
+            <li>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOpen(false);
+                  dispatchOpenSavedDrawer();
+                }}
+                className="flex w-full items-center justify-between py-3 text-left font-sans text-[0.9375rem] font-medium text-[#24282B] transition-colors hover:text-[#1B3D5F] focus-visible:outline-2 focus-visible:outline-[#1B3D5F] cursor-pointer"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <Bookmark
+                    aria-hidden="true"
+                    strokeWidth={1.7}
+                    className="h-4 w-4 shrink-0 text-[#24282B]"
+                  />
+                  <span>Saved Gifts</span>
+                </span>
+                <span className="font-mono text-xs text-[#636A6F] tabular-nums">
+                  ({savedProductIds.length})
+                </span>
+              </button>
+            </li>
+          </ul>
+
+          <div className="pt-4 mt-1 border-t border-[#E3E1DB]">
             <a
               href="/gift-finder/"
               aria-current={activeSection === 'finder' ? 'page' : undefined}
               onClick={() => setIsOpen(false)}
-              className="theme-btn-primary theme-button-text flex w-full items-center justify-center gap-2 rounded-lg bg-[#1B3D5F] px-4 py-2.5 text-xs font-semibold text-[#FFFFFF] transition-colors hover:bg-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
+              className="theme-btn-primary theme-button-text flex w-full items-center justify-center gap-2 rounded-[6px] bg-[#1B3D5F] px-5 py-3 text-[0.8125rem] font-semibold tracking-[0.01em] text-[#FFFFFF] transition-colors hover:bg-[#28537D] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
             >
               <Gift
                 aria-hidden="true"
-                strokeWidth={1.75}
+                strokeWidth={1.65}
                 className="h-4 w-4 shrink-0"
               />
               <span>Find a Gift</span>
             </a>
-          </li>
-        </ul>
+          </div>
+        </div>
       </nav>
     </div>
   );

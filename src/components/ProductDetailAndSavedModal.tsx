@@ -38,6 +38,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [selectedListId, setSelectedListId] = useState<string>(DEFAULT_LIST_ID);
 
   if (!product) return null;
+  const hasDisplayablePrice =
+    typeof product.price === 'number' &&
+    Number.isFinite(product.price) &&
+    product.price > 0;
   const primaryImage = product.images?.[0] ?? {
     id: 'fallback',
     url: '',
@@ -117,10 +121,18 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <div className="text-2xl font-semibold text-[#222426] tabular-nums">
-                    ${product.price}{' '}
-                    <span className="text-xs font-normal text-[#62666A]">
-                      {product.currency}
-                    </span>
+                    {hasDisplayablePrice ? (
+                      <>
+                        ${product.price}{' '}
+                        <span className="text-xs font-normal text-[#62666A]">
+                          {product.currency}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-base font-medium text-[#62666A]">
+                        Price unverified
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-[#62666A] mt-0.5">
                     {product.vendor}
@@ -643,7 +655,11 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
                       <div className="text-xs text-[#62666A]">
                         {product.vendor} ·{' '}
                         <strong className="text-[#222426] tabular-nums">
-                          ${product.price} {product.currency}
+                          {typeof product.price === 'number' &&
+                          Number.isFinite(product.price) &&
+                          product.price > 0
+                            ? `$${product.price} ${product.currency}`
+                            : 'Price unverified'}
                         </strong>
                         {entry.purchased && (
                           <span className="ml-1.5 text-[#28537D] font-semibold">
@@ -773,7 +789,11 @@ export const SavedGiftsDrawer: React.FC<SavedGiftsDrawerProps> = ({
               {purchasedCount > 0 ? ` · ${purchasedCount} purchased` : ''}
             </div>
             <div className="text-lg font-semibold text-[#222426] tabular-nums">
-              ${totalVerifiedPrice} USD
+              {totalVerifiedPrice > 0
+                ? `$${totalVerifiedPrice} USD`
+                : validProductsCount > 0
+                ? 'Price unverified'
+                : '$0 USD'}
             </div>
           </div>
           <div className="flex items-center gap-2.5">

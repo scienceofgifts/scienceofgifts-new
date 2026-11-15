@@ -8,7 +8,8 @@ import {
 import { GiftGuideInteractiveIsland } from '../../components/islands/AstroIslands';
 import type { GiftGuide } from '../../types/content';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  await contentRepository.ensureSyncedFromSanity();
   const guides = contentRepository.getAllGiftGuides();
   return guides.map((guide) => ({
     params: { slug: guide.slug },
@@ -20,6 +21,7 @@ interface Props {
   guide: GiftGuide;
 }
 
+await contentRepository.ensureSyncedFromSanity();
 const { guide } = Astro.props;
 const catalog = contentRepository.getCatalogSnapshot();
 const resolvedSeo = resolvePageSeoMetadata({

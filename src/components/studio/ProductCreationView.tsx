@@ -8,30 +8,33 @@ import {
   ChevronRight,
   Copy,
   Download,
-  FileCode2,
-  FileText,
-  HelpCircle,
+  ExternalLink,
+  Globe,
+  Image as ImageIcon,
   Link as LinkIcon,
+  Plus,
+  RefreshCw,
+  ShieldAlert,
   Sparkles,
+  Trash2,
   Upload,
 } from 'lucide-react';
 import {
   GeneratedProductAiBrief,
   generateProductAiWritingBrief,
 } from '../../cms/productAiBriefExporter';
-import {
-  ProductInterchangeCreatePayloadV1,
-  mapInterchangeToSanityProductDraft,
-} from '../../cms/productInterchangeSchema';
+import { mapInterchangeToSanityProductDraft } from '../../cms/productInterchangeSchema';
 import {
   UniversalProductImportReport,
   importProductInterchangeResponse,
 } from '../../cms/productUniversalImporter';
 import createExampleJson from '../../cms/examples/product-interchange-v1-create.example.json';
+import type { ExtractedProductDetails } from '../../cms/studio/productUrlExtractor';
 import {
   ProductMediaManager,
   SanityStudioImageItem,
 } from './ProductMediaManager';
+import { fetchStudioApiJson } from './studioApiClient';
 import type { SanityStudioDocument } from './SanityStudioWorkspace';
 
 export interface ProductCreationViewProps {
@@ -66,13 +69,29 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
   onOpenEditorialReview,
   sessionCredentials,
 }) => {
-  // Step 1: URL input
+  // Step 1: URL input & server-side extraction state
   const [productUrl, setProductUrl] = useState<string>('');
+  const [isFetchingDetails, setIsFetchingDetails] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [extractedDetails, setExtractedDetails] =
+    useState<ExtractedProductDetails | null>(null);
+
   const [showOptionalContext, setShowOptionalContext] = useState<boolean>(false);
   const [knownVendor, setKnownVendor] = useState<string>('');
   const [knownTitle, setKnownTitle] = useState<string>('');
   const [knownPrice, setKnownPrice] = useState<string>('');
+  const [knownCurrency, setKnownCurrency] = useState<string>('USD');
   const [knownStock, setKnownStock] = useState<'unknown' | 'true' | 'false'>('unknown');
+  const [knownAvailabilityLabel, setKnownAvailabilityLabel] = useState<string>('');
+  const [knownDescription, setKnownDescription] = useState<string>('');
+  const [knownMaterialsText, setKnownMaterialsText] = useState<string>('');
+  const [knownDimensions, setKnownDimensions] = useState<string>('');
+  const [knownSpecs, setKnownSpecs] = useState<
+    Array<{ label: string; value: string; source?: string }>
+  >([]);
+  const [selectedExtractedImageUrls, setSelectedExtractedImageUrls] = useState<string[]>([]);
+  const [priceConfirmed, setPriceConfirmed] = useState<boolean>(false);
+  const [stockConfirmed, setStockConfirmed] = useState<boolean>(false);
   const [sourceNotes, setSourceNotes] = useState<string>('');
 
   // Pre-uploaded Sanity product gallery images (preserved across AI brief export & import)
@@ -89,6 +108,75 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  const handleFetchProductDetails = async () => {
+    const target = productUrl.trim();
+    if (!target) {
+      setFetchError('Enter a merchant product URL first.');
+      return;
+    }
+
+    setIsFetchingDetails(true);
+    setFetchError(null);
+
+    try {
+      const res = await fetchStudioApiJson<ExtractedProductDetails>(
+        '/api/studio/sanity/fetch-product-details',
+        {
+          method: 'POST',
+          sessionCredentials,
+          body: { url: target },
+        }
+      );
+
+      if (!res.ok || !res.data || (res.data as any).ok === false) {
+        setFetchError(
+          res.diagnosticMessage ||
+            (res.data as any)?.message ||
+            'Unable to retrieve product details from that URL.'
+        );
+        return;
+      }
+
+      const data = res.data;
+      setExtractedDetails(data);
+      setShowOptionalContext(true);
+
+      // Populate reviewable fields cleanly (never marking unconfirmed facts as verified)
+      setKnownTitle(data.title || '');
+      setKnownVendor(data.vendor || data.brand || '');
+      setKnownPrice(
+        typeof data.price === 'number' && Number.isFinite(data.price) && data.price > 0
+          ? String(data.price)
+          : ''
+      );
+      setKnownCurrency(data.currency || 'USD');
+      setKnownStock(
+        data.inStock === true ? 'true' : data.inStock === false ? 'false' : 'unknown'
+      );
+      setKnownAvailabilityLabel(data.availabilityLabel || '');
+      setKnownDescription(data.description || '');
+      setKnownMaterialsText(data.materials.join(', '));
+      setKnownDimensions(data.dimensions || '');
+      setKnownSpecs(
+        Array.isArray(data.specifications)
+          ? data.specifications.map((s) => ({
+              label: s.label,
+              value: s.value,
+              source: s.source,
+            }))
+          : []
+      );
+      setSelectedExtractedImageUrls(data.images.slice(0, 6).map((img) => img.url));
+      // Always start unverified until human editor reviews and checks confirmation
+      setPriceConfirmed(false);
+      setStockConfirmed(false);
+    } catch (err: any) {
+      setFetchError(err?.message || 'Network error fetching product details.');
+    } finally {
+      setIsFetchingDetails(false);
+    }
+  };
+
   // Derived slug and ID
   const derivedSlug = useMemo(() => {
     if (!productUrl.trim()) return '';
@@ -101,11 +189,20 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
     return `prod_${clean.slice(0, 36)}`;
   }, [derivedSlug]);
 
-  // Programmatic AI brief generation (includes uploaded gallery context if present)
+  const parsedMaterialsList = useMemo(
+    () =>
+      knownMaterialsText
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean),
+    [knownMaterialsText]
+  );
+
+  // Programmatic AI brief generation (includes retrieved merchant facts + uploaded gallery context)
   const generatedBrief: GeneratedProductAiBrief | null = useMemo(() => {
     if (!productUrl.trim()) return null;
     const priceNum =
-      knownPrice.trim() !== '' && Number.isFinite(Number(knownPrice))
+      knownPrice.trim() !== '' && Number.isFinite(Number(knownPrice)) && Number(knownPrice) > 0
         ? Number(knownPrice)
         : undefined;
     const stockBool =
@@ -117,7 +214,24 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
       knownTitle: knownTitle.trim() || undefined,
       knownVendor: knownVendor.trim() || undefined,
       knownPrice: priceNum,
+      knownCurrency: knownCurrency.trim() || 'USD',
       knownInStock: stockBool,
+      knownAvailabilityLabel: knownAvailabilityLabel.trim() || undefined,
+      knownDescription: knownDescription.trim() || undefined,
+      knownMaterials: parsedMaterialsList.length > 0 ? parsedMaterialsList : undefined,
+      knownDimensions: knownDimensions.trim() || undefined,
+      knownSpecifications: knownSpecs.length > 0 ? knownSpecs : undefined,
+      knownVariants: extractedDetails?.variants,
+      knownSizes: extractedDetails?.sizes,
+      knownColors: extractedDetails?.colors,
+      knownImageUrls:
+        selectedExtractedImageUrls.length > 0 ? selectedExtractedImageUrls : undefined,
+      retrievedFromUrl: Boolean(extractedDetails),
+      knownPriceConfirmed: extractedDetails ? priceConfirmed : priceNum !== undefined,
+      knownStockConfirmed: extractedDetails ? stockConfirmed : stockBool !== undefined,
+      missingRetrievedFields: extractedDetails?.missingFields,
+      unverifiedRetrievedFields: extractedDetails?.unverifiedFields,
+      extractionSources: extractedDetails?.extractionSources,
       additionalSourceNotes: sourceNotes.trim() || undefined,
       uploadedImages:
         uploadedGalleryImages.length > 0 ? uploadedGalleryImages : undefined,
@@ -127,7 +241,17 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
     knownTitle,
     knownVendor,
     knownPrice,
+    knownCurrency,
     knownStock,
+    knownAvailabilityLabel,
+    knownDescription,
+    parsedMaterialsList,
+    knownDimensions,
+    knownSpecs,
+    selectedExtractedImageUrls,
+    extractedDetails,
+    priceConfirmed,
+    stockConfirmed,
     sourceNotes,
     uploadedGalleryImages,
   ]);
@@ -201,10 +325,34 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
 
       // Convert canonical interchange payload to Sanity Draft
       const rawDraft = mapInterchangeToSanityProductDraft(report.resolvedCreatePayload);
+      const fallbackSelectedImages =
+        (!rawDraft.images || rawDraft.images.length === 0) &&
+        uploadedGalleryImages.length === 0 &&
+        selectedExtractedImageUrls.length > 0
+          ? selectedExtractedImageUrls.map((url, idx) => {
+              const matchedMeta = extractedDetails?.images.find((i) => i.url === url);
+              return {
+                _key: `img_ext_${idx + 1}`,
+                _type: 'productImage',
+                id: `img_ext_${idx + 1}`,
+                url,
+                externalUrl: url,
+                alt:
+                  matchedMeta?.alt ||
+                  `${knownTitle.trim() || rawDraft.title || 'Product'} photograph ${idx + 1}`,
+                fitMode: 'cover' as const,
+                fallbackColor: '#F6F4EF',
+                focalPoint: { x: 0.5, y: 0.5 },
+                sourceType: 'external-url',
+              };
+            })
+          : null;
+
       const sanityDraftDoc: SanityStudioDocument = {
         _id: rawDraft._id || `drafts.prod_${report.resolvedCreatePayload.identity.slug.replace(/[^a-z0-9_]+/g, '_')}`,
         _type: 'product',
         ...rawDraft,
+        ...(fallbackSelectedImages ? { images: fallbackSelectedImages } : {}),
         _sourceOrigin: 'sanity-content-lake',
       };
 
@@ -262,19 +410,49 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
           </div>
 
           <div className="mt-4">
-            <div className="relative">
-              <LinkIcon className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="url"
-                value={productUrl}
-                onChange={(e) => setProductUrl(e.target.value)}
-                placeholder="https://merchant.com/products/artisan-brass-kettle"
-                className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#FAF9F6] border border-[#E2E8F0] rounded-xl text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2A5A48]/20 focus:border-[#2A5A48]"
-              />
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              <div className="relative flex-1">
+                <LinkIcon className="w-4 h-4 text-[#94A3B8] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="url"
+                  value={productUrl}
+                  onChange={(e) => {
+                    setProductUrl(e.target.value);
+                    if (fetchError) setFetchError(null);
+                  }}
+                  placeholder="https://merchant.com/products/artisan-brass-kettle"
+                  className="w-full pl-10 pr-4 py-2.5 text-sm bg-[#FAF9F6] border border-[#E2E8F0] rounded-xl text-[#0F172A] placeholder-[#94A3B8] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#2A5A48]/20 focus:border-[#2A5A48]"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleFetchProductDetails}
+                disabled={isFetchingDetails || !productUrl.trim()}
+                className="px-4 py-2.5 bg-[#1B3D5F] hover:bg-[#28537D] disabled:bg-[#CBD5E1] disabled:cursor-not-allowed text-white rounded-xl text-xs font-semibold shadow-xs transition-all flex items-center justify-center gap-2 shrink-0"
+              >
+                {isFetchingDetails ? (
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Globe className="w-4 h-4" />
+                )}
+                <span>
+                  {isFetchingDetails ? 'Fetching Details...' : 'Fetch Product Details'}
+                </span>
+              </button>
             </div>
 
+            {fetchError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Unable to fetch merchant URL automatically</p>
+                  <p className="mt-0.5">{fetchError}</p>
+                </div>
+              </div>
+            )}
+
             {derivedSlug && (
-              <div className="mt-2 flex items-center gap-3 text-[11px] text-[#64748B]">
+              <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px] text-[#64748B]">
                 <span>
                   Derived Slug: <span className="font-mono text-[#0F172A]">/{derivedSlug}</span>
                 </span>
@@ -286,7 +464,160 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
             )}
           </div>
 
-          {/* Optional Progressive Disclosure */}
+          {/* Retrieved Product Details Review & Provenance Banner */}
+          {extractedDetails && (
+            <div className="mt-5 p-4 bg-[#FAF9F6] border border-[#CBD5E1] rounded-xl space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#2A5A48]" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#0F172A]">
+                    Retrieved Merchant Product Details (Review & Correct Before Brief Export)
+                  </h3>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {extractedDetails.extractionSources.map((src) => (
+                    <span
+                      key={src}
+                      className="px-2 py-0.5 rounded bg-white border border-[#E2E8F0] text-[10px] font-mono text-[#475569]"
+                    >
+                      {src}
+                    </span>
+                  ))}
+                  <a
+                    href={extractedDetails.finalUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] text-[#1B3D5F] hover:underline ml-1"
+                  >
+                    <span>Source</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+
+              {(extractedDetails.missingFields.length > 0 ||
+                extractedDetails.unverifiedFields.length > 0) && (
+                <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg text-[11px] text-amber-900 space-y-1">
+                  <div className="flex items-center gap-1.5 font-semibold">
+                    <ShieldAlert className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span>Verification & Missing Facts Notice</span>
+                  </div>
+                  {extractedDetails.missingFields.length > 0 && (
+                    <p>
+                      <strong>Missing / Not Found:</strong>{' '}
+                      {extractedDetails.missingFields.join(', ')}
+                    </p>
+                  )}
+                  <p className="text-amber-800">
+                    Retrieved price and availability remain marked <strong>Unverified</strong> until an editor checks them directly against the live merchant page.
+                  </p>
+                </div>
+              )}
+
+              {/* Variants / Sizes / Colors summary if retrieved */}
+              {(extractedDetails.variants.length > 0 ||
+                extractedDetails.sizes.length > 0 ||
+                extractedDetails.colors.length > 0) && (
+                <div className="flex flex-wrap gap-3 text-[11px] text-[#334155] bg-white p-3 rounded-lg border border-[#E2E8F0]">
+                  {extractedDetails.sizes.length > 0 && (
+                    <div>
+                      <span className="font-semibold text-[#0F172A]">Sizes:</span>{' '}
+                      <span>{extractedDetails.sizes.join(', ')}</span>
+                    </div>
+                  )}
+                  {extractedDetails.colors.length > 0 && (
+                    <div>
+                      <span className="font-semibold text-[#0F172A]">Colors / Finishes:</span>{' '}
+                      <span>{extractedDetails.colors.join(', ')}</span>
+                    </div>
+                  )}
+                  {extractedDetails.variants.length > 0 && (
+                    <div>
+                      <span className="font-semibold text-[#0F172A]">Variants:</span>{' '}
+                      <span>
+                        {extractedDetails.variants
+                          .slice(0, 8)
+                          .map((v) => v.title)
+                          .join(', ')}
+                        {extractedDetails.variants.length > 8
+                          ? ` (+${extractedDetails.variants.length - 8} more)`
+                          : ''}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Retrieved Merchant Images selector */}
+              {extractedDetails.images.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-[11px]">
+                    <span className="font-semibold text-[#0F172A] flex items-center gap-1.5">
+                      <ImageIcon className="w-3.5 h-3.5 text-[#2A5A48]" />
+                      Retrieved Merchant Images ({selectedExtractedImageUrls.length} of{' '}
+                      {extractedDetails.images.length} selected for brief & draft fallback)
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedExtractedImageUrls(
+                          selectedExtractedImageUrls.length === extractedDetails.images.length
+                            ? []
+                            : extractedDetails.images.map((img) => img.url)
+                        )
+                      }
+                      className="text-[#1B3D5F] hover:underline font-medium"
+                    >
+                      {selectedExtractedImageUrls.length === extractedDetails.images.length
+                        ? 'Deselect All'
+                        : 'Select All'}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {extractedDetails.images.map((img, idx) => {
+                      const isChecked = selectedExtractedImageUrls.includes(img.url);
+                      return (
+                        <button
+                          key={`${img.url}_${idx}`}
+                          type="button"
+                          onClick={() =>
+                            setSelectedExtractedImageUrls((prev) =>
+                              prev.includes(img.url)
+                                ? prev.filter((u) => u !== img.url)
+                                : [...prev, img.url]
+                            )
+                          }
+                          className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all bg-white ${
+                            isChecked
+                              ? 'border-[#2A5A48] ring-2 ring-[#2A5A48]/20'
+                              : 'border-[#E2E8F0] opacity-55 hover:opacity-85'
+                          }`}
+                          title={img.alt}
+                        >
+                          <img
+                            src={img.url}
+                            alt={img.alt}
+                            className="w-full h-full object-cover"
+                          />
+                          <span
+                            className={`absolute top-1 right-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                              isChecked
+                                ? 'bg-[#2A5A48] text-white'
+                                : 'bg-white/90 text-[#475569]'
+                            }`}
+                          >
+                            {isChecked ? 'Selected' : 'Off'}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Review / Correct Facts Accordion */}
           <div className="mt-4 pt-4 border-t border-[#F1F5F9]">
             <button
               type="button"
@@ -298,60 +629,215 @@ export const ProductCreationView: React.FC<ProductCreationViewProps> = ({
               ) : (
                 <ChevronRight className="w-3.5 h-3.5" />
               )}
-              <span>Add optional known details before exporting (title, vendor, price, notes)</span>
+              <span>
+                {extractedDetails
+                  ? 'Review & edit extracted product facts before exporting AI brief'
+                  : 'Add or edit known details before exporting (title, vendor, price, specs, notes)'}
+              </span>
             </button>
 
             {showOptionalContext && (
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+              <div className="mt-4 space-y-4 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#475569] mb-1">
+                      Product Title
+                    </label>
+                    <input
+                      type="text"
+                      value={knownTitle}
+                      onChange={(e) => setKnownTitle(e.target.value)}
+                      placeholder="e.g. Copper Kettle"
+                      className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#475569] mb-1">
+                      Maker / Brand / Merchant
+                    </label>
+                    <input
+                      type="text"
+                      value={knownVendor}
+                      onChange={(e) => setKnownVendor(e.target.value)}
+                      placeholder="e.g. Azmaya"
+                      className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#475569] mb-1">
+                      Price ({knownCurrency || 'USD'})
+                    </label>
+                    <div className="flex gap-1.5">
+                      <input
+                        type="number"
+                        value={knownPrice}
+                        onChange={(e) => setKnownPrice(e.target.value)}
+                        placeholder="Unknown"
+                        className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                      />
+                      <input
+                        type="text"
+                        value={knownCurrency}
+                        onChange={(e) => setKnownCurrency(e.target.value.toUpperCase())}
+                        maxLength={4}
+                        className="w-14 px-2 py-1.5 text-xs font-mono bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg text-center"
+                        title="Currency"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#475569] mb-1">
+                      Availability
+                    </label>
+                    <select
+                      value={knownStock}
+                      onChange={(e) => setKnownStock(e.target.value as any)}
+                      className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg text-[#475569]"
+                    >
+                      <option value="unknown">Unknown / Unverified</option>
+                      <option value="true">In Stock</option>
+                      <option value="false">Out of Stock / Pre-Order</option>
+                    </select>
+                  </div>
+                </div>
+
+                {extractedDetails && (
+                  <div className="flex flex-wrap gap-4 text-[11px] text-[#475569]">
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={priceConfirmed}
+                        disabled={!knownPrice.trim() || Number(knownPrice) <= 0}
+                        onChange={(e) => setPriceConfirmed(e.target.checked)}
+                      />
+                      <span>Mark retrieved price as editor-confirmed</span>
+                    </label>
+                    <label className="inline-flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={stockConfirmed}
+                        disabled={knownStock === 'unknown'}
+                        onChange={(e) => setStockConfirmed(e.target.checked)}
+                      />
+                      <span>Mark retrieved stock status as editor-confirmed</span>
+                    </label>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#475569] mb-1">
+                      Materials (comma-separated)
+                    </label>
+                    <input
+                      type="text"
+                      value={knownMaterialsText}
+                      onChange={(e) => setKnownMaterialsText(e.target.value)}
+                      placeholder="e.g. 400 GSM Organic Cotton, Stoneware"
+                      className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#475569] mb-1">
+                      Dimensions / Weight
+                    </label>
+                    <input
+                      type="text"
+                      value={knownDimensions}
+                      onChange={(e) => setKnownDimensions(e.target.value)}
+                      placeholder="e.g. 14cm × 9cm, 420g"
+                      className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                    />
+                  </div>
+                </div>
+
                 <div>
                   <label className="block text-[11px] font-medium text-[#475569] mb-1">
-                    Known Title
+                    Merchant Description (Included in AI Writing Brief)
                   </label>
-                  <input
-                    type="text"
-                    value={knownTitle}
-                    onChange={(e) => setKnownTitle(e.target.value)}
-                    placeholder="e.g. Copper Kettle"
-                    className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                  <textarea
+                    rows={3}
+                    value={knownDescription}
+                    onChange={(e) => setKnownDescription(e.target.value)}
+                    placeholder="Extracted or pasted merchant product description..."
+                    className="w-full px-3 py-2 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
                   />
                 </div>
+
+                {/* Retrieved / Editable Specifications */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[11px] font-medium text-[#475569]">
+                      Specifications ({knownSpecs.length})
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setKnownSpecs((prev) => [...prev, { label: '', value: '' }])
+                      }
+                      className="inline-flex items-center gap-1 text-[11px] text-[#2A5A48] hover:underline font-medium"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Spec</span>
+                    </button>
+                  </div>
+                  {knownSpecs.length > 0 && (
+                    <div className="space-y-1.5">
+                      {knownSpecs.map((spec, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={spec.label}
+                            onChange={(e) =>
+                              setKnownSpecs((prev) =>
+                                prev.map((s, i) =>
+                                  i === idx ? { ...s, label: e.target.value } : s
+                                )
+                              )
+                            }
+                            placeholder="Label"
+                            className="w-1/3 px-2.5 py-1 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                          />
+                          <input
+                            type="text"
+                            value={spec.value}
+                            onChange={(e) =>
+                              setKnownSpecs((prev) =>
+                                prev.map((s, i) =>
+                                  i === idx ? { ...s, value: e.target.value } : s
+                                )
+                              )
+                            }
+                            placeholder="Value"
+                            className="flex-1 px-2.5 py-1 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setKnownSpecs((prev) => prev.filter((_, i) => i !== idx))
+                            }
+                            className="p-1 text-[#94A3B8] hover:text-red-600"
+                            title="Remove specification"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div>
                   <label className="block text-[11px] font-medium text-[#475569] mb-1">
-                    Maker / Vendor
+                    Additional Editor Research Notes (Optional)
                   </label>
-                  <input
-                    type="text"
-                    value={knownVendor}
-                    onChange={(e) => setKnownVendor(e.target.value)}
-                    placeholder="e.g. Azmaya"
+                  <textarea
+                    rows={2}
+                    value={sourceNotes}
+                    onChange={(e) => setSourceNotes(e.target.value)}
+                    placeholder="Packaging details, artisan notes, or buyer caveats..."
                     className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
                   />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-[#475569] mb-1">
-                    Known Price (USD)
-                  </label>
-                  <input
-                    type="number"
-                    value={knownPrice}
-                    onChange={(e) => setKnownPrice(e.target.value)}
-                    placeholder="e.g. 185"
-                    className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-medium text-[#475569] mb-1">
-                    Stock Status
-                  </label>
-                  <select
-                    value={knownStock}
-                    onChange={(e) => setKnownStock(e.target.value as any)}
-                    className="w-full px-3 py-1.5 text-xs bg-[#FAF9F6] border border-[#E2E8F0] rounded-lg text-[#475569]"
-                  >
-                    <option value="unknown">Unknown / Let AI verify</option>
-                    <option value="true">In Stock</option>
-                    <option value="false">Out of Stock</option>
-                  </select>
                 </div>
               </div>
             )}

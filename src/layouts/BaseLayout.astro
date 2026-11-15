@@ -67,6 +67,7 @@ const effectiveNoindex = Boolean(seo?.noindex ?? noindex);
 const effectiveRobots =
   seo?.robots ?? robots ?? (effectiveNoindex ? 'noindex, follow' : 'index, follow');
 
+await contentRepository.ensureSyncedFromSanity();
 const productsMap = contentRepository.getCatalogSnapshot().products;
 const readyHubSlugs = contentRepository
   .getPublishedReadyEditorialHubs()
@@ -121,133 +122,299 @@ const editorialHubHeaderLinks = resolveEditorialHubHeaderLinks({
     class={`${pageBgClass} text-[#24282B] antialiased selection:bg-[#E5F3EC] selection:text-[#1B3D5F] min-h-screen flex flex-col`}
   >
     <!-- =====================================================================
-         TOP NAVIGATION BAR (Calm Magazine Masthead)
-         Group 1 (Left): Science of Gifts
-         Group 2 (Center): Gift Guides | For Him | For Her | Stories | Shop
-         Group 3 (Right): Search | Saved Gifts | Find a Gift
+         COLLAPSIBLE STICKY EDITORIAL & DISCOVERY HEADER
+         - Desktop Top of Page: Two-Row Header (Row 1: Wordmark, Search Field, Saved Gifts, Find a Gift; Row 2: Category Links)
+         - Desktop Scrolled (>100px): Compact Single-Row Sticky Header (Wordmark, Category Links, Search Icon, Saved Gifts Icon, Find a Gift)
+         - Mobile/Tablet (<1024px): Clean Single-Row Sticky Header (Wordmark on left, Search Icon + Menu Button on right)
         ===================================================================== -->
-    <header class="sticky top-0 z-30 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E3E1DB]">
-      <div class="relative max-w-7xl mx-auto flex items-center justify-between gap-6 px-6 py-4">
-        <!-- Group 1 (Left): Brand Wordmark -->
-        <a
-          href="/"
-          class="text-2xl font-serif font-semibold tracking-tight text-[#24282B] whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
-        >
-          Science of Gifts
-        </a>
-
-        <!-- Group 2 (Center): Editorial Navigation Links -->
-        <nav
-          aria-label="Primary Navigation"
-          class="hidden lg:flex items-center justify-center gap-7 theme-nav-link"
-        >
-          <a
-            href="/gift-guides/"
-            aria-current={activeSection === 'guides' ? 'page' : undefined}
-            class={`theme-nav-link hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
-              activeSection === 'guides'
-                ? 'theme-nav-link-active text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
-                : 'text-[#24282B]'
-            }`}
-          >
-            Gift Guides
-          </a>
-
-          {
-            editorialHubHeaderLinks.map((hubLink) => {
-              const isCurrent = activeSection === hubLink.activeSection;
-              return (
-                <a
-                  href={hubLink.href}
-                  aria-current={isCurrent ? 'page' : undefined}
-                  class={`theme-nav-link hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
-                    isCurrent
-                      ? 'theme-nav-link-active text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
-                      : 'text-[#24282B]'
-                  }`}
-                >
-                  {hubLink.label}
-                </a>
-              );
-            })
-          }
-
-          <a
-            href="/articles/"
-            aria-current={activeSection === 'articles' ? 'page' : undefined}
-            class={`theme-nav-link hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
-              activeSection === 'articles'
-                ? 'theme-nav-link-active text-[#1B3D5F] font-semibold underline decoration-[#1B3D5F]/50'
-                : 'text-[#24282B]'
-            }`}
-          >
-            Stories
-          </a>
-
-          <a
-            href={SHOP_EXTERNAL_URL}
-            class="theme-nav-link inline-flex items-center gap-1.5 text-[#24282B] hover:text-[#1B3D5F] hover:underline underline-offset-4 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="17"
-              height="17"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              class="h-[17px] w-[17px] shrink-0 text-[#1B3D5F]"
+    <header
+      id="site-header"
+      data-scrolled="false"
+      class="sticky top-0 z-30 h-[60px] lg:h-[113px] pointer-events-none"
+    >
+      <!-- STATE 1: TWO-ROW DESKTOP HEADER (Top of Page) + CLEAN SINGLE-ROW MOBILE HEADER -->
+      <div
+        data-header-bar="expanded"
+        class="site-header-expanded bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E3E1DB]"
+      >
+        <!-- ROW 1: Brand Wordmark, Prominent Search Field (Desktop), and Right Actions -->
+        <div class="relative max-w-[1360px] mx-auto flex lg:grid lg:grid-cols-[1fr_minmax(340px,560px)_1fr] items-center justify-between gap-4 lg:gap-8 px-4 sm:px-8 lg:px-10 h-[60px] lg:h-[68px]">
+          <!-- Left: Brand Wordmark (Complete serif wordmark on mobile & desktop) -->
+          <div class="flex items-center justify-start min-w-0">
+            <a
+              href="/"
+              class="text-[1.35rem] sm:text-[1.55rem] lg:text-[1.65rem] font-serif font-semibold tracking-[-0.024em] leading-none text-[#24282B] hover:opacity-80 transition-opacity duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]"
             >
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-            <span>Shop</span>
-          </a>
-        </nav>
-
-        <!-- Group 3 (Right): Utilities (Search, Saved Gifts) & Primary CTA (Find a Gift) -->
-        <div class="flex items-center gap-3.5 shrink-0">
-          <div class="hidden lg:flex items-center gap-4">
-            <HeaderSearchButtonIsland client:load />
-            <HeaderSavedButtonIsland client:idle variant="desktop" />
+              Science of Gifts
+            </a>
           </div>
 
-          <a
-            href="/gift-finder/"
-            aria-current={activeSection === 'finder' ? 'page' : undefined}
-            class={`hidden lg:inline-flex items-center gap-2 theme-btn-primary theme-button-text px-4 py-2 text-xs font-semibold text-[#FFFFFF] bg-[#1B3D5F] rounded-lg hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
-              activeSection === 'finder' ? 'ring-2 ring-[#28537D] ring-offset-2' : ''
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.75"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              aria-hidden="true"
-              class="h-4 w-4 shrink-0"
-            >
-              <rect x="3" y="8" width="18" height="4" rx="1" />
-              <path d="M12 8v13" />
-              <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
-              <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" />
-            </svg>
-            <span>Find a Gift</span>
-          </a>
+          <!-- Middle (Desktop): Prominent, Generously Sized Search Field -->
+          <div class="hidden lg:flex items-center justify-center w-full">
+            <HeaderSearchButtonIsland client:load variant="bar" />
+          </div>
 
-          <MobileNavigationIsland client:load activeSection={activeSection} />
+          <!-- Right: Saved Gifts & Find a Gift (Desktop Only) + Search & Menu (Mobile Only) -->
+          <div class="flex items-center justify-end gap-2 lg:gap-5 shrink-0">
+            <div class="hidden lg:flex items-center">
+              <HeaderSavedButtonIsland client:idle variant="desktop" />
+            </div>
+
+            <a
+              href="/gift-finder/"
+              aria-current={activeSection === 'finder' ? 'page' : undefined}
+              class={`hidden lg:inline-flex items-center gap-2 theme-btn-primary theme-button-text px-4 h-[38px] text-[0.75rem] font-semibold tracking-[0.01em] text-[#FFFFFF] bg-[#1B3D5F] rounded-[6px] hover:bg-[#28537D] transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'finder' ? 'ring-1 ring-[#28537D] ring-offset-2' : ''
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                class="h-[15px] w-[15px] shrink-0"
+              >
+                <rect x="3" y="8" width="18" height="4" rx="1" />
+                <path d="M12 8v13" />
+                <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+                <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" />
+              </svg>
+              <span>Find a Gift</span>
+            </a>
+
+            <MobileNavigationIsland client:load activeSection={activeSection} />
+          </div>
+        </div>
+
+        <!-- ROW 2 (Desktop): Clean Sans-Serif Category Navigation Bar -->
+        <div class="hidden lg:block border-t border-[#E3E1DB]/80">
+          <nav
+            aria-label="Primary Navigation"
+            class="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-10 h-[44px] flex items-center justify-center gap-10 xl:gap-12"
+          >
+            <a
+              href="/gift-guides/"
+              aria-current={activeSection === 'guides' ? 'page' : undefined}
+              class={`theme-nav-link h-full inline-flex items-center whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'guides' ? 'theme-nav-link-active' : ''
+              }`}
+            >
+              Gift Guides
+            </a>
+
+            {
+              editorialHubHeaderLinks.map((hubLink) => {
+                const isCurrent = activeSection === hubLink.activeSection;
+                return (
+                  <a
+                    href={hubLink.href}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    class={`theme-nav-link h-full inline-flex items-center whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                      isCurrent ? 'theme-nav-link-active' : ''
+                    }`}
+                  >
+                    {hubLink.label}
+                  </a>
+                );
+              })
+            }
+
+            <a
+              href="/articles/"
+              aria-current={activeSection === 'articles' ? 'page' : undefined}
+              class={`theme-nav-link h-full inline-flex items-center whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'articles' ? 'theme-nav-link-active' : ''
+              }`}
+            >
+              Stories
+            </a>
+
+            <a
+              href={SHOP_EXTERNAL_URL}
+              class="theme-nav-link h-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                class="h-[14px] w-[14px] shrink-0 text-[#24282B] opacity-80 -translate-y-[0.5px]"
+              >
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                <path d="M3 6h18" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <span>Shop</span>
+            </a>
+          </nav>
+        </div>
+      </div>
+
+      <!-- STATE 2: COMPACT SINGLE-ROW STICKY DESKTOP HEADER (Scrolled >100px) -->
+      <div
+        data-header-bar="compact"
+        class="site-header-compact hidden lg:block absolute top-0 left-0 right-0 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E3E1DB] shadow-[0_4px_20px_-12px_rgba(17,17,17,0.08)]"
+      >
+        <div class="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-10 h-[62px] grid grid-cols-[1fr_auto_1fr] items-center gap-6">
+          <!-- Left: Science of Gifts Wordmark -->
+          <div class="flex items-center justify-start min-w-0">
+            <a
+              href="/"
+              class="text-[1.45rem] font-serif font-semibold tracking-[-0.024em] leading-none text-[#24282B] hover:opacity-80 transition-opacity duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]"
+            >
+              Science of Gifts
+            </a>
+          </div>
+
+          <!-- Center: Main Navigation Links -->
+          <nav
+            aria-label="Sticky Primary Navigation"
+            class="h-full flex items-center justify-center gap-8 xl:gap-10"
+          >
+            <a
+              href="/gift-guides/"
+              aria-current={activeSection === 'guides' ? 'page' : undefined}
+              class={`theme-nav-link h-full inline-flex items-center whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'guides' ? 'theme-nav-link-active' : ''
+              }`}
+            >
+              Gift Guides
+            </a>
+
+            {
+              editorialHubHeaderLinks.map((hubLink) => {
+                const isCurrent = activeSection === hubLink.activeSection;
+                return (
+                  <a
+                    href={hubLink.href}
+                    aria-current={isCurrent ? 'page' : undefined}
+                    class={`theme-nav-link h-full inline-flex items-center whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                      isCurrent ? 'theme-nav-link-active' : ''
+                    }`}
+                  >
+                    {hubLink.label}
+                  </a>
+                );
+              })
+            }
+
+            <a
+              href="/articles/"
+              aria-current={activeSection === 'articles' ? 'page' : undefined}
+              class={`theme-nav-link h-full inline-flex items-center whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'articles' ? 'theme-nav-link-active' : ''
+              }`}
+            >
+              Stories
+            </a>
+
+            <a
+              href={SHOP_EXTERNAL_URL}
+              class="theme-nav-link h-full inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                class="h-[14px] w-[14px] shrink-0 text-[#24282B] opacity-80 -translate-y-[0.5px]"
+              >
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                <path d="M3 6h18" />
+                <path d="M16 10a4 4 0 0 1-8 0" />
+              </svg>
+              <span>Shop</span>
+            </a>
+          </nav>
+
+          <!-- Right: Search Icon, Saved Gifts Icon, and Black Find a Gift Button -->
+          <div class="flex items-center justify-end gap-2.5 shrink-0">
+            <HeaderSearchButtonIsland client:load variant="icon" />
+            <HeaderSavedButtonIsland client:idle variant="compact-icon" />
+
+            <a
+              href="/gift-finder/"
+              aria-current={activeSection === 'finder' ? 'page' : undefined}
+              class={`inline-flex items-center gap-2 theme-btn-primary theme-button-text px-4 h-[36px] text-[0.75rem] font-semibold tracking-[0.01em] text-[#FFFFFF] bg-[#1B3D5F] rounded-[6px] hover:bg-[#28537D] transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F] ${
+                activeSection === 'finder' ? 'ring-1 ring-[#28537D] ring-offset-2' : ''
+              }`}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.65"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                class="h-[14px] w-[14px] shrink-0"
+              >
+                <rect x="3" y="8" width="18" height="4" rx="1" />
+                <path d="M12 8v13" />
+                <path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" />
+                <path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5" />
+              </svg>
+              <span>Find a Gift</span>
+            </a>
+          </div>
         </div>
       </div>
     </header>
+
+    <script is:inline>
+      (() => {
+        const header = document.getElementById('site-header');
+        if (!header) return;
+
+        let isScrolled = false;
+        let rafPending = false;
+
+        const updateHeaderScrollState = () => {
+          rafPending = false;
+          const y = window.scrollY || window.pageYOffset || 0;
+          if (!isScrolled && y > 100) {
+            isScrolled = true;
+            header.setAttribute('data-scrolled', 'true');
+          } else if (isScrolled && y < 60) {
+            isScrolled = false;
+            header.setAttribute('data-scrolled', 'false');
+          }
+        };
+
+        updateHeaderScrollState();
+        window.addEventListener(
+          'scroll',
+          () => {
+            if (!rafPending) {
+              rafPending = true;
+              window.requestAnimationFrame(updateHeaderScrollState);
+            }
+          },
+          { passive: true }
+        );
+      })();
+    </script>
 
     <!-- Main Page Content Slot -->
     <main class="flex-1">

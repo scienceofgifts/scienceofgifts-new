@@ -9,7 +9,8 @@ import { ProductDetailActionsIsland } from '../../components/islands/AstroIsland
 import { EditorialProductProfile } from '../../components/product/EditorialProductProfile';
 import type { Product, ResearchCitation } from '../../types/content';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  await contentRepository.ensureSyncedFromSanity();
   const products = contentRepository.getAllProducts();
   return products.map((product) => ({
     params: { slug: product.slug },
@@ -21,7 +22,23 @@ interface Props {
   product: Product;
 }
 
-const { product } = Astro.props;
+await contentRepository.ensureSyncedFromSanity();
+const propsProduct = Astro.props.product;
+const product = import.meta.env.DEV
+  ? contentRepository.getProductBySlug(
+      String(Astro.params.slug ?? propsProduct?.slug ?? '')
+    )
+  : propsProduct;
+
+if (!product) {
+  return new Response('Product not found or unpublished.', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
 const primaryImage = product.images[0] ?? {
   id: 'fallback',
   url: '',

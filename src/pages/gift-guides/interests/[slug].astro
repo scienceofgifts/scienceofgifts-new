@@ -7,7 +7,8 @@ import {
 } from '../../../utils/seoAndValidation';
 import { CategoryArchiveView } from '../../../components/CategoryArchiveView';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
+  await contentRepository.ensureSyncedFromSanity();
   const dir = contentRepository.getGiftGuidesDirectoryData();
   return dir.interestDiscovery.map((interest) => ({
     params: { slug: interest.slug },
@@ -19,6 +20,7 @@ interface Props {
   slug: string;
 }
 
+await contentRepository.ensureSyncedFromSanity();
 const { slug } = Astro.props;
 const archive = contentRepository.getInterestCategoryArchive(slug);
 if (!archive) {
