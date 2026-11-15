@@ -99,6 +99,7 @@ import {
   validateProductImagesForProduct,
 } from './productImageDelivery';
 import { PhotoImage } from '../components/ObjectIllustrations';
+import { ProductCard } from '../components/ProductCard';
 import { GiftRecommendation } from '../components/guide/GiftRecommendation';
 import {
   DEFAULT_FINDER_FILTERS,
@@ -4643,6 +4644,110 @@ test('41. Phase 1 Sanity CMS Schema & Studio Implementation: 9 document types, 4
   assert.ok(contentRepository.getAllArticles().length > 0);
 });
 
+test('42. Compact Discovery Cards reuse ProductCard across homepage, search/finder, archives, and hubs while preserving rich Gift Guide cards, PDPs, and intentional image placeholders', () => {
+  const products = contentRepository.getAllProducts();
+  const honeyFlight = products.find(
+    (p) => p.id === 'prod_chili_honey_flight_01'
+  )!;
+  assert.ok(honeyFlight, 'Honey flight product must exist');
 
+  // 1. Compact Discovery Card renders single price, Save, Quick View, canonical links on image & title, and omits verbose boxes/taxonomy footers/Details links
+  const compactHtml = renderToStaticMarkup(
+    <ProductCard
+      product={honeyFlight}
+      variant="surface"
+      isSaved={false}
+      onToggleSave={() => {}}
+      onSelectProduct={() => {}}
+    />
+  );
+  assert.match(compactHtml, /data-card-variant="compact-discovery"/);
+  assert.match(
+    compactHtml,
+    new RegExp(`href="/products/${honeyFlight.slug}/"`)
+  );
+  assert.match(compactHtml, /Quick View/);
+  assert.match(compactHtml, /Save Small-Batch Chili Crisp/);
+  const priceMatches = compactHtml.match(/\$38/g) ?? [];
+  assert.equal(
+    priceMatches.length,
+    1,
+    'Price must be displayed only once on Compact Discovery Cards'
+  );
+  assert.doesNotMatch(compactHtml, /Why give it:/);
+  assert.doesNotMatch(compactHtml, /Why it matched:/);
+  assert.doesNotMatch(compactHtml, /Sample Link &amp; Details/);
+  assert.doesNotMatch(compactHtml, /See why we love it/);
+  assert.doesNotMatch(compactHtml, /For: Dinner hosts|Occasions:/);
 
+  // 2. GiftFinderExperience search results reuse Compact Discovery Cards cleanly
+  const finderHtml = renderToStaticMarkup(
+    <GiftFinderExperience
+      products={products}
+      guides={contentRepository.getAllGiftGuides()}
+      articles={contentRepository.getAllArticles()}
+      initialSearchString="?q=honey"
+    />
+  );
+  assert.match(finderHtml, /data-card-variant="compact-discovery"/);
+  assert.doesNotMatch(finderHtml, /Why it matched:/);
+  assert.doesNotMatch(finderHtml, /Why give it:/);
 
+  // 3. CategoryArchiveView product grid reuses Compact Discovery Cards cleanly
+  const hostArchive = contentRepository.getRecipientCategoryArchive('host')!;
+  const archiveHtml = renderToStaticMarkup(
+    <CategoryArchiveView
+      archiveType="guide-category"
+      dimensionLabel="Recipients"
+      parentDirectoryLabel="Gift Guides"
+      parentDirectoryHref="/gift-guides/"
+      categoryLabel={hostArchive.category.label}
+      categoryDescription={hostArchive.category.description}
+      iconKey={hostArchive.category.iconKey}
+      matchingGuides={hostArchive.category.matchingGuides}
+      matchingProducts={hostArchive.category.matchingProducts}
+      finderHref={hostArchive.category.finderHref}
+      relatedCategories={[]}
+    />
+  );
+  assert.match(archiveHtml, /data-card-variant="compact-discovery"/);
+  assert.doesNotMatch(archiveHtml, /Editorial Profile →/);
+
+  // 4. Gift Guide ReaderView preserves rich Gift Guide cards (does NOT simplify into compact discovery cards)
+  const flagshipGuide = contentRepository.getGiftGuideBySlug(
+    'thoughtful-gifts-for-people-who-appreciate-the-little-things'
+  )!;
+  const guideHtml = renderToStaticMarkup(
+    <GiftGuideReaderView
+      guide={flagshipGuide}
+      savedProductIds={[]}
+      onToggleSaveProduct={() => {}}
+      onSelectProduct={() => {}}
+    />
+  );
+  assert.match(guideHtml, /Why it works/i);
+  assert.doesNotMatch(guideHtml, /data-card-variant="compact-discovery"/);
+
+  // 5. PhotoImage missing URL renders intentional still-life placeholder without "Sample Image Placeholder" or raw visible alt text dump
+  const fallbackHtml = renderToStaticMarkup(
+    <PhotoImage
+      image={{
+        id: 'img_missing_honey',
+        url: '',
+        fallbackColor: '#F6E27F',
+        alt: 'Golden jars of infused wildflower honey',
+      }}
+      preset="card-portrait"
+    />
+  );
+  assert.match(fallbackHtml, /data-photo-placeholder="true"/);
+  assert.match(
+    fallbackHtml,
+    /aria-label="Golden jars of infused wildflower honey"/
+  );
+  assert.doesNotMatch(fallbackHtml, /Sample Image Placeholder/);
+  assert.doesNotMatch(
+    fallbackHtml,
+    />Golden jars of infused wildflower honey</
+  );
+});

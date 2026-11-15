@@ -1,19 +1,21 @@
 import React from 'react';
-import { Heart, ArrowUpRight, ExternalLink } from 'lucide-react';
+import { Heart, ExternalLink, Eye } from 'lucide-react';
 import { Product } from '../types/content';
 import { PhotoImage } from './ObjectIllustrations';
 
-interface ProductCardProps {
+export interface ProductCardProps {
   product: Product;
-  isSaved: boolean;
-  onToggleSave: (productId: string) => void;
-  onSelectProduct: (product: Product) => void;
+  isSaved?: boolean;
+  onToggleSave?: (productId: string) => void;
+  onSelectProduct?: (product: Product) => void;
   awardNote?: string;
-  variant?: 'open' | 'surface' | 'guide-feature';
+  variant?: 'open' | 'surface' | 'discovery' | 'guide-feature';
   customEditorialNote?: string;
   idealForNote?: string;
   goodToKnowNote?: string;
   domId?: string;
+  /** Optional compact secondary action slot (e.g. Save-to-List selector in Gift Finder) */
+  footerActionSlot?: React.ReactNode;
 }
 
 const RECIPIENT_LABELS: Record<string, string> = {
@@ -34,9 +36,13 @@ const OCCASION_LABELS: Record<string, string> = {
   'just-because': 'Just Because',
 };
 
+const isDevPreview =
+  typeof import.meta !== 'undefined' &&
+  Boolean((import.meta as unknown as { env?: { DEV?: boolean } }).env?.DEV);
+
 export const ProductCard: React.FC<ProductCardProps> = ({
   product,
-  isSaved,
+  isSaved = false,
   onToggleSave,
   onSelectProduct,
   awardNote,
@@ -45,11 +51,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   idealForNote,
   goodToKnowNote,
   domId,
+  footerActionSlot,
 }) => {
   const primaryImage = product.images?.[0] ?? {
     id: 'fallback',
     url: '',
-    fallbackColor: '#EBF3FE',
+    fallbackColor: '#F3ECE1',
     alt: product.title,
   };
   const activeTag = awardNote || product.calloutTag;
@@ -65,7 +72,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     .slice(0, 2)
     .map((o) => OCCASION_LABELS[o] || o);
 
-  // Horizontal Feature Layout for Lead Pick in each Budget Section
+  // Horizontal Feature Layout for Lead Pick in each Budget Section / Guide Feature
   if (variant === 'guide-feature') {
     return (
       <article
@@ -75,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-12 gap-7 items-center">
           {/* Left: 4:3 Image Composition */}
           <div
-            onClick={() => onSelectProduct(product)}
+            onClick={() => onSelectProduct?.(product)}
             className="md:col-span-5 relative aspect-4/3 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] cursor-pointer"
           >
             <PhotoImage
@@ -87,26 +94,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               aspectRatio="4:3"
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleSave(product.id);
-              }}
-              aria-pressed={isSaved}
-              aria-label={
-                isSaved
-                  ? `Remove ${product.title} from Saved Gifts`
-                  : `Bookmark ${product.title} to Saved Gifts`
-              }
-              className={`absolute top-3.5 right-3.5 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
-                isSaved
-                  ? 'bg-[#F2846B] text-white'
-                  : 'bg-white/95 text-[#1B3D5F] hover:bg-white'
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-            </button>
+            {onToggleSave && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSave(product.id);
+                }}
+                aria-pressed={isSaved}
+                aria-label={
+                  isSaved
+                    ? `Remove ${product.title} from Saved Gifts`
+                    : `Bookmark ${product.title} to Saved Gifts`
+                }
+                className={`absolute top-3.5 right-3.5 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                  isSaved
+                    ? 'bg-[#F2846B] text-white'
+                    : 'bg-white/95 text-[#1B3D5F] hover:bg-white'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+              </button>
+            )}
           </div>
 
           {/* Right: Editorial Details & Gift Rationale */}
@@ -147,8 +156,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 <a
                   href={`/products/${product.slug}/`}
                   onClick={(e) => {
-                    e.preventDefault();
-                    onSelectProduct(product);
+                    if (onSelectProduct) {
+                      e.preventDefault();
+                      onSelectProduct(product);
+                    }
                   }}
                   className="text-left hover:text-[#28537D] transition-colors focus-visible:outline-2 focus-visible:outline-[#28537D]"
                 >
@@ -186,25 +197,29 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => onToggleSave(product.id)}
-                  aria-pressed={isSaved}
-                  className={`px-3.5 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
-                    isSaved
-                      ? 'bg-[#F2846B]/15 text-[#222426]'
-                      : 'bg-[#F3ECE1] text-[#222426] hover:bg-[#E8F8F0]'
-                  }`}
-                >
-                  <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-[#F2846B] text-[#F2846B]' : ''}`} />
-                  <span>{isSaved ? 'Saved to List' : 'Save Gift'}</span>
-                </button>
+                {onToggleSave && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleSave(product.id)}
+                    aria-pressed={isSaved}
+                    className={`px-3.5 py-2 rounded-full text-xs font-semibold inline-flex items-center gap-1.5 transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                      isSaved
+                        ? 'bg-[#F2846B]/15 text-[#222426]'
+                        : 'bg-[#F3ECE1] text-[#222426] hover:bg-[#E8F8F0]'
+                    }`}
+                  >
+                    <Heart className={`w-3.5 h-3.5 ${isSaved ? 'fill-[#F2846B] text-[#F2846B]' : ''}`} />
+                    <span>{isSaved ? 'Saved to List' : 'Save Gift'}</span>
+                  </button>
+                )}
 
                 <a
                   href={product.purchaseUrl}
                   onClick={(e) => {
-                    e.preventDefault();
-                    onSelectProduct(product);
+                    if (onSelectProduct) {
+                      e.preventDefault();
+                      onSelectProduct(product);
+                    }
                   }}
                   className="px-4 py-2 rounded-full bg-[#1B3D5F] text-[#FAF7F2] text-xs font-semibold inline-flex items-center gap-1.5 hover:bg-[#28537D] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#28537D]"
                 >
@@ -224,149 +239,140 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     );
   }
 
+  // Compact Discovery Card (Homepage, Search Results, Filterable Catalog, Archives & Discovery Hubs)
+  const conciseSummary =
+    product.subtitle?.trim() ||
+    product.bestForSummary?.trim() ||
+    customEditorialNote?.trim() ||
+    product.whyToGiveIt?.trim() ||
+    '';
+  const productHref = `/products/${product.slug}/`;
+  const isSurfaceVariant = variant === 'surface';
+
   return (
     <article
       id={domId}
-      className={`group flex flex-col justify-between transition-transform duration-200 scroll-mt-28 ${
-        variant === 'surface'
-          ? 'bg-[#FAF7F2] rounded-2xl p-4 shadow-xs hover:-translate-y-1'
-          : 'hover:-translate-y-1'
+      data-card-variant="compact-discovery"
+      className={`group flex flex-col justify-between h-full transition-transform duration-200 scroll-mt-28 ${
+        isSurfaceVariant
+          ? 'bg-white rounded-3xl p-4 border border-[#DFDBD3] shadow-2xs hover:-translate-y-0.5'
+          : 'hover:-translate-y-0.5'
       }`}
     >
-      <div>
-        {/* Desirable Photography Stage */}
-        <div
-          onClick={() => onSelectProduct(product)}
-          className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] cursor-pointer mb-4"
-        >
-          <PhotoImage
-            image={primaryImage}
-            src={primaryImage.url}
-            alt={primaryImage.alt}
-            fallbackColor={primaryImage.fallbackColor}
-            preset="card-portrait"
-            aspectRatio="4:5"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
-
-          {/* Bookmark Button */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSave(product.id);
-            }}
-            aria-pressed={isSaved}
-            aria-label={
-              isSaved
-                ? `Remove ${product.title} from Saved Gifts`
-                : `Bookmark ${product.title} to Saved Gifts`
-            }
-            className={`absolute top-3.5 right-3.5 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
-              isSaved
-                ? 'bg-[#F2846B] text-white'
-                : 'bg-white/95 text-[#222426] hover:bg-white'
-            }`}
+      <div className="flex flex-col flex-1">
+        {/* Product Photography Stage */}
+        <div className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] mb-4">
+          <a
+            href={productHref}
+            aria-label={`View ${product.title}`}
+            className="block w-full h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1B3D5F]"
           >
-            <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-          </button>
+            <PhotoImage
+              image={primaryImage}
+              src={primaryImage.url}
+              alt={primaryImage.alt}
+              fallbackColor={primaryImage.fallbackColor}
+              preset="card-portrait"
+              aspectRatio="4:5"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            />
+          </a>
 
-          {/* Price & Currency Overlay */}
-          <div className="absolute bottom-3.5 left-3.5 text-white font-semibold text-sm tracking-tight drop-shadow-xs tabular-nums">
-            {hasDisplayablePrice ? (
-              <>
-                ${product.price}{' '}
-                <span className="text-[11px] font-normal opacity-90">
-                  {product.currency}
-                </span>
-              </>
-            ) : (
-              <span className="text-xs font-medium opacity-95">
-                Price unverified
-              </span>
-            )}
-          </div>
+          {isDevPreview && product.isPlaceholderLink && (
+            <span className="pointer-events-none absolute top-3 left-3 rounded-md bg-[#FAF9F6]/88 backdrop-blur-xs border border-[#DFDBD3]/75 px-2 py-0.5 text-[10px] font-medium tracking-wide text-[#62666A]">
+              Sample
+            </span>
+          )}
+
+          {onToggleSave && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleSave(product.id);
+              }}
+              aria-pressed={isSaved}
+              aria-label={
+                isSaved
+                  ? `Remove ${product.title} from Saved Gifts`
+                  : `Save ${product.title} to Saved Gifts`
+              }
+              className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm cursor-pointer focus-visible:outline-2 focus-visible:outline-[#1B3D5F] ${
+                isSaved
+                  ? 'bg-[#F2846B] text-white'
+                  : 'bg-white/95 text-[#222426] hover:bg-white'
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+            </button>
+          )}
         </div>
 
-        {/* Open, Unboxed Editorial Copy */}
-        <div className="px-1">
-          {/* Unboxed Kicker Line */}
-          <div className="flex items-center gap-1.5 text-xs text-[#62666A] mb-1.5 font-medium">
+        {/* Clean Editorial Discovery Copy */}
+        <div className="px-1 flex-1 flex flex-col">
+          {/* Small Category or Editorial Label */}
+          <div className="flex items-center gap-1.5 text-[11px] text-[#62666A] mb-1.5 font-medium truncate">
             {activeTag && (
               <>
-                <span className="text-[#28537D] font-semibold">{activeTag}</span>
+                <span className="text-[#28537D] font-semibold uppercase tracking-wider shrink-0">
+                  {activeTag}
+                </span>
                 <span aria-hidden="true">·</span>
               </>
             )}
-            <span>{product.productType}</span>
+            <span className="truncate">{product.productType}</span>
           </div>
 
-          {/* Product Name */}
-          <h3 className="theme-product-title text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors mb-1">
+          {/* Product Title (2-line cap for balanced grid rhythm) */}
+          <h3 className="theme-product-title text-[1.0625rem] sm:text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors mb-1.5 line-clamp-2">
             <a
-              href={`/products/${product.slug}/`}
-              onClick={(e) => {
-                e.preventDefault();
-                onSelectProduct(product);
-              }}
-              className="text-left focus-visible:outline-2 focus-visible:outline-[#28537D]"
+              href={productHref}
+              className="hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
             >
               {product.title}
             </a>
           </h3>
 
-          {/* Short, specific description */}
-          <p className="theme-caption text-xs font-medium text-[#62666A] mb-2 line-clamp-2">
-            {product.subtitle}
-          </p>
-
-          {/* Clear explanation of why it makes a good gift */}
-          <p className="theme-body-sm text-sm text-[#292B2D] leading-relaxed mb-3">
-            {customEditorialNote || product.whyToGiveIt}
-          </p>
-
-          {goodToKnowNote && (
-            <p className="text-xs text-[#62666A] mb-2">
-              <strong className="font-semibold text-[#222426]">Note:</strong> {goodToKnowNote}
+          {/* One Concise Editorial Summary (2-line cap) */}
+          {conciseSummary && (
+            <p className="theme-caption text-[13px] text-[#62666A] leading-relaxed line-clamp-2">
+              {conciseSummary}
             </p>
           )}
         </div>
       </div>
 
-      {/* Recipient/Occasion Labels & Explicit Product Link */}
-      <div className="px-1 pt-2.5 border-t border-[#DFDBD3] space-y-2 text-xs">
-        <div className="text-[#62666A] truncate">
-          <span>For: {recipientLabels.join(', ')}</span>
-          {product.interests?.[0] && (
+      {/* Balanced Footer: Single Price Display & Quick View (when applicable) */}
+      <div className="px-1 pt-3 mt-4 border-t border-[#DFDBD3]/80 flex items-center justify-between gap-3 text-xs">
+        <span className="font-semibold text-[#222426] tabular-nums whitespace-nowrap">
+          {hasDisplayablePrice ? (
             <>
-              <span aria-hidden="true"> · </span>
-              <span>{product.interests[0]}</span>
+              ${product.price}{' '}
+              <span className="text-[11px] font-normal text-[#62666A]">
+                {product.currency}
+              </span>
             </>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="font-semibold text-[#222426] tabular-nums">
-            {hasDisplayablePrice
-              ? `$${product.price} ${product.currency}`
-              : 'Price unverified'}
-          </span>
-
-          <a
-            href={product.purchaseUrl}
-            onClick={(e) => {
-              e.preventDefault();
-              onSelectProduct(product);
-            }}
-            className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F] transition-colors whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-[#28537D]"
-          >
-            <span>
-              {product.isPlaceholderLink ? 'Sample Link & Details' : 'See why we love it'}
+          ) : (
+            <span className="text-xs font-medium text-[#62666A]">
+              Price unverified
             </span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </a>
+          )}
+        </span>
+
+        <div className="flex items-center gap-2.5 min-w-0">
+          {footerActionSlot}
+          {onSelectProduct && (
+            <button
+              type="button"
+              onClick={() => onSelectProduct(product)}
+              aria-label={`Quick view ${product.title}`}
+              className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F] transition-colors whitespace-nowrap shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-[#28537D]"
+            >
+              <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>Quick View</span>
+            </button>
+          )}
         </div>
       </div>
     </article>

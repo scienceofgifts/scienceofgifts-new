@@ -6,7 +6,6 @@ import {
   Calendar,
   Clock,
   Compass,
-  ExternalLink,
   FileText,
   Sparkles,
 } from 'lucide-react';
@@ -19,8 +18,13 @@ import {
   AFFILIATE_DISCLOSURE_CONFIG,
   CategoryIconKey,
 } from '../config/navigationConfig';
+import {
+  dispatchOpenProductModal,
+  useSavedGiftsState,
+} from '../utils/savedGiftsStore';
 import { CategoryIcon } from './CategoryIcon';
 import { PhotoImage } from './ObjectIllustrations';
+import { ProductCard } from './ProductCard';
 
 export interface RelatedCategoryLink {
   slug: string;
@@ -69,6 +73,7 @@ export const CategoryArchiveView: React.FC<CategoryArchiveViewProps> = ({
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [currentProductPage, setCurrentProductPage] = useState(1);
+  const { savedProductIds, toggleSaveProduct } = useSavedGiftsState();
 
   const isGuideCategory = archiveType === 'guide-category';
 
@@ -678,78 +683,17 @@ export const CategoryArchiveView: React.FC<CategoryArchiveViewProps> = ({
               </p>
             )}
 
-            <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {paginatedProducts.map((product) => {
-                const img = product.images[0];
-                return (
-                  <article
-                    key={product.id}
-                    className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF]"
-                  >
-                    <div>
-                      {img && (
-                        <a
-                          href={`/products/${product.slug}/`}
-                          className="group block aspect-[4/3] w-full overflow-hidden bg-[#F6F4EF]"
-                        >
-                          <PhotoImage
-                            image={img}
-                            preset="card-landscape"
-                            aspectRatio="4:3"
-                            width={560}
-                            height={420}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
-                        </a>
-                      )}
-                      <div className="p-5">
-                        <div className="flex items-center justify-between gap-2 text-xs text-[#636A6F]">
-                          <span>{product.vendor}</span>
-                          <span className="font-semibold text-[#24282B] tabular-nums">
-                            ${product.price} {product.currency}
-                          </span>
-                        </div>
-                        <h3 className="theme-product-title mt-1.5 font-serif text-lg font-semibold text-[#24282B]">
-                          <a
-                            href={`/products/${product.slug}/`}
-                            className="hover:text-[#28537D] hover:underline"
-                          >
-                            {product.title}
-                          </a>
-                        </h3>
-                        <p className="theme-body-sm mt-1.5 text-xs text-[#636A6F]">
-                          {product.bestForSummary}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between border-t border-[#E3E1DB] px-5 py-3 text-xs">
-                      <a
-                        href={`/products/${product.slug}/`}
-                        className="theme-link font-semibold text-[#28537D] hover:text-[#1B3D5F] hover:underline"
-                      >
-                        Editorial Profile →
-                      </a>
-                      <a
-                        href={product.purchaseUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-[#636A6F] hover:text-[#24282B]"
-                      >
-                        <span>
-                          {product.commerceProvider === 'fourthwall'
-                            ? 'Science of Gifts Shop'
-                            : product.vendor}
-                        </span>
-                        <ExternalLink
-                          className="h-3 w-3"
-                          aria-hidden="true"
-                        />
-                      </a>
-                    </div>
-                  </article>
-                );
-              })}
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {paginatedProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  variant="surface"
+                  isSaved={savedProductIds.includes(product.id)}
+                  onToggleSave={toggleSaveProduct}
+                  onSelectProduct={dispatchOpenProductModal}
+                />
+              ))}
             </div>
 
             {totalProductPages > 1 && (

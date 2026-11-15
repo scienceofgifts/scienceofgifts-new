@@ -7,8 +7,6 @@ import {
   CheckCircle2,
   Clock,
   Compass,
-  Eye,
-  Heart,
   HeartHandshake,
   Info,
   ShieldCheck,
@@ -22,9 +20,9 @@ import {
   RECIPIENT_TAXONOMY_META,
 } from '../cms/contentRepository';
 import { Product } from '../types/content';
-import { hasValidNumericPrice } from '../utils/giftFinderEngine';
 import { CategoryIcon } from './CategoryIcon';
 import { PhotoImage } from './ObjectIllustrations';
+import { ProductCard } from './ProductCard';
 
 export interface EditorialDiscoveryHubViewProps {
   enrichedHub: EnrichedEditorialHub;
@@ -980,169 +978,25 @@ export const EditorialDiscoveryHubView: React.FC<
 
             <div className="mt-8 grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
               {curatedProducts.map((pick) => {
-                const { product, selection, featuredGuide } = pick;
+                const { product, selection } = pick;
                 const isSaved = savedProductIds.includes(product.id);
-                const hasVerifiedPrice = hasValidNumericPrice(product);
-                const cleanVendor = product.vendor.replace(
-                  /^Sample Maker:\s*/i,
-                  ''
-                );
                 const isEditorialSelection =
                   selection.selectionSource === 'editorial-curation';
 
                 return (
-                  <article
+                  <ProductCard
                     key={product.id}
-                    className="flex flex-col justify-between overflow-hidden rounded-2xl border border-[#E3E1DB] bg-[#FFFFFF] transition-colors hover:border-[#C5C1B8]"
-                  >
-                    <div>
-                      <div className="relative aspect-[4/5] w-full overflow-hidden bg-[#F6F4EF]">
-                        <a
-                          href={`/products/${product.slug}/`}
-                          className="group block h-full w-full"
-                        >
-                          <PhotoImage
-                            image={product.images[0]}
-                            src={product.images[0]?.url}
-                            alt={product.images[0]?.alt ?? product.title}
-                            preset="card-portrait"
-                            aspectRatio="4:5"
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-                          />
-                        </a>
-
-                        {/* Provenance Badge (Editorial Curation vs Catalog Match) */}
-                        <div className="pointer-events-none absolute left-3.5 top-3.5 flex flex-wrap items-center gap-1.5">
-                          <span
-                            className={`rounded-md px-2.5 py-1 text-[11px] font-semibold shadow-2xs ${
-                              isEditorialSelection
-                                ? 'bg-[#1B3D5F] text-[#FFFFFF]'
-                                : 'border border-[#E3E1DB] bg-[#FFFFFF]/95 text-[#24282B]'
-                            }`}
-                          >
-                            {isEditorialSelection
-                              ? 'Editor’s Selection'
-                              : 'Catalog Match'}
-                          </span>
-                          {product.isPlaceholderLink && (
-                            <span className="rounded-md border border-[#E6C786] bg-[#FFF8E7]/95 px-2 py-0.5 text-[10px] font-semibold text-[#6E4D11]">
-                              Sample Record
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="p-6">
-                        <div className="flex items-center justify-between gap-2 text-xs">
-                          <span className="font-medium text-[#636A6F]">
-                            {cleanVendor}
-                          </span>
-                          {hasVerifiedPrice ? (
-                            <span className="font-semibold text-[#24282B] tabular-nums">
-                              ${product.price} {product.currency}
-                            </span>
-                          ) : (
-                            <span className="text-[#636A6F]">
-                              Price on profile
-                            </span>
-                          )}
-                        </div>
-
-                        <h3 className="theme-subsection-heading mt-1.5 font-serif text-xl font-semibold leading-snug text-[#24282B]">
-                          <a
-                            href={`/products/${product.slug}/`}
-                            className="hover:text-[#28537D] hover:underline"
-                          >
-                            {product.title}
-                          </a>
-                        </h3>
-
-                        {selection.bestForRelationship && (
-                          <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-md border border-[#C6E4D6] bg-[#E5F3EC]/70 px-2.5 py-1 text-[11px] font-semibold text-[#1B3D5F]">
-                            <span>Best for: {selection.bestForRelationship}</span>
-                          </div>
-                        )}
-
-                        <p className="theme-body-sm mt-3 text-[#24282B]">
-                          {selection.editorialNote ?? product.whyToGiveIt}
-                        </p>
-
-                        {/* Interest & Recipient Tags */}
-                        <div className="mt-4 flex flex-wrap items-center gap-1.5">
-                          {product.recipients.slice(0, 2).map((recKey) => (
-                            <span
-                              key={recKey}
-                              className="rounded-md border border-[#E3E1DB] bg-[#FAF9F6] px-2 py-0.5 text-[11px] font-medium text-[#636A6F]"
-                            >
-                              {RECIPIENT_TAXONOMY_META[recKey]?.shortLabel ??
-                                recKey}
-                            </span>
-                          ))}
-                          {product.interests.slice(0, 2).map((interest) => (
-                            <span
-                              key={interest}
-                              className="rounded-md bg-[#F6F4EF] px-2 py-0.5 text-[11px] font-medium text-[#24282B]"
-                            >
-                              {interest}
-                            </span>
-                          ))}
-                        </div>
-
-                        {featuredGuide && (
-                          <div className="mt-4 border-t border-[#E3E1DB] pt-3 text-xs text-[#636A6F]">
-                            Featured in:{' '}
-                            <a
-                              href={`/gift-guides/${featuredGuide.guide.slug}/`}
-                              className="font-medium text-[#28537D] hover:underline"
-                            >
-                              {featuredGuide.guide.title}
-                            </a>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#E3E1DB] bg-[#FAF9F6]/60 px-6 py-3.5 text-xs">
-                      <div className="flex items-center gap-3">
-                        {onToggleSave && (
-                          <button
-                            type="button"
-                            onClick={() => onToggleSave(product.id)}
-                            aria-pressed={isSaved}
-                            className="inline-flex items-center gap-1.5 font-semibold text-[#24282B] hover:text-[#28537D] cursor-pointer"
-                          >
-                            <Heart
-                              className={`h-3.5 w-3.5 ${
-                                isSaved
-                                  ? 'fill-[#F2846B] text-[#F2846B]'
-                                  : 'text-[#636A6F]'
-                              }`}
-                            />
-                            <span>{isSaved ? 'Saved' : 'Save'}</span>
-                          </button>
-                        )}
-
-                        {onSelectProduct && (
-                          <button
-                            type="button"
-                            onClick={() => onSelectProduct(product)}
-                            className="inline-flex items-center gap-1 font-medium text-[#636A6F] hover:text-[#28537D] cursor-pointer"
-                          >
-                            <Eye className="h-3.5 w-3.5" />
-                            <span>Quick View</span>
-                          </button>
-                        )}
-                      </div>
-
-                      <a
-                        href={`/products/${product.slug}/`}
-                        className="theme-link inline-flex items-center gap-1 font-semibold text-[#1B3D5F] hover:text-[#28537D] hover:underline"
-                      >
-                        <span>Full Review</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </a>
-                    </div>
-                  </article>
+                    product={product}
+                    variant="surface"
+                    awardNote={
+                      isEditorialSelection
+                        ? 'Editor’s Selection'
+                        : 'Catalog Match'
+                    }
+                    isSaved={isSaved}
+                    onToggleSave={onToggleSave}
+                    onSelectProduct={onSelectProduct}
+                  />
                 );
               })}
             </div>

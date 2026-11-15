@@ -135,6 +135,64 @@ const editorialHubHeaderLinks = resolveEditorialHubHeaderLinks({
         />
       )
     }
+    <script is:inline>
+      (() => {
+        const applySogImgFallback = (img) => {
+          if (!(img instanceof HTMLImageElement)) return;
+          if (img.getAttribute('data-sog-photo') !== 'true') return;
+          if (img.dataset.sogError === 'true') return;
+          img.dataset.sogError = 'true';
+          img.style.opacity = '0';
+          if (img.closest('astro-island')) return;
+          const parent = img.parentElement;
+          if (!parent || parent.querySelector('[data-sog-ssr-fallback="true"]')) {
+            return;
+          }
+          img.style.display = 'none';
+          const isCompact = img.getAttribute('data-compact-thumb') === 'true';
+          const bg = img.getAttribute('data-fallback-color') || '#F3ECE1';
+          const placeholder = document.createElement('div');
+          placeholder.setAttribute('data-sog-ssr-fallback', 'true');
+          placeholder.setAttribute('role', 'img');
+          placeholder.setAttribute(
+            'aria-label',
+            img.getAttribute('alt') || 'Gift editorial photograph'
+          );
+          placeholder.style.backgroundColor = bg;
+          placeholder.style.backgroundImage =
+            'radial-gradient(circle at 50% 38%, rgba(250, 249, 246, 0.76) 0%, rgba(243, 236, 225, 0.62) 65%, rgba(227, 225, 219, 0.48) 100%)';
+          placeholder.className =
+            'relative flex items-center justify-center overflow-hidden text-[#1B3D5F] w-full h-full ' +
+            (isCompact ? 'p-2' : 'p-6');
+          placeholder.innerHTML = isCompact
+            ? '<svg viewBox="0 0 36 36" fill="none" aria-hidden="true" class="w-6 h-6 text-[#1B3D5F]/65"><rect x="7" y="14" width="22" height="15" rx="2.5" fill="#FAF9F6" fill-opacity="0.85" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 11.5C5.5 10.67 6.17 10 7 10H29C29.83 10 30.5 10.67 30.5 11.5V14H5.5V11.5Z" fill="#E5F3EC" stroke="currentColor" stroke-width="1.5"/><path d="M18 10V29" stroke="currentColor" stroke-width="1.5"/></svg>'
+            : '<div aria-hidden="true" class="pointer-events-none absolute inset-3 rounded-xl border border-[#1B3D5F]/12"></div><svg viewBox="0 0 180 180" fill="none" aria-hidden="true" class="w-[54%] max-w-[138px] h-auto text-[#1B3D5F]/75"><ellipse cx="90" cy="140" rx="54" ry="8" fill="#1B3D5F" fill-opacity="0.06"/><path d="M46 136V76C46 51.7 65.7 32 90 32C114.3 32 134 51.7 134 76V136" stroke="currentColor" stroke-opacity="0.16" stroke-width="1.25"/><path d="M116 135C117 109 124 85 133 65" stroke="#28537D" stroke-opacity="0.55" stroke-width="1.5" stroke-linecap="round"/><path d="M120 105C111 101 107 94 111 89C117 91 121 97 120 105Z" fill="#E5F3EC" stroke="#28537D" stroke-opacity="0.5" stroke-width="1.2"/><path d="M126 86C134 83 139 76 136 71C129 73 125 79 126 86Z" fill="#E5F3EC" stroke="#28537D" stroke-opacity="0.5" stroke-width="1.2"/><path d="M66 76H96L100 84V133C100 135.76 97.76 138 95 138H67C64.24 138 62 135.76 62 133V84L66 76Z" fill="#FAF9F6" fill-opacity="0.92" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><rect x="64" y="68" width="34" height="8" rx="2" fill="#FFF8E7" stroke="currentColor" stroke-width="1.6"/><rect x="70" y="95" width="22" height="24" rx="2" fill="#F3ECE1" stroke="currentColor" stroke-opacity="0.45" stroke-width="1.2"/><path d="M75 104H87M75 110H84" stroke="currentColor" stroke-opacity="0.5" stroke-width="1.3" stroke-linecap="round"/><path d="M93 120H129C129 130.5 121 138 111 138C101 138 93 130.5 93 120Z" fill="#FAF9F6" fill-opacity="0.95" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+          parent.appendChild(placeholder);
+        };
+
+        document.addEventListener(
+          'error',
+          (event) => {
+            applySogImgFallback(event.target);
+          },
+          true
+        );
+
+        document.addEventListener('DOMContentLoaded', () => {
+          document
+            .querySelectorAll('img[data-sog-photo="true"]')
+            .forEach((img) => {
+              if (
+                img instanceof HTMLImageElement &&
+                img.complete &&
+                img.naturalWidth === 0
+              ) {
+                applySogImgFallback(img);
+              }
+            });
+        });
+      })();
+    </script>
   </head>
   <body
     class={`${pageBgClass} text-[#24282B] antialiased selection:bg-[#E5F3EC] selection:text-[#1B3D5F] min-h-screen flex flex-col`}

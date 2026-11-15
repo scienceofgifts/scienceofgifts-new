@@ -5,7 +5,6 @@ import {
   SlidersHorizontal,
   X,
   RotateCcw,
-  Heart,
   ArrowRight,
   ArrowLeft,
   Check,
@@ -14,8 +13,6 @@ import {
   Plus,
   Trash2,
   Share2,
-  Bookmark,
-  ExternalLink,
   AlertTriangle,
   Compass,
   ListChecks,
@@ -61,6 +58,7 @@ import {
 import { SITE_ORIGIN } from '../utils/seoAndValidation';
 import { GiftThinkingAnimation } from './GiftThinkingAnimation';
 import { PhotoImage } from './ObjectIllustrations';
+import { ProductCard } from './ProductCard';
 
 export type SidebarSectionKey =
   | 'budget'
@@ -2852,196 +2850,57 @@ interface FinderResultCardProps {
 
 const FinderResultCard: React.FC<FinderResultCardProps> = ({
   result,
-  hasActiveCriteria,
   isSaved,
   onToggleSave,
   giftLists,
   onAddProductToList,
 }) => {
-  const { product, matchExplanation, editorialBadges } = result;
+  const { product, editorialBadges } = result;
   const [justAddedToListName, setJustAddedToListName] = useState<string | null>(
     null
   );
 
-  const primaryImage = product.images?.[0] ?? {
-    id: 'fallback',
-    url: '',
-    fallbackColor: '#EBF3FE',
-    alt: product.title,
-  };
-
   const leadBadge = editorialBadges[0] || product.calloutTag;
-  const recipientNames = (product.recipients ?? [])
-    .slice(0, 2)
-    .map((r) => RECIPIENT_LABELS[r] || r);
+
+  const listSelectSlot =
+    giftLists.length > 1 ? (
+      <select
+        aria-label={`Save ${product.title} to a specific gift list`}
+        value=""
+        onChange={(e) => {
+          const listId = e.target.value;
+          if (!listId) return;
+          onAddProductToList(product.id, listId);
+          const listObj = giftLists.find((l) => l.id === listId);
+          setJustAddedToListName(listObj?.name ?? 'List');
+          setTimeout(() => setJustAddedToListName(null), 2000);
+        }}
+        className="px-2 py-1 rounded-lg bg-[#F3ECE1] text-[#292B2D] text-[11px] font-semibold cursor-pointer max-w-[120px] truncate focus-visible:outline-2 focus-visible:outline-[#1B3D5F]"
+      >
+        <option value="">
+          {justAddedToListName
+            ? `Saved!`
+            : isSaved
+              ? '+ Save to list'
+              : '+ Save to list'}
+        </option>
+        {giftLists.map((l) => (
+          <option key={l.id} value={l.id}>
+            {l.name}
+          </option>
+        ))}
+      </select>
+    ) : undefined;
 
   return (
-    <article className="group flex flex-col justify-between rounded-3xl bg-white p-4 shadow-xs border border-[#DFDBD3] transition-transform duration-200 hover:-translate-y-1">
-      <div>
-        {/* Product Image Stage */}
-        <div
-          onClick={() => dispatchOpenProductModal(product)}
-          className="relative aspect-4/5 w-full rounded-2xl overflow-hidden bg-[#F3ECE1] cursor-pointer mb-4"
-        >
-          <PhotoImage
-            image={primaryImage}
-            src={primaryImage.url}
-            alt={primaryImage.alt}
-            fallbackColor={primaryImage.fallbackColor}
-            preset="card-portrait"
-            aspectRatio="4:5"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-          <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/45 to-transparent pointer-events-none" />
-
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSave(product.id);
-            }}
-            aria-pressed={isSaved}
-            aria-label={
-              isSaved
-                ? `Remove ${product.title} from Saved Gifts`
-                : `Save ${product.title} to Saved Gifts`
-            }
-            className={`absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all shadow-sm ${
-              isSaved
-                ? 'bg-[#F2846B] text-white'
-                : 'bg-white/95 text-[#222426] hover:bg-white'
-            }`}
-          >
-            <Heart className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-          </button>
-
-          <div className="absolute bottom-3 left-3.5 text-white font-semibold text-sm tabular-nums drop-shadow-xs">
-            ${product.price}{' '}
-            <span className="text-[11px] font-normal opacity-90">
-              {product.currency}
-            </span>
-          </div>
-        </div>
-
-        {/* Unboxed Editorial Metadata Kicker */}
-        <div className="px-1 space-y-2">
-          <div className="flex items-center gap-1.5 text-xs text-[#62666A] font-medium truncate">
-            {leadBadge && (
-              <>
-                <span className="font-semibold text-[#28537D]">
-                  {leadBadge}
-                </span>
-                <span aria-hidden="true">·</span>
-              </>
-            )}
-            <span>{product.productType}</span>
-          </div>
-
-          <h3 className="text-lg font-serif font-semibold text-[#222426] leading-snug group-hover:text-[#28537D] transition-colors">
-            <a
-              href={`/products/${product.slug}/`}
-              className="hover:underline focus-visible:outline-2 focus-visible:outline-[#28537D]"
-            >
-              {product.title}
-            </a>
-          </h3>
-
-          <p className="text-xs font-medium text-[#62666A] line-clamp-2">
-            {product.subtitle}
-          </p>
-
-          {/* Grounded Match Explanation Box */}
-          <div
-            className={`p-3 rounded-2xl text-xs leading-relaxed ${
-              hasActiveCriteria
-                ? 'bg-[#E8F8F0] text-[#292B2D]'
-                : 'bg-[#FAF7F2] text-[#292B2D]'
-            }`}
-          >
-            <strong className="font-semibold text-[#222426]">
-              {hasActiveCriteria ? 'Why it matched: ' : 'Why give it: '}
-            </strong>
-            <span>
-              {hasActiveCriteria ? matchExplanation : product.whyToGiveIt}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer Metadata & Save-to-List / Canonical Links */}
-      <div className="px-1 pt-3 mt-3 border-t border-[#DFDBD3] space-y-2.5 text-xs">
-        <div className="text-[#62666A] truncate">
-          <span>For: {recipientNames.join(', ')}</span>
-          {product.interests?.[0] && (
-            <>
-              <span aria-hidden="true"> · </span>
-              <span>{product.interests[0]}</span>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          {giftLists.length > 1 ? (
-            <select
-              aria-label={`Save ${product.title} to a specific gift list`}
-              value=""
-              onChange={(e) => {
-                const listId = e.target.value;
-                if (!listId) return;
-                onAddProductToList(product.id, listId);
-                const listObj = giftLists.find((l) => l.id === listId);
-                setJustAddedToListName(listObj?.name ?? 'List');
-                setTimeout(() => setJustAddedToListName(null), 2000);
-              }}
-              className="px-2.5 py-1.5 rounded-xl bg-[#F3ECE1] text-[#292B2D] text-[11px] font-semibold cursor-pointer max-w-[155px] truncate"
-            >
-              <option value="">
-                {justAddedToListName
-                  ? `Saved to ${justAddedToListName}!`
-                  : isSaved
-                    ? '+ Save to another list'
-                    : '+ Save to list...'}
-              </option>
-              {giftLists.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onToggleSave(product.id)}
-              aria-pressed={isSaved}
-              className={`px-3 py-1.5 rounded-full text-[11px] font-semibold inline-flex items-center gap-1 transition-colors ${
-                isSaved
-                  ? 'bg-[#F2846B]/15 text-[#222426]'
-                  : 'bg-[#F3ECE1] text-[#292B2D] hover:bg-[#E8F8F0]'
-              }`}
-            >
-              <Bookmark className="w-3 h-3" />
-              <span>{isSaved ? 'Saved' : 'Save to List'}</span>
-            </button>
-          )}
-
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => dispatchOpenProductModal(product)}
-              className="text-[11px] font-semibold text-[#28537D] hover:text-[#1B3D5F] underline"
-            >
-              Quick view
-            </button>
-            <a
-              href={`/products/${product.slug}/`}
-              className="inline-flex items-center gap-1 font-semibold text-[#28537D] hover:text-[#1B3D5F]"
-            >
-              <span>Details</span>
-              <ExternalLink className="w-3 h-3" />
-            </a>
-          </div>
-        </div>
-      </div>
-    </article>
+    <ProductCard
+      product={product}
+      variant="surface"
+      awardNote={leadBadge}
+      isSaved={isSaved}
+      onToggleSave={onToggleSave}
+      onSelectProduct={dispatchOpenProductModal}
+      footerActionSlot={listSelectSlot}
+    />
   );
 };
