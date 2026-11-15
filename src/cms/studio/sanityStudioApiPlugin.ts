@@ -17,16 +17,20 @@ import path from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { PRODUCTS } from '../../data/catalog';
 import {
+  deleteDisposableTestArticleFromSanity,
   deleteDraftFromSanityContentLake,
   ensureEditableDraftInSanityContentLake,
   fetchDocumentFromSanityContentLake,
   getSanityContentLakeStatus,
   listDraftsFromSanityContentLake,
+  listPublishedArticlesFromSanityContentLake,
   listPublishedProductsFromSanityContentLake,
+  publishArticleDraftInSanityContentLake,
   publishProductDraftInSanityContentLake,
   resolveSanityServerCredentials,
   runDisposableDraftPersistenceVerificationTest,
   saveDraftToSanityContentLake,
+  unpublishArticleInSanityContentLake,
   unpublishProductInSanityContentLake,
   uploadImageAssetToSanityContentLake,
   uploadMultipleImageAssetsToSanityContentLake,
@@ -41,9 +45,11 @@ import {
   normalizeInternalCanonicalPath,
   normalizeSanityProductDocumentBackwardCompatible,
 } from './productDocumentMapper';
+import { normalizeSanityArticleDocumentBackwardCompatible } from './articleDocumentMapper';
 import { extractProductDetailsFromUrl } from './productUrlExtractor';
 import {
   ensureDefaultAiWritingProfileInSanity,
+  ensureDefaultArticleAiWritingProfileInSanity,
   ensureEvaluationHoodieCopyInSanity,
   generateCompleteProductProposal,
   generateProductEditorialCopy,
@@ -52,6 +58,12 @@ import {
   polishProductEditorialCopy,
   saveAiWritingProfileToSanity,
 } from './productAiAuthoringService';
+import {
+  exportArticleAiBrief,
+  generateCompleteArticleWithAi,
+  improveArticleWithAi,
+  parseImportedArticlePayload,
+} from './articleAiAuthoringService';
 import {
   isStudioDevelopmentEnvironmentAllowed,
   issueStudioEditorSessionCredentials,
@@ -358,6 +370,9 @@ async function handleSanityLakeProxyRequest(
             if (m?.[op] && typeof m[op] === 'object' && m[op]._type === 'product') {
               m[op] = normalizeSanityProductDocumentBackwardCompatible(m[op]);
               mutated = true;
+            } else if (m?.[op] && typeof m[op] === 'object' && m[op]._type === 'article') {
+              m[op] = normalizeSanityArticleDocumentBackwardCompatible(m[op]);
+              mutated = true;
             }
           }
           if (m?.patch && typeof m.patch === 'object' && m.patch.set && typeof m.patch.set === 'object') {
@@ -502,6 +517,9 @@ async function handleSanityLakeProxyRequest(
           if (node && typeof node === 'object') {
             if (node._type === 'product') {
               return normalizeSanityProductDocumentBackwardCompatible(node);
+            }
+            if (node._type === 'article') {
+              return normalizeSanityArticleDocumentBackwardCompatible(node);
             }
             const out: Record<string, any> = {};
             for (const [k, v] of Object.entries(node)) {
@@ -688,6 +706,82 @@ export async function handleSanityStudioApiRequest(
     }
   }
 
+  // Real Authenticated SSR Article Preview endpoint (`/api/studio/sanity/preview-article`)
+  if (method === 'GET' && pathname === '/api/studio/sanity/preview-article') {
+    if (!isStudioDevelopmentEnvironmentAllowed()) {
+      sendHtml(
+        res,
+        403,
+        '<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>403 — Studio Preview Disabled in Production</h1></body></html>'
+      );
+      return;
+    }
+    const originCheck = verifySameOriginRequestHeaders(req);
+    if (!originCheck.allowed) {
+      sendHtml(
+        res,
+        403,
+        '<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>403 — Cross-Origin Preview Blocked</h1></body></html>'
+      );
+      return;
+    }
+
+    const docId = (parsedUrl.searchParams.get('id') ?? '').trim();
+    const slugParam = (parsedUrl.searchParams.get('slug') ?? '').trim();
+    const ticket = (parsedUrl.searchParams.get('ticket') ?? '').trim();
+    if (!docId && !slugParam) {
+      sendHtml(
+        res,
+        400,
+        '<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>400 — Missing Preview Article ID or Slug</h1></body></html>'
+      );
+      return;
+    }
+
+    const ticketCheck = docId
+      ? verifyStudioPreviewTicket(ticket, docId)
+      : { valid: false, reason: 'No document ID for ticket' };
+    const headerAuth = !ticketCheck.valid
+      ? verifyStudioApiRequestAuthorization(req, { requireCsrf: false })
+      : null;
+
+    if (!ticketCheck.valid && !headerAuth?.authorized) {
+      sendHtml(
+        res,
+        401,
+        `<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>401 — Unauthorized Article Preview Request</h1><p>${ticketCheck.reason || headerAuth?.message || 'Valid preview ticket or Studio session required.'}</p></body></html>`
+      );
+      return;
+    }
+
+    try {
+      const previewRenderer = await loadPreviewRendererModule();
+      const rendered = await previewRenderer.renderSanityArticlePreviewHtml({
+        documentId: docId || undefined,
+        slug: slugParam || undefined,
+      });
+
+      if (!rendered) {
+        sendHtml(
+          res,
+          404,
+          `<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>404 — Sanity Article Not Found</h1><p>No live Sanity draft or published article exists for "${docId || slugParam}".</p></body></html>`
+        );
+        return;
+      }
+
+      sendHtml(res, 200, rendered.html);
+      return;
+    } catch (err: any) {
+      sendHtml(
+        res,
+        500,
+        `<!doctype html><html><head><meta name="robots" content="noindex, nofollow" /></head><body><h1>500 — Article Preview Render Error</h1><p>${String(err?.message || 'Failed to render Sanity article preview.')}</p></body></html>`
+      );
+      return;
+    }
+  }
+
   // Detect if an upstream proxy 302 redirect converted a POST request into a GET request
   if (method === 'GET' && POST_ONLY_STUDIO_PATHS.has(pathname)) {
     sendJson(req, res, 405, {
@@ -742,8 +836,8 @@ export async function handleSanityStudioApiRequest(
     }
 
     if (method === 'GET' && pathname === '/api/studio/sanity/document') {
-      const docId = (parsedUrl.searchParams.get('id') ?? '').trim();
-      if (!docId) {
+      const rawId = (parsedUrl.searchParams.get('id') ?? '').trim();
+      if (!rawId) {
         sendJson(req, res, 400, {
           ok: false,
           errorCode: 'MISSING_DOCUMENT_ID',
@@ -751,15 +845,7 @@ export async function handleSanityStudioApiRequest(
         });
         return;
       }
-      if (!docId.startsWith('drafts.')) {
-        sendJson(req, res, 422, {
-          ok: false,
-          errorCode: 'NON_DRAFT_ID_REJECTED',
-          message:
-            'Studio draft endpoint only reads unpublished `drafts.*` documents.',
-        });
-        return;
-      }
+      const docId = rawId.startsWith('drafts.') ? rawId : `drafts.${rawId}`;
       const doc = await fetchDocumentFromSanityContentLake(docId);
       if (!doc) {
         sendJson(req, res, 404, {
@@ -772,6 +858,7 @@ export async function handleSanityStudioApiRequest(
       sendJson(req, res, 200, {
         ok: true,
         document: doc,
+        draft: doc,
       });
       return;
     }
@@ -801,6 +888,7 @@ export async function handleSanityStudioApiRequest(
       const result = await saveDraftToSanityContentLake(doc);
       sendJson(req, res, result.status, {
         ...result,
+        savedDocument: result.persistedDocument,
         errorCode: result.blockerCode,
         validationIssues:
           result.serverValidation?.blockingDraftErrors ?? [],
@@ -835,6 +923,7 @@ export async function handleSanityStudioApiRequest(
         draftId: body?.draftId,
         expectedRev: body?.expectedRev,
       });
+      invalidateSanityPublishedCache();
       sendJson(req, res, result.status, {
         ...result,
         errorCode: result.blockerCode,
@@ -849,6 +938,36 @@ export async function handleSanityStudioApiRequest(
         canonicalId: body?.canonicalId,
         expectedRev: body?.expectedRev,
       });
+      invalidateSanityPublishedCache();
+      sendJson(req, res, result.status, {
+        ...result,
+        errorCode: result.blockerCode,
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/publish-article') {
+      const body = await readJsonBody(req);
+      const result = await publishArticleDraftInSanityContentLake({
+        document: body?.document,
+        canonicalId: body?.canonicalId ?? body?.documentId ?? body?.id,
+        draftId: body?.draftId,
+      });
+      invalidateSanityPublishedCache();
+      sendJson(req, res, result.status, {
+        ...result,
+        errorCode: result.blockerCode,
+      });
+      return;
+    }
+
+    if (method === 'POST' && pathname === '/api/studio/sanity/unpublish-article') {
+      const body = await readJsonBody(req);
+      const result = await unpublishArticleInSanityContentLake({
+        document: body?.document,
+        canonicalId: body?.canonicalId ?? body?.documentId ?? body?.id,
+      });
+      invalidateSanityPublishedCache();
       sendJson(req, res, result.status, {
         ...result,
         errorCode: result.blockerCode,
@@ -876,12 +995,18 @@ export async function handleSanityStudioApiRequest(
         });
         return;
       }
+      const cleanId = documentId.replace(/^drafts\./, '');
+      const isArticle =
+        cleanId.startsWith('art_') || body?.documentType === 'article';
+      const previewRoute = isArticle
+        ? '/api/studio/sanity/preview-article'
+        : '/api/studio/sanity/preview-product';
       sendJson(req, res, 200, {
         ok: true,
         documentId,
         ticket: issued.ticket,
         expiresAtMs: issued.expiresAtMs,
-        previewUrl: `/api/studio/sanity/preview-product?id=${encodeURIComponent(
+        previewUrl: `${previewRoute}?id=${encodeURIComponent(
           documentId
         )}&ticket=${encodeURIComponent(issued.ticket)}`,
       });
@@ -1033,6 +1158,82 @@ export async function handleSanityStudioApiRequest(
       return;
     }
 
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-article-generate'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await generateCompleteArticleWithAi(body || {});
+      sendJson(req, res, 200, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-article-improve'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await improveArticleWithAi(body || {});
+      sendJson(req, res, 200, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-article-export-brief'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await exportArticleAiBrief({
+        mode: body?.mode === 'revision' ? 'revision' : 'create',
+        topic: body?.topic,
+        editorialAngle: body?.editorialAngle,
+        researchNotes: body?.researchNotes,
+        revisionGoals: body?.revisionGoals,
+        writingProfile: body?.writingProfile,
+        writingProfileId: body?.writingProfileId,
+        currentDocument: body?.currentDocument,
+      });
+      sendJson(req, res, 200, { ok: true, ...result });
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/ai-article-import-payload'
+    ) {
+      const body = await readJsonBody(req);
+      const result = parseImportedArticlePayload(
+        String(body?.rawPayload ?? body?.jsonText ?? ''),
+        body?.currentDocument
+      );
+      sendJson(req, res, result.ok ? 200 : 422, result);
+      return;
+    }
+
+    if (
+      method === 'POST' &&
+      pathname === '/api/studio/sanity/delete-disposable-article'
+    ) {
+      const body = await readJsonBody(req);
+      const result = await deleteDisposableTestArticleFromSanity(
+        String(body?.documentId ?? body?.canonicalId ?? '')
+      );
+      invalidateSanityPublishedCache();
+      sendJson(req, res, result.ok ? 200 : 422, result);
+      return;
+    }
+
+    if (method === 'GET' && pathname === '/api/studio/sanity/published-articles') {
+      await ensureDefaultArticleAiWritingProfileInSanity();
+      const articles = await listPublishedArticlesFromSanityContentLake();
+      sendJson(req, res, 200, {
+        ok: true,
+        count: articles.length,
+        articles,
+      });
+      return;
+    }
+
     sendJson(req, res, 404, {
       ok: false,
       errorCode: 'UNKNOWN_STUDIO_ENDPOINT',
@@ -1058,12 +1259,15 @@ export function sanityStudioApiPlugin() {
     configureServer(server: {
       middlewares: { use: Function };
       ssrLoadModule?: (url: string) => Promise<any>;
+      moduleGraph?: any;
+      watcher?: any;
     }) {
       // Only mount in development environment; fail closed in production
       if (!isStudioDevelopmentEnvironmentAllowed()) {
         return;
       }
       activeViteDevServer = server;
+      (globalThis as any).__SOG_VITE_DEV_SERVER__ = server;
       server.middlewares.use(handleSanityStudioApiRequest);
     },
     closeBundle() {

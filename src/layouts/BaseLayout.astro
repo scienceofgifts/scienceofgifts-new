@@ -68,6 +68,24 @@ const effectiveRobots =
   seo?.robots ?? robots ?? (effectiveNoindex ? 'noindex, follow' : 'index, follow');
 
 await contentRepository.ensureSyncedFromSanity();
+const siteSettings = contentRepository.getSiteSettings();
+const branding = siteSettings.branding;
+const customLogoUrl = branding?.logoUrl;
+const brandNameText = siteSettings.siteName || 'Science of Gifts';
+const customLogoAlt = branding?.logoAlt || brandNameText;
+const logoDesktopHeightPx = Math.min(
+  56,
+  Math.max(18, Math.round(branding?.logoDesktopHeight ?? 32))
+);
+const logoMobileHeightPx = Math.min(
+  44,
+  Math.max(16, Math.round(branding?.logoMobileHeight ?? 26))
+);
+const logoCompactHeightPx = Math.min(logoDesktopHeightPx, 36);
+const headerBrandingStyle = customLogoUrl
+  ? `--sog-logo-desktop-h:${logoDesktopHeightPx}px;--sog-logo-mobile-h:${logoMobileHeightPx}px;--sog-logo-compact-h:${logoCompactHeightPx}px;`
+  : undefined;
+
 const productsMap = contentRepository.getCatalogSnapshot().products;
 const readyHubSlugs = contentRepository
   .getPublishedReadyEditorialHubs()
@@ -88,7 +106,7 @@ const editorialHubHeaderLinks = resolveEditorialHubHeaderLinks({
     <link rel="canonical" href={canonicalUrl} />
 
     <!-- OpenGraph Metadata -->
-    <meta property="og:site_name" content="Science of Gifts" />
+    <meta property="og:site_name" content={brandNameText} />
     <meta property="og:title" content={effectiveOgTitle} />
     <meta property="og:description" content={effectiveOgDescription} />
     <meta property="og:type" content={effectiveOgType} />
@@ -130,6 +148,7 @@ const editorialHubHeaderLinks = resolveEditorialHubHeaderLinks({
     <header
       id="site-header"
       data-scrolled="false"
+      style={headerBrandingStyle}
       class="sticky top-0 z-30 h-[60px] lg:h-[113px] pointer-events-none"
     >
       <!-- STATE 1: TWO-ROW DESKTOP HEADER (Top of Page) + CLEAN SINGLE-ROW MOBILE HEADER -->
@@ -137,15 +156,34 @@ const editorialHubHeaderLinks = resolveEditorialHubHeaderLinks({
         data-header-bar="expanded"
         class="site-header-expanded bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E3E1DB]"
       >
-        <!-- ROW 1: Brand Wordmark, Prominent Search Field (Desktop), and Right Actions -->
+        <!-- ROW 1: Brand Wordmark / Logo, Prominent Search Field (Desktop), and Right Actions -->
         <div class="relative max-w-[1360px] mx-auto flex lg:grid lg:grid-cols-[1fr_minmax(340px,560px)_1fr] items-center justify-between gap-4 lg:gap-8 px-4 sm:px-8 lg:px-10 h-[60px] lg:h-[68px]">
-          <!-- Left: Brand Wordmark (Complete serif wordmark on mobile & desktop) -->
+          <!-- Left: Brand Logo (if published in Sanity Branding) or Complete Serif Wordmark Fallback -->
           <div class="flex items-center justify-start min-w-0">
             <a
               href="/"
-              class="text-[1.35rem] sm:text-[1.55rem] lg:text-[1.65rem] font-serif font-semibold tracking-[-0.024em] leading-none text-[#24282B] hover:opacity-80 transition-opacity duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]"
+              class={
+                customLogoUrl
+                  ? 'inline-flex items-center max-w-full min-w-0 hover:opacity-85 transition-opacity duration-150 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]'
+                  : 'text-[1.35rem] sm:text-[1.55rem] lg:text-[1.65rem] font-serif font-semibold tracking-[-0.024em] leading-none text-[#24282B] hover:opacity-80 transition-opacity duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]'
+              }
             >
-              Science of Gifts
+              {
+                customLogoUrl ? (
+                  <img
+                    src={customLogoUrl}
+                    alt={customLogoAlt}
+                    width={branding.logoDimensions?.width}
+                    height={branding.logoDimensions?.height}
+                    data-site-logo="expanded"
+                    class="site-brand-logo"
+                    loading="eager"
+                    decoding="async"
+                  />
+                ) : (
+                  brandNameText
+                )
+              }
             </a>
           </div>
 
@@ -268,13 +306,32 @@ const editorialHubHeaderLinks = resolveEditorialHubHeaderLinks({
         class="site-header-compact hidden lg:block absolute top-0 left-0 right-0 bg-[#FAF9F6]/95 backdrop-blur-md border-b border-[#E3E1DB] shadow-[0_4px_20px_-12px_rgba(17,17,17,0.08)]"
       >
         <div class="max-w-[1360px] mx-auto px-5 sm:px-8 lg:px-10 h-[62px] grid grid-cols-[1fr_auto_1fr] items-center gap-6">
-          <!-- Left: Science of Gifts Wordmark -->
+          <!-- Left: Science of Gifts Logo or Wordmark -->
           <div class="flex items-center justify-start min-w-0">
             <a
               href="/"
-              class="text-[1.45rem] font-serif font-semibold tracking-[-0.024em] leading-none text-[#24282B] hover:opacity-80 transition-opacity duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]"
+              class={
+                customLogoUrl
+                  ? 'inline-flex items-center max-w-full min-w-0 hover:opacity-85 transition-opacity duration-150 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]'
+                  : 'text-[1.45rem] font-serif font-semibold tracking-[-0.024em] leading-none text-[#24282B] hover:opacity-80 transition-opacity duration-150 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#1B3D5F]'
+              }
             >
-              Science of Gifts
+              {
+                customLogoUrl ? (
+                  <img
+                    src={customLogoUrl}
+                    alt={customLogoAlt}
+                    width={branding.logoDimensions?.width}
+                    height={branding.logoDimensions?.height}
+                    data-site-logo="compact"
+                    class="site-brand-logo-compact"
+                    loading="eager"
+                    decoding="async"
+                  />
+                ) : (
+                  brandNameText
+                )
+              }
             </a>
           </div>
 

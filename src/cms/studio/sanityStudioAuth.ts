@@ -322,8 +322,10 @@ export function verifyStudioApiRequestAuthorization(
     };
   }
 
-  // 3. Verify server-issued session token (`X-Sanity-Studio-Token` or `Authorization: Bearer ...`)
-  const studioHeaderToken = getHeaderString(req, 'x-sanity-studio-token');
+  // 3. Verify server-issued session token (`X-Sanity-Studio-Token`, `X-Studio-Session`, or `Authorization: Bearer ...`)
+  const studioHeaderToken =
+    getHeaderString(req, 'x-sanity-studio-token') ||
+    getHeaderString(req, 'x-studio-session');
   const authHeader = getHeaderString(req, 'authorization');
   const bearerToken =
     authHeader && authHeader.startsWith('Bearer ')
@@ -366,7 +368,10 @@ export function verifyStudioApiRequestAuthorization(
       };
     }
 
-    const providedCsrf = getHeaderString(req, 'x-sanity-studio-csrf') ?? '';
+    const providedCsrf =
+      getHeaderString(req, 'x-sanity-studio-csrf') ||
+      getHeaderString(req, 'x-studio-csrf') ||
+      '';
     const expectedCsrf = computeCsrfTokenForSession(candidateToken.trim());
     if (!providedCsrf || !safeTimingEqualHex(providedCsrf.trim(), expectedCsrf)) {
       return {

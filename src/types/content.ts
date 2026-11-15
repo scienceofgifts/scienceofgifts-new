@@ -447,7 +447,15 @@ export interface ArticleSection {
   id: string;
   shortNavTitle?: string;
   heading: string; // H2
-  paragraphs: string[]; // Supports inline [cite:cit_id] markers
+  subheading?: string;
+  paragraphs: string[]; // Supports inline [cite:cit_id] markers, **bold**, *italic*, and [label](url) links
+  portableTextBody?: Array<Record<string, any>>;
+  images?: Array<{
+    id?: string;
+    url: string;
+    alt: string;
+    caption?: string;
+  }>;
   subSections?: ArticleSubSection[]; // H3 hierarchy
   pullQuote?: {
     text: string;
@@ -484,7 +492,12 @@ export interface Article {
   heroCaption: string;
   summaryTitle?: string;
   executiveSummary: string[];
+  pullQuote?: {
+    text: string;
+    attribution?: string;
+  };
   sections: ArticleSection[];
+  bodyPortableText?: Array<Record<string, any>>;
   comparisonTable?: {
     title: string;
     caption: string;

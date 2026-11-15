@@ -537,6 +537,15 @@ export const GROQ_QUERIES = {
     siteName,
     siteOrigin,
     tagline,
+    logo{
+      ...,
+      "url": asset->url,
+      "mimeType": asset->mimeType,
+      "dimensions": asset->metadata.dimensions
+    },
+    logoAlt,
+    logoDesktopHeight,
+    logoMobileHeight,
     editorialMissionStatement,
     defaultAffiliateDisclosure,
     footerCopyrightNotice,

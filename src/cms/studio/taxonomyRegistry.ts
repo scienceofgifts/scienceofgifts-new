@@ -430,6 +430,15 @@ export const ARTICLE_TOPIC_OPTIONS: SanityTitledOption<ArticleTopicId>[] = [
   },
 ];
 
+export const ARTICLE_CATEGORY_OPTIONS: SanityTitledOption<string>[] = [
+  { title: 'Gift-Giving Psychology', value: 'Gift-Giving Psychology' },
+  { title: 'Relationships & Connection', value: 'Relationships & Connection' },
+  { title: 'Decision-Making', value: 'Decision-Making' },
+  { title: 'Gift Etiquette', value: 'Gift Etiquette' },
+  { title: 'Practical Gifting Advice', value: 'Practical Gifting Advice' },
+  { title: 'Culture & Rituals', value: 'Culture & Rituals' },
+];
+
 export const PRODUCT_BUDGET_TIER_OPTIONS: SanityTitledOption<
   'under-50' | '50-to-100' | '100-plus'
 >[] = [

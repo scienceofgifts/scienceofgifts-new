@@ -972,6 +972,17 @@ export function createContentRepository(store: LocalCMSContentStore = defaultSto
       store.applyPublishedSanityProducts(sanityProducts);
     },
 
+    applyPublishedSanityArticles(sanityArticles: Article[]): void {
+      store.applyPublishedSanityArticles(sanityArticles);
+    },
+
+    applyPublishedSanitySiteSettings(
+      rawSiteSettings: Record<string, any> | null | undefined,
+      sanityEnv?: { projectId?: string; dataset?: string }
+    ): SiteSettingsDocument {
+      return store.applyPublishedSanitySiteSettings(rawSiteSettings, sanityEnv);
+    },
+
     async ensureSyncedFromSanity(options?: {
       forceRefresh?: boolean;
       envOverride?: Record<string, string | undefined>;
@@ -1001,9 +1012,14 @@ export function createContentRepository(store: LocalCMSContentStore = defaultSto
           envOverride: options?.envOverride,
         });
         store.applyPublishedSanityProducts(result.products);
+        store.applyPublishedSanityArticles(result.articles ?? []);
+        store.applyPublishedSanitySiteSettings(result.siteSettings ?? null);
         lastSyncedCacheVersion = getSanityPublishedCacheVersion();
         return {
-          syncedCount: result.products.length,
+          syncedCount:
+            result.products.length +
+            (result.articles?.length ?? 0) +
+            (result.siteSettings ? 1 : 0),
           fromCache: result.fromCache,
         };
       })();

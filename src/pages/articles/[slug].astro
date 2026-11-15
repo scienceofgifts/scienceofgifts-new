@@ -22,7 +22,22 @@ interface Props {
 }
 
 await contentRepository.ensureSyncedFromSanity();
-const { article } = Astro.props;
+const propsArticle = Astro.props.article;
+const article = import.meta.env.DEV
+  ? contentRepository.getArticleBySlug(
+      String(Astro.params.slug ?? propsArticle?.slug ?? '')
+    )
+  : propsArticle;
+
+if (!article) {
+  return new Response('Article not found or unpublished.', {
+    status: 404,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
 const catalog = contentRepository.getCatalogSnapshot();
 const resolvedSeo = resolvePageSeoMetadata({
   onPageTitle: article.title,

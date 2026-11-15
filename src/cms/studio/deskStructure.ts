@@ -449,6 +449,15 @@ export function buildOfficialSanityDeskStructure(S: any): any {
       extraItems.push(
         S.divider(),
         S.listItem()
+          .id('default-article-ai-writing-profile')
+          .title('Article Editorial (Default Article AI Writing Profile)')
+          .child(
+            S.document()
+              .schemaType('aiWritingProfile')
+              .documentId('ai_profile_science_of_gifts_article_editorial')
+              .title('Article Editorial (Default Article AI Profile)')
+          ),
+        S.listItem()
           .id('default-product-ai-writing-profile')
           .title('Default Product AI Writing Profile')
           .child(

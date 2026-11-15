@@ -31,6 +31,11 @@ export const siteSettingsDocument = defineType({
       default: true,
     },
     {
+      name: 'branding',
+      title: 'Branding',
+      description: 'Upload, replace, or remove the Science of Gifts website logo (PNG, WebP, or SVG) and configure desktop/mobile display sizes.',
+    },
+    {
       name: 'homepage',
       title: '2. Homepage Featured Content',
       description: 'Curated lead guide, featured stories, featured product spotlight, and homepage pull quote.',
@@ -50,6 +55,9 @@ export const siteSettingsDocument = defineType({
     siteName: 'Science of Gifts',
     siteOrigin: 'https://www.scienceofgifts.com',
     tagline: 'Editorial Gift Guides & Behavioral Discovery',
+    logoAlt: 'Science of Gifts',
+    logoDesktopHeight: 32,
+    logoMobileHeight: 26,
     defaultAffiliateDisclosure:
       'Science of Gifts is an independent editorial publication. When you purchase through links in our guides, we may earn an affiliate commission or revenue from our shop at no extra cost to you.',
   },
@@ -113,6 +121,62 @@ export const siteSettingsDocument = defineType({
       group: 'identity',
       initialValue: 'https://shop.scienceofgifts.com',
       validation: (Rule) => Rule.optional().uri({ scheme: ['https'] }),
+    }),
+
+    // =========================================================================
+    // GROUP: BRANDING (HEADER LOGO & RESPONSIVE SIZING)
+    // =========================================================================
+    defineField({
+      name: 'logo',
+      title: 'Website Logo (PNG, WebP, or SVG)',
+      type: 'image',
+      group: 'branding',
+      description:
+        'Upload, replace, or remove the Science of Gifts header logo (supports PNG, WebP, and SVG). When no logo is uploaded, the header automatically displays the "Science of Gifts" serif text wordmark. Original aspect ratio is always preserved.',
+      options: {
+        hotspot: false,
+        accept: 'image/png,image/webp,image/svg+xml,.png,.webp,.svg',
+      },
+      validation: (Rule) =>
+        Rule.optional().custom((value: any) => {
+          const ref = value?.asset?._ref;
+          if (typeof ref === 'string' && ref.startsWith('image-')) {
+            if (!/-(png|webp|svg)$/i.test(ref)) {
+              return 'Website logo must be a PNG, WebP, or SVG file.';
+            }
+          }
+          return true;
+        }),
+    }),
+    defineField({
+      name: 'logoAlt',
+      title: 'Logo Alt Text',
+      type: 'string',
+      group: 'branding',
+      initialValue: 'Science of Gifts',
+      description:
+        'Accessible alt text announced by screen readers and search engines (defaults to "Science of Gifts" if left blank).',
+      validation: (Rule) => Rule.optional().max(140),
+    }),
+    defineField({
+      name: 'logoDesktopHeight',
+      title: 'Desktop Logo Height (px)',
+      type: 'number',
+      group: 'branding',
+      initialValue: 32,
+      description:
+        'Header display height on desktop viewports (18–56px; default 32px). Width scales proportionally to preserve original dimensions. In the collapsed sticky header, height is capped cleanly at 36px.',
+      validation: (Rule) => Rule.optional().min(18).max(56),
+    }),
+    defineField({
+      name: 'logoMobileHeight',
+      title: 'Mobile Logo Height (px)',
+      type: 'number',
+      group: 'branding',
+      initialValue: 26,
+      description:
+        'Header display height on mobile and tablet viewports (16–44px; default 26px). Width scales proportionally to preserve original dimensions.',
+      validation: (Rule) => Rule.optional().min(16).max(44),
     }),
 
     // =========================================================================

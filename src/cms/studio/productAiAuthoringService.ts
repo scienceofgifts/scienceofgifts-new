@@ -1,11 +1,16 @@
 import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import {
+  DEFAULT_ARTICLE_AI_WRITING_PROFILE,
   DEFAULT_PRODUCT_AI_WRITING_PROFILE,
   aiWritingProfileDocument,
   type AiWritingProfileDocument,
 } from './schemas/documents/aiWritingProfile';
 
-export { DEFAULT_PRODUCT_AI_WRITING_PROFILE, type AiWritingProfileDocument };
+export {
+  DEFAULT_ARTICLE_AI_WRITING_PROFILE,
+  DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+  type AiWritingProfileDocument,
+};
 import { productDocument } from './schemas/documents/product';
 import { validateDocumentWithSchema } from './sanityCore';
 import {
@@ -365,6 +370,57 @@ export async function ensureDefaultAiWritingProfileInSanity(): Promise<AiWriting
   return DEFAULT_PRODUCT_AI_WRITING_PROFILE;
 }
 
+export async function ensureDefaultArticleAiWritingProfileInSanity(): Promise<AiWritingProfileDocument> {
+  const creds = resolveSanityServerCredentials();
+  if (!creds.projectId || !creds.dataset || !creds.writeToken) {
+    return DEFAULT_ARTICLE_AI_WRITING_PROFILE;
+  }
+
+  const pubId = DEFAULT_ARTICLE_AI_WRITING_PROFILE._id;
+  const draftId = `drafts.${pubId}`;
+
+  const existingDraft = await fetchDocumentFromSanityContentLake(draftId);
+  if (existingDraft && existingDraft._type === 'aiWritingProfile') {
+    return existingDraft as AiWritingProfileDocument;
+  }
+
+  const existingPub = await fetchDocumentFromSanityContentLake(pubId);
+  if (existingPub && existingPub._type === 'aiWritingProfile') {
+    return existingPub as AiWritingProfileDocument;
+  }
+
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}?returnIds=true&returnDocuments=true`;
+  try {
+    const res = await fetch(mutateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${creds.writeToken}`,
+      },
+      body: JSON.stringify({
+        mutations: [
+          {
+            createIfNotExists: {
+              ...DEFAULT_ARTICLE_AI_WRITING_PROFILE,
+              _id: pubId,
+              _type: 'aiWritingProfile',
+              status: 'published',
+            },
+          },
+        ],
+      }),
+    });
+    if (res.ok) {
+      const readBack = await fetchDocumentFromSanityContentLake(pubId);
+      if (readBack && readBack._type === 'aiWritingProfile') {
+        return readBack as AiWritingProfileDocument;
+      }
+    }
+  } catch {}
+
+  return DEFAULT_ARTICLE_AI_WRITING_PROFILE;
+}
+
 /**
  * Lists all `aiWritingProfile` documents stored in Sanity Content Lake, preferring any active draft
  * (`drafts.<id>`) over its published counterpart so Studio edits take effect immediately.
@@ -372,11 +428,17 @@ export async function ensureDefaultAiWritingProfileInSanity(): Promise<AiWriting
 export async function listAiWritingProfilesFromSanity(): Promise<
   AiWritingProfileDocument[]
 > {
-  await ensureDefaultAiWritingProfileInSanity();
+  await Promise.all([
+    ensureDefaultAiWritingProfileInSanity(),
+    ensureDefaultArticleAiWritingProfileInSanity(),
+  ]);
 
   const creds = resolveSanityServerCredentials();
   if (!creds.projectId || !creds.dataset) {
-    return [DEFAULT_PRODUCT_AI_WRITING_PROFILE];
+    return [
+      DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+      DEFAULT_ARTICLE_AI_WRITING_PROFILE,
+    ];
   }
 
   const groq = encodeURIComponent(
@@ -390,7 +452,12 @@ export async function listAiWritingProfilesFromSanity(): Promise<
 
   try {
     const res = await fetch(url, { headers });
-    if (!res.ok) return [DEFAULT_PRODUCT_AI_WRITING_PROFILE];
+    if (!res.ok) {
+      return [
+        DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+        DEFAULT_ARTICLE_AI_WRITING_PROFILE,
+      ];
+    }
     const data = await res.json();
     const rawDocs: AiWritingProfileDocument[] = Array.isArray(data?.result)
       ? data.result
@@ -410,12 +477,25 @@ export async function listAiWritingProfilesFromSanity(): Promise<
       }
     }
 
-    if (byCanonicalId.size === 0) {
-      return [DEFAULT_PRODUCT_AI_WRITING_PROFILE];
+    if (!byCanonicalId.has(DEFAULT_PRODUCT_AI_WRITING_PROFILE._id)) {
+      byCanonicalId.set(
+        DEFAULT_PRODUCT_AI_WRITING_PROFILE._id,
+        DEFAULT_PRODUCT_AI_WRITING_PROFILE
+      );
     }
+    if (!byCanonicalId.has(DEFAULT_ARTICLE_AI_WRITING_PROFILE._id)) {
+      byCanonicalId.set(
+        DEFAULT_ARTICLE_AI_WRITING_PROFILE._id,
+        DEFAULT_ARTICLE_AI_WRITING_PROFILE
+      );
+    }
+
     return Array.from(byCanonicalId.values());
   } catch {
-    return [DEFAULT_PRODUCT_AI_WRITING_PROFILE];
+    return [
+      DEFAULT_PRODUCT_AI_WRITING_PROFILE,
+      DEFAULT_ARTICLE_AI_WRITING_PROFILE,
+    ];
   }
 }
 

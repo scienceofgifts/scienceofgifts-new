@@ -290,6 +290,31 @@
   }
 }
 
+.site-brand-logo {
+  display: block;
+  height: var(--sog-logo-mobile-h, 26px);
+  width: auto;
+  max-width: min(100%, 200px);
+  object-fit: contain;
+  object-position: left center;
+}
+
+@media (min-width: 1024px) {
+  .site-brand-logo {
+    height: var(--sog-logo-desktop-h, 32px);
+    max-width: min(100%, 280px);
+  }
+}
+
+.site-brand-logo-compact {
+  display: block;
+  height: var(--sog-logo-compact-h, 32px);
+  width: auto;
+  max-width: min(100%, 220px);
+  object-fit: contain;
+  object-position: left center;
+}
+
 /* 13. Buttons & Links */
 .theme-button-text {
   font-family: var(--theme-font-ui);

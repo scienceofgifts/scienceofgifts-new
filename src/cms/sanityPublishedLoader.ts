@@ -1,23 +1,105 @@
 /**
- * Science of Gifts — Server-Side Sanity Content Lake Published Loader
+ * Science of Gifts — Server-Side Published Sanity Content Lake Loader
  *
- * Fetches strictly published (`!(_id in path("drafts.**")) && status == "published"`)
- * `product` documents from Sanity Content Lake at Astro build time and during Astro dev SSR.
+ * Bridges published Sanity Content Lake documents (`!(_id in path("drafts.**")) && status == "published"`)
+ * into the Astro `contentRepository` during SSR/SSG builds and development requests.
  *
- * Security & Reliability Guarantees:
- * - Uses `resolveSanityServerCredentials()` strictly on the server; `SANITY_API_READ_TOKEN`
- *   is never exposed to client bundles.
- * - Never includes `drafts.*` documents on public routes.
- * - When Sanity credentials ARE configured, explicitly throws `SanityContentFetchError` on
- *   HTTP/network failure instead of silently masking an outage with stale data.
+ * Guarantees:
+ * - Strictly excludes `drafts.*` documents and any record where `status !== 'published'`.
+ * - Maps published Sanity `product` and `article` documents into canonical Astro `Product`
+ *   and `Article` records.
+ * - Provides explicit cache invalidation (`invalidateSanityPublishedCache()`) called
+ *   immediately after any `/api/studio/sanity/publish-*` or `/api/studio/sanity/unpublish-*` mutation.
  */
 
-import type { Product } from '../types/content';
+import path from 'node:path';
+import type { Article, Product } from '../types/content';
 import { mapSanityProductDocumentToAstroProduct } from './studio/productDocumentMapper';
-import { resolveSanityServerCredentials } from './studio/sanityServerClient';
+import { mapSanityArticleToAstroArticle } from './studio/articleDocumentMapper';
+import {
+  fetchPublishedSiteSettingsFromSanityContentLake,
+  listPublishedArticlesFromSanityContentLake,
+  listPublishedProductsFromSanityContentLake,
+} from './studio/sanityServerClient';
+
+interface CachedPublishedSnapshot {
+  fetchedAtMs: number;
+  version: number;
+  products: Product[];
+  articles: Article[];
+  siteSettings: Record<string, any> | null;
+  rawSanityDocs: Array<Record<string, any>>;
+  rawSanityArticleDocs: Array<Record<string, any>>;
+}
+
+interface GlobalSanityCacheState {
+  publishedCacheVersion: number;
+  cachedSnapshot: CachedPublishedSnapshot | null;
+}
+
+const globalCacheHost = globalThis as unknown as {
+  __SOG_SANITY_PUBLISHED_CACHE_STATE__?: GlobalSanityCacheState;
+  __SOG_VITE_DEV_SERVER__?: {
+    moduleGraph?: {
+      getModuleById?: (id: string) => any;
+      getModulesByFile?: (file: string) => Set<any> | undefined;
+      invalidateModule?: (mod: any) => void;
+    };
+    watcher?: {
+      emit?: (event: string, filePath: string) => void;
+    };
+  } | null;
+};
+
+if (!globalCacheHost.__SOG_SANITY_PUBLISHED_CACHE_STATE__) {
+  globalCacheHost.__SOG_SANITY_PUBLISHED_CACHE_STATE__ = {
+    publishedCacheVersion: 1,
+    cachedSnapshot: null,
+  };
+}
+
+const CACHE_TTL_MS = 15_000;
+
+export function invalidateSanityPublishedCache(): void {
+  const state = globalCacheHost.__SOG_SANITY_PUBLISHED_CACHE_STATE__!;
+  state.publishedCacheVersion += 1;
+  state.cachedSnapshot = null;
+
+  const viteServer = globalCacheHost.__SOG_VITE_DEV_SERVER__;
+  if (viteServer && typeof process !== 'undefined' && process.cwd) {
+    const relFiles = [
+      'src/layouts/BaseLayout.astro',
+      'src/pages/index.astro',
+      'src/pages/articles/[slug].astro',
+      'src/pages/articles/index.astro',
+      'src/pages/products/[slug].astro',
+      'src/cms/sanityPublishedLoader.ts',
+      'src/cms/contentRepository.ts',
+    ];
+    for (const rel of relFiles) {
+      const absPath = path.resolve(process.cwd(), rel);
+      try {
+        const mods = viteServer.moduleGraph?.getModulesByFile?.(absPath);
+        if (mods) {
+          for (const m of mods) {
+            viteServer.moduleGraph?.invalidateModule?.(m);
+          }
+        }
+        const directMod =
+          viteServer.moduleGraph?.getModuleById?.(absPath) ||
+          viteServer.moduleGraph?.getModuleById?.(`/${rel}`);
+        if (directMod) {
+          viteServer.moduleGraph?.invalidateModule?.(directMod);
+        }
+        viteServer.watcher?.emit?.('change', absPath);
+      } catch {}
+    }
+  }
+}
 
 export class SanityContentFetchError extends Error {
   public readonly statusCode?: number;
+
   constructor(message: string, statusCode?: number) {
     super(message);
     this.name = 'SanityContentFetchError';
@@ -25,134 +107,105 @@ export class SanityContentFetchError extends Error {
   }
 }
 
-const DEV_CACHE_TTL_MS = 2_000;
-
-interface CachedPublishedState {
-  products: Product[];
-  fetchedAt: number;
-  projectId: string;
-  dataset: string;
-}
-
-const globalCacheHolder = globalThis as unknown as {
-  __SOG_SANITY_PUBLISHED_PRODUCTS_CACHE__?: CachedPublishedState | null;
-  __SOG_SANITY_SYNC_VERSION__?: number;
-};
-
-/**
- * Invalidates the in-memory Sanity published products cache immediately after a
- * Studio publish action so the next Astro dev request reads the fresh Content Lake state.
- */
-export function invalidateSanityPublishedCache(): void {
-  globalCacheHolder.__SOG_SANITY_PUBLISHED_PRODUCTS_CACHE__ = null;
-  globalCacheHolder.__SOG_SANITY_SYNC_VERSION__ =
-    (globalCacheHolder.__SOG_SANITY_SYNC_VERSION__ || 0) + 1;
-}
-
 export function getSanityPublishedCacheVersion(): number {
-  return globalCacheHolder.__SOG_SANITY_SYNC_VERSION__ || 0;
+  return globalCacheHost.__SOG_SANITY_PUBLISHED_CACHE_STATE__!.publishedCacheVersion;
 }
 
 /**
- * Queries Sanity Content Lake (`perspective=published`) for all published `product`
- * documents and maps them into Astro `Product` objects.
+ * Loads all strictly published `product` and `article` documents from Sanity Content Lake
+ * and maps them to Astro `Product` and `Article` objects.
  */
 export async function loadPublishedSanityProducts(options?: {
   forceRefresh?: boolean;
   envOverride?: Record<string, string | undefined>;
 }): Promise<{
   products: Product[];
-  fetchedAt: number;
+  articles: Article[];
+  siteSettings: Record<string, any> | null;
+  rawSanityDocs: Array<Record<string, any>>;
+  rawSanityArticleDocs: Array<Record<string, any>>;
   fromCache: boolean;
 }> {
-  const creds = resolveSanityServerCredentials(options?.envOverride);
-  if (!creds.projectId || !creds.dataset) {
-    return {
-      products: [],
-      fetchedAt: Date.now(),
-      fromCache: false,
-    };
-  }
-
+  const state = globalCacheHost.__SOG_SANITY_PUBLISHED_CACHE_STATE__!;
   const now = Date.now();
-  const cached = globalCacheHolder.__SOG_SANITY_PUBLISHED_PRODUCTS_CACHE__;
   if (
     !options?.forceRefresh &&
-    cached &&
-    cached.projectId === creds.projectId &&
-    cached.dataset === creds.dataset &&
-    now - cached.fetchedAt < DEV_CACHE_TTL_MS
+    !options?.envOverride &&
+    state.cachedSnapshot &&
+    state.cachedSnapshot.version === state.publishedCacheVersion &&
+    now - state.cachedSnapshot.fetchedAtMs < CACHE_TTL_MS
   ) {
     return {
-      products: cached.products,
-      fetchedAt: cached.fetchedAt,
+      products: state.cachedSnapshot.products,
+      articles: state.cachedSnapshot.articles,
+      siteSettings: state.cachedSnapshot.siteSettings,
+      rawSanityDocs: state.cachedSnapshot.rawSanityDocs,
+      rawSanityArticleDocs: state.cachedSnapshot.rawSanityArticleDocs,
       fromCache: true,
     };
   }
 
-  const groq = encodeURIComponent(
-    `*[_type == "product" && !(_id in path("drafts.**")) && status == "published"] | order(_updatedAt desc)`
-  );
-  const url = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/query/${creds.dataset}?query=${groq}&perspective=published`;
-
-  const headers: Record<string, string> = {};
-  if (creds.readToken) {
-    headers.Authorization = `Bearer ${creds.readToken}`;
-  }
-
-  let res: Response;
+  let rawDocs: Array<Record<string, any>> = [];
+  let rawArticleDocs: Array<Record<string, any>> = [];
+  let rawSiteSettings: Record<string, any> | null = null;
   try {
-    res = await fetch(url, { headers });
+    [rawDocs, rawArticleDocs, rawSiteSettings] = await Promise.all([
+      listPublishedProductsFromSanityContentLake(options?.envOverride),
+      listPublishedArticlesFromSanityContentLake(options?.envOverride),
+      fetchPublishedSiteSettingsFromSanityContentLake(options?.envOverride),
+    ]);
   } catch (err: any) {
+    if (err instanceof SanityContentFetchError) {
+      throw err;
+    }
     throw new SanityContentFetchError(
-      `Failed to connect to Sanity Content Lake (${creds.projectId}/${creds.dataset}) while loading published products: ${err?.message ?? String(err)}`
+      err?.message || 'Failed to fetch published documents from Sanity Content Lake.'
     );
   }
 
-  if (!res.ok) {
-    const bodyText = await res.text().catch(() => '');
-    throw new SanityContentFetchError(
-      `Sanity Content Lake published products query returned HTTP ${res.status}: ${bodyText.slice(0, 240)}`,
-      res.status
-    );
+  const mappedProducts: Product[] = [];
+  for (const doc of rawDocs) {
+    if (!doc || typeof doc._id !== 'string') continue;
+    if (doc._id.startsWith('drafts.')) continue;
+    if (doc.status !== 'published') continue;
+    if (doc.isSampleProduct) continue;
+
+    const astroProduct = mapSanityProductDocumentToAstroProduct(doc);
+    if (astroProduct.status === 'published' && !astroProduct.isSampleProduct) {
+      mappedProducts.push(astroProduct);
+    }
   }
 
-  let data: any;
-  try {
-    data = await res.json();
-  } catch (err: any) {
-    throw new SanityContentFetchError(
-      `Sanity Content Lake published products query returned invalid JSON: ${err?.message ?? String(err)}`
-    );
+  const mappedArticles: Article[] = [];
+  for (const doc of rawArticleDocs) {
+    if (!doc || typeof doc._id !== 'string') continue;
+    if (doc._id.startsWith('drafts.')) continue;
+    if (doc.status !== 'published') continue;
+
+    const astroArticle = mapSanityArticleToAstroArticle(doc);
+    if (astroArticle.status === 'published') {
+      mappedArticles.push(astroArticle);
+    }
   }
 
-  const rawDocs: any[] = Array.isArray(data?.result) ? data.result : [];
-  const mappedProducts = rawDocs
-    .filter(
-      (doc) =>
-        doc &&
-        typeof doc === 'object' &&
-        doc._type === 'product' &&
-        !String(doc._id || '').startsWith('drafts.') &&
-        doc.status === 'published'
-    )
-    .map((doc) =>
-      mapSanityProductDocumentToAstroProduct(doc, {
-        projectId: creds.projectId,
-        dataset: creds.dataset,
-      })
-    );
-
-  globalCacheHolder.__SOG_SANITY_PUBLISHED_PRODUCTS_CACHE__ = {
-    products: mappedProducts,
-    fetchedAt: Date.now(),
-    projectId: creds.projectId,
-    dataset: creds.dataset,
-  };
+  if (!options?.envOverride) {
+    state.cachedSnapshot = {
+      fetchedAtMs: now,
+      version: state.publishedCacheVersion,
+      products: mappedProducts,
+      articles: mappedArticles,
+      siteSettings: rawSiteSettings,
+      rawSanityDocs: rawDocs,
+      rawSanityArticleDocs: rawArticleDocs,
+    };
+  }
 
   return {
     products: mappedProducts,
-    fetchedAt: globalCacheHolder.__SOG_SANITY_PUBLISHED_PRODUCTS_CACHE__.fetchedAt,
+    articles: mappedArticles,
+    siteSettings: rawSiteSettings,
+    rawSanityDocs: rawDocs,
+    rawSanityArticleDocs: rawArticleDocs,
     fromCache: false,
   };
 }

@@ -386,3 +386,71 @@ export const DEFAULT_PRODUCT_AI_WRITING_PROFILE: AiWritingProfileDocument = {
   additionalCustomInstructions:
     'Prioritize psychological specificity over marketing adjectives. Every section should sound like it was written by a single thoughtful human editor who has examined the product details carefully.',
 };
+
+export const DEFAULT_ARTICLE_AI_WRITING_PROFILE: AiWritingProfileDocument = {
+  _id: 'ai_profile_science_of_gifts_article_editorial',
+  _type: 'aiWritingProfile',
+  status: 'published',
+  profileId: 'ai_profile_science_of_gifts_article_editorial',
+  name: 'Article Editorial',
+  contentType: 'article',
+  isDefault: true,
+  editorialVoiceAndStyle:
+    'Write in the signature long-form essay voice of Science of Gifts: warm, observant, psychologically grounded, and culturally literate. Blend empirical behavioral research (giver-receiver asymmetries, ritual utility, relationship warmth) with vivid everyday domestic scenes, tactile detail, and gracious modern etiquette. Sound like a reflective feature essay in The New Yorker, Kinfolk, or NYT Magazine paired with clear, practical behavioral takeaways. Vary sentence rhythm naturally and never repeat sentences across sections.',
+  writingObjectives: [
+    'Open with a recognizable, concrete human scene or gifting tension rather than a generic dictionary definition or throat-clearing truism.',
+    'Advance a clear, coherent thesis across 3 to 4 structured H2 sections—each exploring a distinct facet of the topic with zero repetitive filler.',
+    'Ground empirical claims in verified studies from the Science of Gifts Research Bibliography using inline [cite:cit_id] markers without inventing fake DOIs, authors, or statistics.',
+    'Translate psychological or social findings into concrete real-world habits, modern etiquette norms, and practical decision frameworks.',
+    'Include 3–4 executive summary takeaways ("The Short Version"), an editorial callout box, a resonant pull quote, and search-clear SEO metadata.',
+  ],
+  preferredExamples: [
+    'Opening Scene Example: "Watch anyone unwrap a gift in a crowded living room and you can see two completely different timelines colliding. The giver is holding their breath for the next four seconds—waiting for the widened eyes, the laugh, the theatrical gasp. The recipient is quietly calculating the next four years: Where will this live, and will I actually reach for it on a Tuesday morning?"',
+    'Research Integration Example: "Behavioral scientists call this the smile-seeking gap: givers disproportionately choose dramatic, surprising items designed to maximize the moment of exchange, while recipients report significantly higher long-term appreciation for gifts that ease or elevate an existing daily routine [cite:cit_galak_2016_why_certain_gifts]."',
+    'Practical Etiquette Example: "A true host gift should require zero immediate labor at the door. Uncut flowers force a busy cook to abandon a simmering pan to hunt for a vase and shears; a stoneware crock of cultured butter or a linen-wrapped pantry flight can be set straight on the counter for tomorrow morning."',
+  ],
+  avoidPhrasesAndApproaches: [
+    'in today’s fast-paced world',
+    'since the dawn of time',
+    'moreover',
+    'furthermore',
+    'in conclusion',
+    'delve into',
+    'it is worth noting',
+    'tapestry of',
+    'unlock the secrets',
+    'ultimate guide',
+    'game-changer',
+    'Repeating the same thesis sentence or transition phrase at the start or end of multiple H2 sections',
+    'Inventing unverified academic citations, fake author names, or fabricated statistics',
+  ],
+  sectionInstructions: {
+    _type: 'aiWritingSectionInstructions',
+    whyToGiveIt:
+      'Executive Summary ("The Short Version"): Provide 3–4 crisp, standalone bullet takeaways (1–2 sentences each) that synthesize the core behavioral insight and practical advice for readers who skim first.',
+    giftVerdict:
+      'Editorial Callout & Pull Quote: Craft one high-value `callout` box (`kicker`, `title`, `body`, `tone`) distilling a practical rule of thumb, plus one memorable `pullQuote` (`text` + `attribution`).',
+    idealRecipientProfile:
+      'Opening H2 Section (The Human Scene & Paradox): Introduce the lived tension, social awkwardness, or psychological puzzle with concrete sensory detail and a clear editorial angle.',
+    extendedGiftRationale:
+      'Middle H2 Sections (The Research & Mechanism): Unpack why givers and receivers behave the way they do, integrating verified `[cite:cit_id]` studies naturally and contrasting common mistakes with better mental models.',
+    buyingConsiderations:
+      'Closing H2 Section (Practical Framework & Etiquette): Give readers actionable habits, questions to ask before choosing a gift, or gracious scripts they can apply immediately.',
+    occasionContextNotes:
+      'Taxonomy & Cross-Linking: Select the most accurate `category`, `topics` (`gift-giving-psychology`, `relationships`, `decision-making`, `gift-etiquette`, `practical-gifting-advice`, `culture`), `recipients`, and `occasions`.',
+    supportingMetadataAndSeo:
+      'Write a magnetic, non-clickbait H1 `title` (25–95 chars), an insightful 1–2 sentence `subtitle` dek (60–240 chars), a search-clear `seoTitle` (40–65 chars), and a compelling `metaDescription` (110–158 chars).',
+  },
+  recommendedLengths: {
+    _type: 'aiWritingLengthGuidance',
+    subtitleRange: '80–220 characters (1–2 resonant sentences)',
+    whyToGiveItRange: '3–4 Executive Summary bullets (110–220 chars each)',
+    verdictAssessmentRange: 'Callout body: 140–320 characters; Pull quote: 60–180 characters',
+    recipientNarrativeRange: '3 to 4 H2 sections per article',
+    extendedRationaleParagraphs: '2 to 4 paragraphs per H2 section (220–520 characters each)',
+    buyingConsiderationsCount: '1–3 inline research citations ([cite:cit_id]) where relevant',
+  },
+  additionalCustomInstructions:
+    'Write like an empathetic, sharp-eyed human essayist. Every paragraph should earn its place with either a concrete observation, a verified behavioral insight, or a practical takeaway.',
+};
+

@@ -359,6 +359,78 @@ interface RichTextWithCitationsProps {
   citationsMap?: Record<string, ResearchCitation>;
 }
 
+function renderInlineFormattedText(
+  segment: string,
+  keyPrefix: string
+): React.ReactNode {
+  if (
+    !segment ||
+    (!segment.includes('*') && !segment.includes('['))
+  ) {
+    return segment;
+  }
+
+  const tokenRegex =
+    /(\[([^\]]+)\]\((https?:\/\/[^\s)]+|\/[^\s)]*)\))|(\*\*\*([^*]+)\*\*\*)|(\*\*([^*]+)\*\*)|(\*([^*]+)\*)/g;
+  const nodes: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+  let subIdx = 0;
+
+  while ((match = tokenRegex.exec(segment)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(segment.slice(lastIndex, match.index));
+    }
+    if (match[1] && match[2] && match[3]) {
+      const label = match[2];
+      const href = match[3];
+      const isExternal = href.startsWith('http');
+      nodes.push(
+        <a
+          key={`${keyPrefix}-link-${subIdx++}`}
+          href={href}
+          target={isExternal ? '_blank' : undefined}
+          rel={isExternal ? 'noopener noreferrer' : undefined}
+          className="font-medium text-[#28537D] underline decoration-[#28537D]/45 underline-offset-4 hover:text-[#1B3D5F] hover:decoration-[#1B3D5F] transition-colors"
+        >
+          {label}
+        </a>
+      );
+    } else if (match[4] && match[5]) {
+      nodes.push(
+        <strong
+          key={`${keyPrefix}-bi-${subIdx++}`}
+          className="font-semibold italic text-[#222426]"
+        >
+          {match[5]}
+        </strong>
+      );
+    } else if (match[6] && match[7]) {
+      nodes.push(
+        <strong
+          key={`${keyPrefix}-b-${subIdx++}`}
+          className="font-semibold text-[#222426]"
+        >
+          {match[7]}
+        </strong>
+      );
+    } else if (match[8] && match[9]) {
+      nodes.push(
+        <em key={`${keyPrefix}-i-${subIdx++}`} className="italic">
+          {match[9]}
+        </em>
+      );
+    }
+    lastIndex = tokenRegex.lastIndex;
+  }
+
+  if (lastIndex < segment.length) {
+    nodes.push(segment.slice(lastIndex));
+  }
+
+  return nodes.length > 0 ? nodes : segment;
+}
+
 export const RichTextWithCitations: React.FC<RichTextWithCitationsProps> = ({
   text,
   blockKey,
@@ -368,13 +440,13 @@ export const RichTextWithCitations: React.FC<RichTextWithCitationsProps> = ({
   onJumpToReference,
   citationsMap = CITATIONS,
 }) => {
-  const parts = text.split(/(\[cite:[a-zA-Z0-9_]+\])/g);
+  const parts = text.split(/(\[cite:[a-zA-Z0-9_-]+\])/g);
   let tokenCounter = 0;
 
   return (
     <>
       {parts.map((part, idx) => {
-        const match = part.match(/^\[cite:([a-zA-Z0-9_]+)\]$/);
+        const match = part.match(/^\[cite:([a-zA-Z0-9_-]+)\]$/);
         if (match) {
           const citId = match[1];
           const currentTokenIdx = tokenCounter++;
@@ -406,7 +478,11 @@ export const RichTextWithCitations: React.FC<RichTextWithCitationsProps> = ({
           // Missing or unlisted reference handled gracefully
           return null;
         }
-        return <React.Fragment key={idx}>{part}</React.Fragment>;
+        return (
+          <React.Fragment key={idx}>
+            {renderInlineFormattedText(part, `${blockKey || 'rt'}-${idx}`)}
+          </React.Fragment>
+        );
       })}
     </>
   );
@@ -1174,26 +1250,97 @@ export const ArticleReaderView: React.FC<ArticleReaderViewProps> = ({
                     {section.heading}
                   </h2>
 
-                  {section.paragraphs.map((p, pIdx) => (
-                    <p
-                      key={pIdx}
-                      className={`theme-body-text text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8] ${
-                        sIdx === 0 && pIdx === 0
-                          ? 'first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-[#222426]'
-                          : ''
-                      }`}
-                    >
-                      <RichTextWithCitations
-                        text={p}
-                        blockKey={`sec:${section.id}:p:${pIdx}`}
-                        citationIndexMap={citationIndexMap}
-                        occurrenceByTokenKey={occurrenceByTokenKey}
-                        highlightedMarkerId={highlightedMarkerId}
-                        onJumpToReference={jumpToReference}
-                        citationsMap={citationsMap}
-                      />
-                    </p>
-                  ))}
+                  {section.subheading && (
+                    <h3 className="theme-subsection-heading text-xl font-serif font-semibold text-[#222426] pt-1">
+                      {section.subheading}
+                    </h3>
+                  )}
+
+                  {section.paragraphs.map((p, pIdx) => {
+                    if (p.startsWith('### ')) {
+                      return (
+                        <h3
+                          key={pIdx}
+                          className="theme-subsection-heading text-xl font-serif font-semibold text-[#222426] pt-3"
+                        >
+                          <RichTextWithCitations
+                            text={p.slice(4).trim()}
+                            blockKey={`sec:${section.id}:p:${pIdx}`}
+                            citationIndexMap={citationIndexMap}
+                            occurrenceByTokenKey={occurrenceByTokenKey}
+                            highlightedMarkerId={highlightedMarkerId}
+                            onJumpToReference={jumpToReference}
+                            citationsMap={citationsMap}
+                          />
+                        </h3>
+                      );
+                    }
+                    if (p.startsWith('> ')) {
+                      return (
+                        <blockquote
+                          key={pIdx}
+                          className="my-6 pl-5 border-l-2 border-[#28537D] text-lg font-serif italic text-[#222426] leading-relaxed"
+                        >
+                          <RichTextWithCitations
+                            text={p.slice(2).trim()}
+                            blockKey={`sec:${section.id}:p:${pIdx}`}
+                            citationIndexMap={citationIndexMap}
+                            occurrenceByTokenKey={occurrenceByTokenKey}
+                            highlightedMarkerId={highlightedMarkerId}
+                            onJumpToReference={jumpToReference}
+                            citationsMap={citationsMap}
+                          />
+                        </blockquote>
+                      );
+                    }
+                    return (
+                      <p
+                        key={pIdx}
+                        className={`theme-body-text text-base md:text-[1.0625rem] text-[#292B2D] leading-[1.8] ${
+                          sIdx === 0 && pIdx === 0
+                            ? 'first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:mt-1 first-letter:text-[#222426]'
+                            : ''
+                        }`}
+                      >
+                        <RichTextWithCitations
+                          text={p}
+                          blockKey={`sec:${section.id}:p:${pIdx}`}
+                          citationIndexMap={citationIndexMap}
+                          occurrenceByTokenKey={occurrenceByTokenKey}
+                          highlightedMarkerId={highlightedMarkerId}
+                          onJumpToReference={jumpToReference}
+                          citationsMap={citationsMap}
+                        />
+                      </p>
+                    );
+                  })}
+
+                  {/* Inline Section Images with Captions & Alt Text */}
+                  {section.images && section.images.length > 0 && (
+                    <div className="space-y-6 my-6">
+                      {section.images.map((img, imgIdx) => (
+                        <figure
+                          key={img.id || imgIdx}
+                          className="rounded-3xl overflow-hidden bg-[#F5F4F0] border border-[#DFDBD3]"
+                        >
+                          <div className="aspect-[16/10] w-full overflow-hidden bg-[#EFECE6]">
+                            <PhotoImage
+                              src={img.url}
+                              alt={img.alt || section.heading}
+                              preset="feature-landscape"
+                              aspectRatio="16:10"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          {img.caption && (
+                            <figcaption className="px-5 py-3.5 text-xs text-[#62666A] leading-relaxed border-t border-[#DFDBD3]">
+                              {img.caption}
+                            </figcaption>
+                          )}
+                        </figure>
+                      ))}
+                    </div>
+                  )}
 
                   {/* H3 Subsections */}
                   {section.subSections &&

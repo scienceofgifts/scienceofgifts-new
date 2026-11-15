@@ -16,12 +16,58 @@ import {
   CatalogDataOverride,
   validateCatalogIntegrity,
 } from '../utils/seoAndValidation';
+import { resolveSanityImageUrlFromAssetRef } from './productInterchangeSchema';
+
+export interface SiteBrandingDimensions {
+  width: number;
+  height: number;
+  aspectRatio?: number;
+}
+
+export interface SiteBrandingConfig {
+  logoUrl?: string;
+  logoAlt: string;
+  logoDesktopHeight: number;
+  logoMobileHeight: number;
+  logoMimeType?: string;
+  logoDimensions?: SiteBrandingDimensions;
+}
 
 export interface SiteSettingsDocument {
   id: 'site_settings_singleton';
   siteName: string;
   siteOrigin: string;
   defaultAffiliateDisclosure: string;
+  branding: SiteBrandingConfig;
+}
+
+const DEFAULT_SITE_NAME = 'Science of Gifts';
+const DEFAULT_SITE_ORIGIN = 'https://www.scienceofgifts.com';
+const DEFAULT_AFFILIATE_DISCLOSURE =
+  'Science of Gifts is reader-supported. When you buy through links on our site, we may earn an affiliate commission at no extra cost to you.';
+const DEFAULT_LOGO_DESKTOP_HEIGHT = 32;
+const DEFAULT_LOGO_MOBILE_HEIGHT = 26;
+
+function clampBrandingHeight(
+  raw: unknown,
+  min: number,
+  max: number,
+  fallback: number
+): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) {
+    return fallback;
+  }
+  return Math.min(max, Math.max(min, Math.round(raw)));
+}
+
+function sanitizeBrandingLogoUrl(rawUrl: unknown): string | undefined {
+  if (typeof rawUrl !== 'string') return undefined;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return undefined;
+  if (trimmed.startsWith('https://') || trimmed.startsWith('/assets/')) {
+    return trimmed;
+  }
+  return undefined;
 }
 
 /**
@@ -37,6 +83,7 @@ export interface SiteSettingsDocument {
  */
 export class LocalCMSContentStore {
   private readonly baselineProducts: Record<string, Product>;
+  private readonly baselineArticles: Article[];
   private products: Record<string, Product>;
   private citations: Record<string, ResearchCitation>;
   private authors: Record<string, Author>;
@@ -48,6 +95,9 @@ export class LocalCMSContentStore {
     this.baselineProducts = seedFromDefaultCatalog
       ? structuredClone(PRODUCTS)
       : {};
+    this.baselineArticles = seedFromDefaultCatalog
+      ? structuredClone(ARTICLES)
+      : [];
     this.products = structuredClone(this.baselineProducts);
     this.citations = seedFromDefaultCatalog ? structuredClone(CITATIONS) : {};
     this.authors = seedFromDefaultCatalog ? structuredClone(AUTHORS) : {};
@@ -57,17 +107,144 @@ export class LocalCMSContentStore {
         : []
     );
     this.articles = new Map(
-      seedFromDefaultCatalog
-        ? structuredClone(ARTICLES).map((a) => [a.id, a])
-        : []
+      this.baselineArticles.map((a) => [a.id, structuredClone(a)])
     );
     this.siteSettings = {
       id: 'site_settings_singleton',
-      siteName: 'Science of Gifts',
-      siteOrigin: 'https://www.scienceofgifts.com',
-      defaultAffiliateDisclosure:
-        'Science of Gifts is reader-supported. When you buy through links on our site, we may earn an affiliate commission at no extra cost to you.',
+      siteName: DEFAULT_SITE_NAME,
+      siteOrigin: DEFAULT_SITE_ORIGIN,
+      defaultAffiliateDisclosure: DEFAULT_AFFILIATE_DISCLOSURE,
+      branding: {
+        logoAlt: DEFAULT_SITE_NAME,
+        logoDesktopHeight: DEFAULT_LOGO_DESKTOP_HEIGHT,
+        logoMobileHeight: DEFAULT_LOGO_MOBILE_HEIGHT,
+      },
     };
+  }
+
+  /**
+   * Synchronizes the singleton `siteSettings` (including custom Branding logo & sizing)
+   * from the strictly published Sanity Content Lake `siteSettings` document.
+   * When `rawSiteSettings` is `null` or `logo` is removed, cleanly resets back to defaults.
+   */
+  public applyPublishedSanitySiteSettings(
+    rawSiteSettings: Record<string, any> | null | undefined,
+    sanityEnv?: { projectId?: string; dataset?: string }
+  ): SiteSettingsDocument {
+    if (!rawSiteSettings || typeof rawSiteSettings !== 'object') {
+      this.siteSettings = {
+        id: 'site_settings_singleton',
+        siteName: DEFAULT_SITE_NAME,
+        siteOrigin: DEFAULT_SITE_ORIGIN,
+        defaultAffiliateDisclosure: DEFAULT_AFFILIATE_DISCLOSURE,
+        branding: {
+          logoAlt: DEFAULT_SITE_NAME,
+          logoDesktopHeight: DEFAULT_LOGO_DESKTOP_HEIGHT,
+          logoMobileHeight: DEFAULT_LOGO_MOBILE_HEIGHT,
+        },
+      };
+      return this.getSiteSettings();
+    }
+
+    const siteName =
+      typeof rawSiteSettings.siteName === 'string' && rawSiteSettings.siteName.trim()
+        ? rawSiteSettings.siteName.trim()
+        : DEFAULT_SITE_NAME;
+    const siteOrigin =
+      typeof rawSiteSettings.siteOrigin === 'string' &&
+      rawSiteSettings.siteOrigin.trim().startsWith('https://')
+        ? rawSiteSettings.siteOrigin.trim()
+        : DEFAULT_SITE_ORIGIN;
+    const defaultAffiliateDisclosure =
+      typeof rawSiteSettings.defaultAffiliateDisclosure === 'string' &&
+      rawSiteSettings.defaultAffiliateDisclosure.trim()
+        ? rawSiteSettings.defaultAffiliateDisclosure.trim()
+        : DEFAULT_AFFILIATE_DISCLOSURE;
+
+    const rawLogo =
+      rawSiteSettings.logo && typeof rawSiteSettings.logo === 'object'
+        ? rawSiteSettings.logo
+        : null;
+    const assetRef =
+      typeof rawLogo?.asset?._ref === 'string'
+        ? rawLogo.asset._ref.trim()
+        : typeof rawLogo?.asset?.asset?._ref === 'string'
+        ? rawLogo.asset.asset._ref.trim()
+        : undefined;
+    const expandedLogoUrl =
+      sanitizeBrandingLogoUrl(rawSiteSettings.logoUrl) ||
+      sanitizeBrandingLogoUrl(rawLogo?.asset?.url) ||
+      sanitizeBrandingLogoUrl(rawLogo?.url);
+    const resolvedLogoUrl =
+      expandedLogoUrl ||
+      (assetRef
+        ? sanitizeBrandingLogoUrl(
+            resolveSanityImageUrlFromAssetRef(assetRef, sanityEnv)
+          )
+        : undefined);
+
+    const rawDims =
+      rawSiteSettings.logoDimensions &&
+      typeof rawSiteSettings.logoDimensions === 'object'
+        ? rawSiteSettings.logoDimensions
+        : rawLogo?.asset?.metadata?.dimensions &&
+          typeof rawLogo.asset.metadata.dimensions === 'object'
+        ? rawLogo.asset.metadata.dimensions
+        : null;
+    const logoDimensions: SiteBrandingDimensions | undefined =
+      resolvedLogoUrl &&
+      rawDims &&
+      typeof rawDims.width === 'number' &&
+      rawDims.width > 0 &&
+      typeof rawDims.height === 'number' &&
+      rawDims.height > 0
+        ? {
+            width: Math.round(rawDims.width),
+            height: Math.round(rawDims.height),
+            aspectRatio:
+              typeof rawDims.aspectRatio === 'number' && rawDims.aspectRatio > 0
+                ? rawDims.aspectRatio
+                : rawDims.width / rawDims.height,
+          }
+        : undefined;
+
+    const logoMimeType =
+      resolvedLogoUrl && typeof rawSiteSettings.logoMimeType === 'string'
+        ? rawSiteSettings.logoMimeType.trim()
+        : resolvedLogoUrl && typeof rawLogo?.asset?.mimeType === 'string'
+        ? rawLogo.asset.mimeType.trim()
+        : undefined;
+
+    const logoAlt =
+      typeof rawSiteSettings.logoAlt === 'string' && rawSiteSettings.logoAlt.trim()
+        ? rawSiteSettings.logoAlt.trim()
+        : siteName;
+
+    this.siteSettings = {
+      id: 'site_settings_singleton',
+      siteName,
+      siteOrigin,
+      defaultAffiliateDisclosure,
+      branding: {
+        logoUrl: resolvedLogoUrl,
+        logoAlt,
+        logoDesktopHeight: clampBrandingHeight(
+          rawSiteSettings.logoDesktopHeight,
+          18,
+          56,
+          DEFAULT_LOGO_DESKTOP_HEIGHT
+        ),
+        logoMobileHeight: clampBrandingHeight(
+          rawSiteSettings.logoMobileHeight,
+          16,
+          44,
+          DEFAULT_LOGO_MOBILE_HEIGHT
+        ),
+        logoMimeType,
+        logoDimensions,
+      },
+    };
+    return this.getSiteSettings();
   }
 
   /**
@@ -96,6 +273,36 @@ export class LocalCMSContentStore {
       merged[sanityProduct.id] = structuredClone(sanityProduct);
     }
     this.products = merged;
+  }
+
+  /**
+   * Merges published Sanity Content Lake articles over the local reference baseline.
+   * Published Sanity articles authoritatively override any matching baseline article
+   * by canonical `id` or `slug`, while drafts (`status === 'draft'`) are strictly excluded.
+   */
+  public applyPublishedSanityArticles(sanityArticles: Article[]): void {
+    const merged = new Map<string, Article>(
+      this.baselineArticles.map((a) => [a.id, structuredClone(a)])
+    );
+    for (const sanityArticle of sanityArticles) {
+      if (
+        !sanityArticle ||
+        !sanityArticle.id ||
+        sanityArticle.status === 'draft'
+      ) {
+        continue;
+      }
+      for (const [existingKey, existingArt] of Array.from(merged.entries())) {
+        if (
+          existingArt.id === sanityArticle.id ||
+          (sanityArticle.slug && existingArt.slug === sanityArticle.slug)
+        ) {
+          merged.delete(existingKey);
+        }
+      }
+      merged.set(sanityArticle.id, structuredClone(sanityArticle));
+    }
+    this.articles = merged;
   }
 
   public upsertProduct(product: Product): Product {

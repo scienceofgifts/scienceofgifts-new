@@ -46,6 +46,7 @@ import {
   convertLocalProductToSanityDraft,
   normalizeSanityProductDocumentBackwardCompatible,
 } from './productDocumentMapper';
+import { normalizeSanityArticleDocumentBackwardCompatible } from './articleDocumentMapper';
 import { invalidateSanityPublishedCache } from '../sanityPublishedLoader';
 import type { Product } from '../../types/content';
 
@@ -420,9 +421,20 @@ export function validateSanityDraftBeforeServerMutation(
     status: 'draft',
   };
 
-  const normalizedDoc =
+  const normalizedDoc: Record<string, any> & {
+    _id: string;
+    _type: string;
+    status: 'draft';
+  } =
     rawType === 'product'
       ? normalizeSanityProductDocumentBackwardCompatible(baseNormalizedDoc)
+      : rawType === 'article'
+      ? {
+          ...normalizeSanityArticleDocumentBackwardCompatible(baseNormalizedDoc),
+          _id: normalizedDraftId,
+          _type: 'article',
+          status: 'draft' as const,
+        }
       : baseNormalizedDoc;
 
   const primaryTitle =
@@ -979,6 +991,8 @@ export async function listDraftsFromSanityContentLake(
       ? data.result.map((d: any) =>
           d && d._type === 'product'
             ? normalizeSanityProductDocumentBackwardCompatible(d)
+            : d && d._type === 'article'
+            ? normalizeSanityArticleDocumentBackwardCompatible(d)
             : d
         )
       : [];
@@ -1012,6 +1026,8 @@ export async function fetchDocumentFromSanityContentLake(
   const doc = data?.result ?? null;
   return doc && doc._type === 'product'
     ? normalizeSanityProductDocumentBackwardCompatible(doc)
+    : doc && doc._type === 'article'
+    ? normalizeSanityArticleDocumentBackwardCompatible(doc)
     : doc;
 }
 
@@ -2242,6 +2258,8 @@ export async function listPublishedDocumentsFromSanityContentLake(
     ? data.result.map((d: any) =>
         d && d._type === 'product'
           ? normalizeSanityProductDocumentBackwardCompatible(d)
+          : d && d._type === 'article'
+          ? normalizeSanityArticleDocumentBackwardCompatible(d)
           : d
       )
     : [];
@@ -3195,5 +3213,645 @@ export async function deleteDisposableTestProductFromSanity(
     message: `Deleted disposable test fixture documents (${idsToDelete.join(', ')}).`,
   };
 }
+
+// =============================================================================
+// ARTICLE PUBLISH, UNPUBLISH & LIFECYCLE WORKFLOW (SANITY <-> ASTRO)
+// =============================================================================
+
+export interface PublishArticleResult {
+  ok: boolean;
+  status: number;
+  transactionId?: string;
+  publishedDocument?: Record<string, any> | null;
+  removedDraftId?: string;
+  lifecycle?: ReturnType<typeof evaluateEditorialDocumentLifecycle>;
+  blockers?: Array<{ path: string; message: string }>;
+  warnings?: Array<{ path: string; message: string }>;
+  livePath?: string;
+  blockerCode?: string;
+  persistedDocument?: Record<string, any> | null;
+  message: string;
+}
+
+export interface UnpublishArticleResult {
+  ok: boolean;
+  status: number;
+  transactionId?: string;
+  draftDocument?: Record<string, any> | null;
+  unpublishedId?: string;
+  removedPublishedId?: string;
+  alreadyUnpublished?: boolean;
+  blockerCode?: string;
+  persistedDocument?: Record<string, any> | null;
+  message: string;
+}
+
+export async function listPublishedArticlesFromSanityContentLake(
+  envOverride?: Record<string, string | undefined>
+): Promise<Array<Record<string, any> & { _id: string; _type: 'article' }>> {
+  return (await listPublishedDocumentsFromSanityContentLake(
+    ['article'],
+    envOverride
+  )) as Array<Record<string, any> & { _id: string; _type: 'article' }>;
+}
+
+/**
+ * Fetches the strictly published singleton `siteSettings` document (`_id == "siteSettings"`,
+ * excluding `drafts.siteSettings`) with expanded logo asset URL and dimensions.
+ * Returns `null` when no `siteSettings` singleton has been published yet; throws on HTTP/network failure.
+ */
+export async function fetchPublishedSiteSettingsFromSanityContentLake(
+  envOverride?: Record<string, string | undefined>
+): Promise<(Record<string, any> & { _id: string; _type: 'siteSettings' }) | null> {
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return null;
+  }
+
+  const groq = encodeURIComponent(
+    `*[_type == "siteSettings" && _id == "siteSettings" && !(_id in path("drafts.**"))][0]{
+      ...,
+      "logoUrl": logo.asset->url,
+      "logoMimeType": logo.asset->mimeType,
+      "logoDimensions": logo.asset->metadata.dimensions
+    }`
+  );
+  const url = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/query/${creds.dataset}?query=${groq}&perspective=published`;
+
+  const headers: Record<string, string> = {};
+  if (creds.readToken) {
+    headers.Authorization = `Bearer ${creds.readToken}`;
+  }
+
+  let res: Response;
+  try {
+    res = await fetch(url, { headers });
+  } catch (err: any) {
+    throw new Error(
+      `Failed to reach Sanity Content Lake (${creds.projectId}/${creds.dataset}) while reading siteSettings: ${
+        err?.message ?? String(err)
+      }`
+    );
+  }
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    throw new Error(
+      `Sanity Content Lake siteSettings query returned HTTP ${res.status}: ${errText.slice(0, 240)}`
+    );
+  }
+
+  const data = await res.json();
+  return data?.result ?? null;
+}
+
+export async function fetchPublishedArticleFromSanityContentLake(
+  canonicalId: string,
+  envOverride?: Record<string, string | undefined>
+): Promise<Record<string, any> | null> {
+  const cleanId = String(canonicalId || '').trim().replace(/^drafts\./, '');
+  if (!cleanId) return null;
+
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) return null;
+
+  const query = encodeURIComponent(
+    '*[_id == $id && _type == "article" && !(_id in path("drafts.**"))][0]'
+  );
+  const idParam = encodeURIComponent(JSON.stringify(cleanId));
+  const url = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/query/${creds.dataset}?query=${query}&$id=${idParam}&perspective=published`;
+
+  const headers: Record<string, string> = {};
+  if (creds.readToken) {
+    headers.Authorization = `Bearer ${creds.readToken}`;
+  }
+
+  const res = await fetch(url, { headers });
+  if (!res.ok) {
+    return null;
+  }
+  const data = await res.json();
+  const doc = data?.result ?? null;
+  return doc && doc._type === 'article'
+    ? normalizeSanityArticleDocumentBackwardCompatible(doc)
+    : doc;
+}
+
+export function validateArticlePublishReadiness(doc: Record<string, any>): {
+  ready: boolean;
+  blockers: Array<{ path: string; message: string }>;
+  warnings: Array<{ path: string; message: string }>;
+  lifecycle: ReturnType<typeof evaluateEditorialDocumentLifecycle>;
+} {
+  const blockers: Array<{ path: string; message: string }> = [];
+  const warnings: Array<{ path: string; message: string }> = [];
+
+  const normalized = normalizeSanityArticleDocumentBackwardCompatible({
+    ...doc,
+    _id: String(doc.id || doc._id || '').replace(/^drafts\./, ''),
+    status: 'published',
+  });
+
+  if (!normalized.title || normalized.title === 'Untitled Editorial Story') {
+    blockers.push({
+      path: 'title',
+      message: 'A real article title is required before publishing.',
+    });
+  }
+  if (!normalized.slug?.current) {
+    blockers.push({
+      path: 'slug',
+      message: 'A valid URL slug is required before publishing.',
+    });
+  }
+  if (!Array.isArray(normalized.sections) || normalized.sections.length === 0) {
+    blockers.push({
+      path: 'sections',
+      message: 'At least one article content section is required before publishing.',
+    });
+  }
+
+  const lifecycle = evaluateEditorialDocumentLifecycle(normalized);
+  for (const b of lifecycle.blockingErrors) {
+    blockers.push({ path: '_lifecycle', message: b });
+  }
+  for (const w of lifecycle.warnings) {
+    warnings.push({ path: '_lifecycle', message: w });
+  }
+
+  return {
+    ready: blockers.length === 0,
+    blockers,
+    warnings,
+    lifecycle,
+  };
+}
+
+/**
+ * Atomically publishes an `article` draft (`drafts.<id>`) to its canonical published
+ * Sanity document (`<id>`) with `status: 'published'`, deletes the consumed `drafts.<id>`,
+ * reads back via `perspective=published`, and invalidates the Astro Sanity cache.
+ */
+export async function publishArticleDraftInSanityContentLake(
+  input: {
+    document?: Record<string, any>;
+    canonicalId?: string;
+    draftId?: string;
+  },
+  envOverride?: Record<string, string | undefined>
+): Promise<PublishArticleResult> {
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'MISSING_PROJECT_OR_DATASET',
+      message: 'SANITY_STUDIO_PROJECT_ID or SANITY_STUDIO_DATASET is not configured.',
+    };
+  }
+  if (!creds.writeToken) {
+    return {
+      ok: false,
+      status: 403,
+      blockerCode: 'MISSING_WRITE_TOKEN',
+      message: 'Server-side SANITY_API_WRITE_TOKEN is required to publish articles.',
+    };
+  }
+
+  const rawIdCandidate =
+    input.canonicalId ||
+    input.document?.id ||
+    input.document?._id ||
+    input.draftId ||
+    '';
+  const canonicalId = String(rawIdCandidate).trim().replace(/^drafts\./, '');
+  if (!canonicalId || !/^art_[a-z0-9_]+$/.test(canonicalId)) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'INVALID_CANONICAL_ID',
+      message:
+        'A valid canonical article ID starting with "art_" is required to publish.',
+    };
+  }
+
+  const draftId = `drafts.${canonicalId}`;
+  const [existingDraft, existingPublished] = await Promise.all([
+    fetchDocumentFromSanityContentLake(draftId, envOverride),
+    fetchDocumentFromSanityContentLake(canonicalId, envOverride),
+  ]);
+
+  const sourceCandidate = input.document ?? existingDraft ?? existingPublished;
+  if (!sourceCandidate) {
+    return {
+      ok: false,
+      status: 404,
+      blockerCode: 'DRAFT_NOT_FOUND',
+      message: `Neither "${draftId}" nor "${canonicalId}" exists in Sanity Content Lake.`,
+    };
+  }
+
+  const normalized = normalizeSanityArticleDocumentBackwardCompatible({
+    ...sourceCandidate,
+    _id: canonicalId,
+    _type: 'article',
+    id: canonicalId,
+    status: 'published',
+  });
+
+  const readiness = validateArticlePublishReadiness(normalized);
+  if (!readiness.ready) {
+    return {
+      ok: false,
+      status: 422,
+      blockerCode: 'PUBLISH_VALIDATION_FAILED',
+      blockers: readiness.blockers,
+      warnings: readiness.warnings,
+      lifecycle: readiness.lifecycle,
+      message: `Publish validation blocked "${canonicalId}": ${
+        readiness.blockers[0]?.message || 'validation failed.'
+      }`,
+    };
+  }
+
+  const existingRefs = await resolveExistingSanityReferenceIds(normalized, creds);
+
+  const finalizePublishReferences = (val: any): any => {
+    if (Array.isArray(val)) return val.map(finalizePublishReferences);
+    if (val && typeof val === 'object') {
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(val)) {
+        out[k] = finalizePublishReferences(v);
+      }
+      if (out._type === 'reference' && typeof out._ref === 'string') {
+        if (out._ref.startsWith('image-') || existingRefs.has(out._ref)) {
+          delete out._weak;
+        } else {
+          out._weak = true;
+        }
+      }
+      return out;
+    }
+    return val;
+  };
+
+  const publishedPayload: Record<string, any> = {};
+  for (const [k, v] of Object.entries(normalized)) {
+    if (
+      k === '_id' ||
+      k === '_rev' ||
+      k === '_createdAt' ||
+      k === '_updatedAt' ||
+      k === '_clearFields' ||
+      k === 'aiAuthoringWorkspace'
+    ) {
+      continue;
+    }
+    if (v !== undefined) {
+      publishedPayload[k] = finalizePublishReferences(v);
+    }
+  }
+
+  publishedPayload._id = canonicalId;
+  publishedPayload._type = 'article';
+  publishedPayload.id = canonicalId;
+  publishedPayload.status = 'published';
+  if (publishedPayload.seo && typeof publishedPayload.seo === 'object') {
+    publishedPayload.seo = {
+      ...publishedPayload.seo,
+      indexing: 'index,follow',
+      noindex: false,
+    };
+  }
+
+  const mutations: Array<Record<string, any>> = [
+    { createOrReplace: publishedPayload },
+  ];
+  if (existingDraft) {
+    mutations.push({ delete: { id: draftId } });
+  }
+
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}?returnIds=true&returnDocuments=true`;
+  try {
+    const res = await fetch(mutateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${creds.writeToken}`,
+      },
+      body: JSON.stringify({ mutations }),
+    });
+
+    const bodyText = await res.text();
+    if (!res.ok) {
+      return {
+        ok: false,
+        status: res.status,
+        blockerCode: 'NETWORK_OR_API_ERROR',
+        message: `Sanity article publish transaction failed with HTTP ${res.status}: ${bodyText.slice(0, 260)}`,
+      };
+    }
+
+    let mutateJson: any = {};
+    try {
+      mutateJson = JSON.parse(bodyText);
+    } catch {}
+
+    const readBack = await fetchPublishedArticleFromSanityContentLake(
+      canonicalId,
+      envOverride
+    );
+    if (!readBack || readBack.status !== 'published') {
+      return {
+        ok: false,
+        status: 500,
+        transactionId: mutateJson.transactionId,
+        blockerCode: 'ROUND_TRIP_READ_MISMATCH',
+        message:
+          'Publish transaction succeeded, but the published article could not be read back with perspective=published.',
+      };
+    }
+
+    invalidateSanityPublishedCache();
+
+    const resolvedSlug =
+      typeof readBack.slug === 'string'
+        ? readBack.slug
+        : readBack.slug?.current ||
+          canonicalId.replace(/^art_/, '').replace(/_/g, '-');
+
+    return {
+      ok: true,
+      status: 200,
+      transactionId: mutateJson.transactionId,
+      publishedDocument: readBack,
+      removedDraftId: existingDraft ? draftId : undefined,
+      lifecycle: evaluateEditorialDocumentLifecycle(readBack),
+      warnings: readiness.warnings,
+      livePath: `/articles/${resolvedSlug}/`,
+      message: `Published article "${readBack.title}" (${canonicalId}) to Sanity Content Lake. Live at /articles/${resolvedSlug}/.`,
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      status: 500,
+      blockerCode: 'NETWORK_OR_API_ERROR',
+      message: `Network error publishing article to Sanity Content Lake: ${
+        err?.message ?? String(err)
+      }`,
+    };
+  }
+}
+
+/**
+ * Atomically unpublishes a live article (`<id>`) back to draft status (`drafts.<id>`),
+ * preserving all editorial sections, Portable Text, images, and SEO metadata while
+ * deleting the public document and invalidating the Sanity published cache.
+ */
+export async function unpublishArticleInSanityContentLake(
+  input: {
+    document?: Record<string, any>;
+    canonicalId?: string;
+  },
+  envOverride?: Record<string, string | undefined>
+): Promise<UnpublishArticleResult> {
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'MISSING_PROJECT_OR_DATASET',
+      message: 'SANITY_STUDIO_PROJECT_ID or SANITY_STUDIO_DATASET is not configured.',
+    };
+  }
+  if (!creds.writeToken) {
+    return {
+      ok: false,
+      status: 403,
+      blockerCode: 'MISSING_WRITE_TOKEN',
+      message: 'Server-side SANITY_API_WRITE_TOKEN is required to unpublish articles.',
+    };
+  }
+
+  const rawIdCandidate =
+    input.canonicalId || input.document?.id || input.document?._id || '';
+  const canonicalId = String(rawIdCandidate).trim().replace(/^drafts\./, '');
+  if (!canonicalId || !/^art_[a-z0-9_]+$/.test(canonicalId)) {
+    return {
+      ok: false,
+      status: 400,
+      blockerCode: 'INVALID_CANONICAL_ID',
+      message:
+        'A valid canonical article ID starting with "art_" is required to unpublish.',
+    };
+  }
+
+  const draftId = `drafts.${canonicalId}`;
+  const [existingDraft, existingPublished] = await Promise.all([
+    fetchDocumentFromSanityContentLake(draftId, envOverride),
+    fetchDocumentFromSanityContentLake(canonicalId, envOverride),
+  ]);
+
+  if (!existingPublished && !existingDraft) {
+    return {
+      ok: false,
+      status: 404,
+      blockerCode: 'ARTICLE_NOT_FOUND',
+      message: `Neither "${canonicalId}" nor "${draftId}" exists in Sanity Content Lake.`,
+    };
+  }
+
+  if (!existingPublished && existingDraft) {
+    invalidateSanityPublishedCache();
+    return {
+      ok: true,
+      status: 200,
+      draftDocument: existingDraft,
+      unpublishedId: canonicalId,
+      alreadyUnpublished: true,
+      message: `"${existingDraft.title || canonicalId}" is already unpublished (draft only).`,
+    };
+  }
+
+  const sourceDoc = input.document ?? existingDraft ?? existingPublished!;
+  const normalizedDraft = normalizeSanityArticleDocumentBackwardCompatible({
+    ...sourceDoc,
+    _id: draftId,
+    _type: 'article',
+    id: canonicalId,
+    status: 'draft',
+  });
+
+  const stripDraftMetadataAndNormalizeRefs = (val: any): any => {
+    if (Array.isArray(val)) return val.map(stripDraftMetadataAndNormalizeRefs);
+    if (val && typeof val === 'object') {
+      const out: Record<string, any> = {};
+      for (const [k, v] of Object.entries(val)) {
+        out[k] = stripDraftMetadataAndNormalizeRefs(v);
+      }
+      if (out._type === 'reference' && typeof out._ref === 'string') {
+        if (!out._ref.startsWith('image-')) {
+          out._weak = true;
+        }
+      }
+      return out;
+    }
+    return val;
+  };
+
+  const draftPayload: Record<string, any> = {};
+  for (const [k, v] of Object.entries(normalizedDraft)) {
+    if (
+      k === '_id' ||
+      k === '_rev' ||
+      k === '_createdAt' ||
+      k === '_updatedAt' ||
+      k === 'aiAuthoringWorkspace'
+    ) {
+      continue;
+    }
+    if (v !== undefined) {
+      draftPayload[k] = stripDraftMetadataAndNormalizeRefs(v);
+    }
+  }
+
+  draftPayload._id = draftId;
+  draftPayload._type = 'article';
+  draftPayload.id = canonicalId;
+  draftPayload.status = 'draft';
+
+  const mutations: Array<Record<string, any>> = [
+    { createOrReplace: draftPayload },
+    { delete: { id: canonicalId } },
+  ];
+
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}?returnIds=true&returnDocuments=true`;
+  try {
+    const res = await fetch(mutateUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${creds.writeToken}`,
+      },
+      body: JSON.stringify({ mutations }),
+    });
+
+    const bodyText = await res.text();
+    if (!res.ok) {
+      return {
+        ok: false,
+        status: res.status,
+        blockerCode: 'NETWORK_OR_API_ERROR',
+        message: `Sanity article unpublish transaction failed with HTTP ${res.status}: ${bodyText.slice(0, 260)}`,
+      };
+    }
+
+    let mutateJson: any = {};
+    try {
+      mutateJson = JSON.parse(bodyText);
+    } catch {}
+
+    const [draftReadBack, publishedReadBack] = await Promise.all([
+      fetchDocumentFromSanityContentLake(draftId, envOverride),
+      fetchPublishedArticleFromSanityContentLake(canonicalId, envOverride),
+    ]);
+
+    if (!draftReadBack || publishedReadBack !== null) {
+      return {
+        ok: false,
+        status: 500,
+        transactionId: mutateJson.transactionId,
+        blockerCode: 'ROUND_TRIP_READ_MISMATCH',
+        message:
+          'Unpublish transaction completed, but verification could not confirm draft preservation and published removal.',
+      };
+    }
+
+    invalidateSanityPublishedCache();
+
+    return {
+      ok: true,
+      status: 200,
+      transactionId: mutateJson.transactionId,
+      draftDocument: draftReadBack,
+      unpublishedId: canonicalId,
+      removedPublishedId: canonicalId,
+      message: `Unpublished "${draftReadBack.title || canonicalId}" from the public website and preserved all editorial content in Sanity draft "${draftId}".`,
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      status: 500,
+      blockerCode: 'NETWORK_OR_API_ERROR',
+      message: `Network error unpublishing article in Sanity Content Lake: ${
+        err?.message ?? String(err)
+      }`,
+    };
+  }
+}
+
+/**
+ * Strictly gated cleanup helper ONLY for disposable automated test articles.
+ * Refuses to touch real published editorial articles.
+ */
+export async function deleteDisposableTestArticleFromSanity(
+  canonicalOrDraftId: string,
+  envOverride?: Record<string, string | undefined>
+): Promise<{ ok: boolean; deletedIds: string[]; message: string }> {
+  const cleanId = String(canonicalOrDraftId || '')
+    .trim()
+    .replace(/^drafts\./, '');
+  if (
+    !/^art_(e2e_verify|test_disposable|sample_disposable)_[a-z0-9_]+$/.test(
+      cleanId
+    )
+  ) {
+    return {
+      ok: false,
+      deletedIds: [],
+      message: `Safety guard blocked deletion of non-disposable article ID "${canonicalOrDraftId}".`,
+    };
+  }
+
+  const creds = resolveSanityServerCredentials(envOverride);
+  if (!creds.projectId || !creds.dataset || !creds.writeToken) {
+    return {
+      ok: false,
+      deletedIds: [],
+      message: 'Missing Sanity credentials or write token.',
+    };
+  }
+
+  const idsToDelete = [`drafts.${cleanId}`, cleanId];
+  const mutateUrl = `https://${creds.projectId}.api.sanity.io/v${creds.apiVersion}/data/mutate/${creds.dataset}`;
+  const res = await fetch(mutateUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${creds.writeToken}`,
+    },
+    body: JSON.stringify({
+      mutations: idsToDelete.map((id) => ({ delete: { id } })),
+    }),
+  });
+
+  invalidateSanityPublishedCache();
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => '');
+    return {
+      ok: false,
+      deletedIds: [],
+      message: `Cleanup failed (HTTP ${res.status}): ${errText.slice(0, 200)}`,
+    };
+  }
+
+  return {
+    ok: true,
+    deletedIds: idsToDelete,
+    message: `Deleted disposable test article documents (${idsToDelete.join(', ')}).`,
+  };
+}
+
 
 

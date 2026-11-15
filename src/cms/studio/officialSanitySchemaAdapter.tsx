@@ -14,6 +14,7 @@ import {
 import { OFFICIAL_SANITY_STUDIO_TYPES } from './schemas';
 import { ExecutableSanityRule } from './sanityCore';
 import { OfficialSanityProductAiAuthoringInput } from '../../components/studio/OfficialSanityProductAiAuthoringInput';
+import { OfficialSanityArticleAiAuthoringInput } from '../../components/studio/OfficialSanityArticleAiAuthoringInput';
 
 const LUCIDE_ICON_MAP: Record<string, React.ComponentType<any>> = {
   Package,
@@ -157,7 +158,8 @@ function adaptSchemaNodeRecursively(node: any): any {
 /**
  * Translates `OFFICIAL_SANITY_STUDIO_TYPES` into official Sanity Studio (`sanity` v6)
  * schema definitions with React icon components, compatible validation rules, and attaches
- * the integrated `OfficialSanityProductAiAuthoringInput` workspace to the `product` document editor.
+ * the integrated `OfficialSanityProductAiAuthoringInput` and `OfficialSanityArticleAiAuthoringInput`
+ * workspaces to the `product` and `article` document editors.
  */
 export function buildOfficialSanitySchemaTypes(): any[] {
   return OFFICIAL_SANITY_STUDIO_TYPES.map((schemaSpec) => {
@@ -169,6 +171,16 @@ export function buildOfficialSanitySchemaTypes(): any[] {
         components: {
           ...adapted.components,
           input: OfficialSanityProductAiAuthoringInput,
+        },
+      };
+    }
+
+    if (adapted.name === 'article') {
+      return {
+        ...adapted,
+        components: {
+          ...adapted.components,
+          input: OfficialSanityArticleAiAuthoringInput,
         },
       };
     }
